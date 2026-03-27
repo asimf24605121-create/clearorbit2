@@ -1,0 +1,156 @@
+Act as a Senior Chrome Extension Engineer and Security Architect.
+
+We are building a Chrome Extension for a SaaS platform called:
+
+"ClearOrbit"
+
+This extension is responsible for securely injecting platform cookies into the browser to enable one-click login for users.
+
+========================
+🎯 OBJECTIVE
+============
+
+* User clicks "Login" button on dashboard
+* Extension receives platformId
+* Extension fetches cookie from server
+* Injects cookie into target domain (Udemy, Coursera, etc.)
+* Redirects user to logged-in session
+
+========================
+⚠️ IMPORTANT CONSTRAINTS
+========================
+
+* Must use Manifest V3
+* Must work in Developer Mode (Load unpacked)
+* Must be secure (no direct cookie exposure)
+* Must support Hostinger PHP backend APIs
+
+========================
+📁 FILE STRUCTURE
+=================
+
+/extension/
+manifest.json
+background.js
+content.js
+popup.html
+popup.js
+
+========================
+🔧 FEATURES TO IMPLEMENT
+========================
+
+1. 🔌 MESSAGE LISTENER
+
+* Listen for message from website:
+  window.postMessage({ platformId })
+
+2. 🌐 FETCH COOKIE FROM SERVER
+
+* API: /api/get_cookie.php
+* Send:
+
+  * platformId
+  * user session token
+
+3. 🔐 SECURITY
+
+* Do NOT expose raw cookie in logs
+* Use temporary memory only
+* Validate response
+
+4. 🍪 COOKIE INJECTION
+
+* Use chrome.cookies.set()
+* Set:
+
+  * domain
+  * name
+  * value
+  * path "/"
+  * secure true
+
+5. 🔁 REDIRECT USER
+
+* After cookie injection:
+  redirect to platform URL
+
+6. 💓 HEARTBEAT SYSTEM (VERY IMPORTANT)
+
+* Every 10 seconds:
+  send request to server:
+  /api/heartbeat.php
+
+* If response = "inactive":
+  DELETE all injected cookies immediately
+
+7. 🚫 ANTI-ABUSE
+
+* If extension disabled:
+  cookies should expire quickly (set short expiry)
+
+8. 🧠 PLATFORM MAPPING
+
+* Create JS object:
+
+const platforms = {
+1: { domain: ".udemy.com", url: "https://www.udemy.com/" },
+2: { domain: ".coursera.org", url: "https://www.coursera.org/" }
+};
+
+9. 🎨 POPUP UI
+
+* Simple popup:
+  "ClearOrbit Active"
+  "Status: Connected"
+  Button: "Force Sync"
+
+========================
+🔌 WEBSITE INTEGRATION
+======================
+
+In dashboard.html:
+
+function injectCookie(platformId) {
+window.postMessage({
+type: "CLEARORBIT_LOGIN",
+platformId: platformId
+}, "*");
+}
+
+========================
+🔐 BACKEND REQUIREMENTS
+=======================
+
+Create API: /api/get_cookie.php
+
+* Validate user session
+* Check active subscription
+* Fetch encrypted cookie
+* Decode (base64_decode)
+* Return cookie JSON
+
+========================
+🎯 OUTPUT REQUIRED
+==================
+
+Provide FULL code for:
+
+* manifest.json
+* background.js
+* content.js
+* popup.html
+* popup.js
+
+AND:
+
+* get_cookie.php
+* heartbeat.php
+
+Ensure:
+
+* Manifest V3 compatible
+* No pseudo code
+* Fully working
+
+If output too long, I will say "continue"

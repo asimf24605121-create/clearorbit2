@@ -1,0 +1,173 @@
+ROLE: Senior SaaS Architect + AI Systems Engineer
+
+TASK:
+Upgrade platform system into fully automated intelligent system with detection, branding, and health monitoring.
+
+---
+
+PART 1 — AUTO PLATFORM DETECTION (BASIC)
+
+When cookie is added:
+
+Extract domain:
+
+.netflix.com → Netflix
+.openai.com → ChatGPT
+.coursera.org → Coursera
+
+Clean name:
+
+remove .com/.org/.net
+capitalize properly
+
+---
+
+PART 2 — AI SMART DETECTION (ADVANCED)
+
+If domain unclear:
+
+Use cookie names to detect platform:
+
+Examples:
+
+Netflix cookies:
+
+* NetflixId
+* SecureNetflixId
+
+OpenAI:
+
+* __Secure-next-auth
+* _puid
+
+Coursera:
+
+* CSRF3-Token
+* CAUTH
+
+Create detection engine:
+
+if cookie contains:
+→ map to platform
+
+---
+
+PART 3 — PLATFORM AUTO-CREATE
+
+If platform NOT exists:
+
+INSERT:
+
+* name
+* domain
+* color (auto generate)
+* logo_url (auto fetch)
+
+---
+
+PART 4 — AUTO LOGO FETCH
+
+Use external service:
+
+Option 1:
+https://logo.clearbit.com/{domain}
+
+Option 2:
+Google favicon:
+https://www.google.com/s2/favicons?domain={domain}
+
+Fallback:
+default placeholder logo
+
+---
+
+PART 5 — PLATFORM HEALTH SYSTEM
+
+Add platform_status:
+
+ACTIVE
+WARNING
+DEAD
+
+---
+
+HEALTH LOGIC:
+
+1. If cookies fail verification → WARNING
+2. If repeated failure → DEAD
+3. If working → ACTIVE
+
+---
+
+PART 6 — HEALTH SCORE
+
+Add:
+
+health_score (0–100)
+
+Example:
+
+* valid cookie → 100
+* partial fail → 60
+* login fail → 20
+
+---
+
+PART 7 — UI IMPROVEMENT
+
+Show in UI:
+
+Platform Card:
+
+* Logo
+* Name
+* Status badge
+* Health bar
+
+---
+
+PART 8 — AUTO UPDATE
+
+When verify/recheck runs:
+
+→ update health_score
+→ update platform_status
+
+---
+
+PART 9 — INTELLIGENT FEATURES
+
+1. Auto detect duplicate platforms
+2. Merge similar domains
+3. Suggest platform names
+
+---
+
+PART 10 — DATABASE UPDATE
+
+platforms table:
+
+* id
+* name
+* domain
+* logo_url
+* color
+* health_score
+* status
+
+---
+
+OUTPUT:
+
+1. Fully automatic platform detection
+2. No manual setup required
+3. Smart health monitoring system
+4. Auto branding (logo + color)
+
+---
+
+GOAL:
+
+Transform platform system into intelligent, self-managing SaaS engine
+
+---

@@ -1,0 +1,148 @@
+Act as a Senior Frontend Engineer (UI/UX + Responsive SaaS Expert).
+
+I have a SaaS project ClearOrbit. I want you to convert the ENTIRE web app into a fully responsive, mobile-first, premium UI that works perfectly on:
+
+✔ Mobile (Android + iPhone)  
+✔ Tablet  
+✔ Desktop / Laptop  
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Make the FULL application responsive and modern WITHOUT breaking any existing logic.
+
+--------------------------------------
+📱 MOBILE-FIRST DESIGN
+--------------------------------------
+
+1. Use mobile-first CSS approach
+2. Ensure UI works perfectly on small screens (320px+)
+3. No horizontal scroll
+4. Touch-friendly buttons (min-height 44px)
+
+--------------------------------------
+📐 RESPONSIVE BREAKPOINTS
+--------------------------------------
+
+Implement:
+
+- Mobile: 320px – 768px  
+- Tablet: 768px – 1024px  
+- Desktop: 1024px+  
+
+--------------------------------------
+🎨 UI IMPROVEMENTS
+--------------------------------------
+
+1. Use modern SaaS design:
+   - Glassmorphism
+   - Soft shadows
+   - Gradient buttons
+   - Rounded cards (12px–16px)
+
+2. Improve spacing & alignment
+
+3. Use consistent typography (Inter / Poppins)
+
+--------------------------------------
+🧭 NAVIGATION (IMPORTANT)
+--------------------------------------
+
+Desktop:
+
+✔ Sidebar visible  
+
+Mobile:
+
+✔ Sidebar collapses into hamburger menu  
+✔ Slide-in drawer navigation  
+
+--------------------------------------
+📊 DASHBOARD CARDS
+--------------------------------------
+
+Desktop:
+
+✔ Grid (3–4 columns)
+
+Mobile:
+
+✔ Single column  
+✔ Cards stacked vertically  
+
+--------------------------------------
+🔘 BUTTONS & ACTIONS
+--------------------------------------
+
+✔ Full-width buttons on mobile  
+✔ Proper spacing between buttons  
+✔ No overflow  
+
+--------------------------------------
+📦 TABLES → MOBILE FIX
+--------------------------------------
+
+Convert tables into:
+
+✔ Scrollable horizontal  
+OR  
+✔ Card-based layout on mobile  
+
+--------------------------------------
+🧩 MODALS / POPUPS
+--------------------------------------
+
+✔ Full-screen modal on mobile  
+✔ Centered modal on desktop  
+
+--------------------------------------
+⚡ PERFORMANCE
+--------------------------------------
+
+✔ Optimize CSS  
+✔ Reduce unnecessary styles  
+✔ Use flex/grid properly  
+
+--------------------------------------
+🧠 UX IMPROVEMENTS
+--------------------------------------
+
+✔ Add loading states  
+✔ Add smooth transitions  
+✔ Add hover + active states  
+
+--------------------------------------
+🔐 KEEP INTACT
+--------------------------------------
+
+DO NOT break:
+
+✔ Login system  
+✔ Cookie injection  
+✔ API calls  
+✔ Subscription logic  
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Works on Android, iPhone, Tablet, PC  
+✔ Fully responsive UI  
+✔ Premium SaaS feel  
+✔ Clean and modern  
+✔ No layout breaking  
+
+--------------------------------------
+
+Upgrade ALL pages:
+
+- login page  
+- dashboard  
+- platforms page  
+- admin panel  
+- subscription pages  
+
+--------------------------------------
+
+DO NOT REBUILD LOGIC — ONLY IMPROVE UI/RESPONSIVENESS.

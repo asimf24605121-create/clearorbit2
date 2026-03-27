@@ -1,0 +1,74 @@
+Act as an Expert Full-Stack PHP Software Architect and UI/UX Designer. I am building a highly secure, premium 'Shared Access Management' platform (SaaS) for a Group Buy business model.
+
+Core Constraints:
+
+The application will be hosted on a standard Shared Hosting environment (Hostinger).
+
+Backend MUST be written in plain PHP 8.0+ (No Node.js, No Python).
+
+Database MUST be MySQL.
+
+Frontend MUST use standard HTML5, Vanilla JavaScript, and Tailwind CSS (via CDN) for a premium, sleek 'Dark Mode' UI.
+
+Code must be highly modular, secure against SQL injections (use PDO Prepared Statements), and ready for production.
+
+Generate the following complete file structure and their respective codes:
+
+1. DATABASE SCHEMA (database.sql)
+Write a comprehensive SQL script to create the following tables with relationships:
+
+users: id, username, password_hash, role ('admin', 'user'), is_active, device_id, created_at.
+
+platforms: id, name, logo_url, bg_color_hex.
+
+cookie_vault: id, platform_id, cookie_string, expires_at, updated_at.
+
+user_subscriptions: id, user_id, platform_id, start_date, end_date, is_active.
+Include dummy insert statements for an Admin user (password: 'admin123') and 2 platforms.
+
+2. BACKEND CONNECTION (db.php)
+
+Create a secure PDO MySQL connection script.
+
+Handle CORS headers allowing API requests.
+
+3. BACKEND APIs (Folder: /api/)
+Write the following separate PHP files returning clean JSON:
+
+api/login.php: Verify password. If role is 'user', check/save device_id (Device Lock feature). Start PHP session.
+
+api/admin_stats.php: Return total users, active subscriptions, and expiring cookies.
+
+api/add_subscription.php: Accept user_id, platform_id, duration_in_days. Calculate end_date and insert.
+
+api/get_dashboard.php: Fetch user's platforms. Calculate exact remaining time (Days, Hours, Mins) using PHP DateTime.
+
+4. FRONTEND - LOGIN PAGE (index.html)
+
+A visually stunning, centered login card with a dark glassmorphism effect.
+
+JS to capture browser fingerprint, send AJAX to api/login.php, and redirect based on role.
+
+5. FRONTEND - ADMIN PANEL (admin.html)
+
+Left sidebar navigation.
+
+Top row: 3 animated stat cards.
+
+Main area: Table to assign access (User, Platform, Days of Access).
+
+Section to update cookie_string for platforms.
+
+6. FRONTEND - USER DASHBOARD (dashboard.html)
+
+Premium Dark Mode aesthetics.
+
+Main Area: Responsive CSS Grid displaying 'Platform Cards'.
+
+Card Design: Platform Logo, Visual Countdown Timer, 'Click to Login' button.
+
+If expired: Gray out card, text "Access Expired", disable button.
+
+Add a global JS function injectCookie(platformId) attached to the 'Click to Login' buttons (console.log for now).
+
+Please provide the full code for all these files. If you reach your output limit, I will ask you to continue.

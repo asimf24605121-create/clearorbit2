@@ -1,0 +1,172 @@
+Act as a Senior PHP Backend Architect and SaaS Security Engineer.
+
+Build a **Role-Based Access Control (RBAC) system** for a SaaS platform (ClearOrbit) using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVE
+
+Create a multi-level admin system where different admin roles have different permissions.
+
+---
+
+## 👑 ROLES STRUCTURE
+
+1. Super Admin (Owner)
+
+   * Full access to everything
+   * Can create/delete admins
+   * Can assign roles
+   * Can manage users, subscriptions, cookies, platforms
+
+2. Co-Admin / Manager (Limited Admin)
+
+   * LIMITED ACCESS
+
+   * Can ONLY:
+
+     * Add users
+     * Delete users
+     * Reset user devices
+
+   * CANNOT:
+
+     * Access settings
+     * Access payments
+     * Access cookies
+     * Access pricing
+     * Access system configs
+
+---
+
+## 🔐 PERMISSION SYSTEM
+
+Implement strict permission control:
+
+* Every admin must have a role
+* Each role has specific permissions
+* Protect ALL admin routes
+
+Example:
+
+IF role != "super_admin":
+block access to:
+- /admin/settings.php
+- /admin/payments.php
+- /admin/cookies.php
+
+---
+
+## 🧱 DATABASE STRUCTURE
+
+admins table:
+
+* id
+* name
+* email
+* password
+* role (super_admin, manager)
+
+(optional advanced)
+
+permissions table (optional future scaling)
+
+---
+
+## 🔑 LOGIN SYSTEM
+
+* Admin login system
+* Store role in session
+* Example:
+  $_SESSION['admin_role']
+
+---
+
+## 🛡️ ACCESS CONTROL MIDDLEWARE
+
+Create a reusable function:
+
+checkAccess($required_role)
+
+Example:
+
+* If page requires super_admin:
+  → block manager
+
+Redirect unauthorized users to:
+
+"Access Denied Page"
+
+---
+
+## 👨‍💼 ADMIN PANEL UI
+
+1. Super Admin Dashboard:
+
+   * Full sidebar
+   * All sections visible
+
+2. Manager Dashboard:
+
+   * LIMITED sidebar:
+     ONLY show:
+
+     * Users Management
+
+   * Hide:
+
+     * Payments
+     * Settings
+     * Cookies
+     * Pricing
+
+---
+
+## ⚠️ SECURITY RULES
+
+* Do NOT rely only on UI hiding
+* Must enforce backend permission checks
+* Use sessions securely
+* Prevent direct URL access
+
+---
+
+## 🧠 ADVANCED FEATURES
+
+* Super Admin can:
+
+  * Create new admin
+  * Assign role (manager / co-admin)
+  * Delete admin
+
+* Add "Role Badge" in UI:
+
+  * Super Admin (green)
+  * Manager (blue)
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* admin_login.php
+* admin_dashboard.php
+* create_admin.php
+* middleware.php (access control)
+* users_management.php
+* access_denied.php
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+Build a professional admin system where:
+
+* Super Admin controls everything
+* Manager has limited access
+* Unauthorized access is blocked
+* UI + backend both secure
+
+Clean, scalable, production-ready RBAC system.

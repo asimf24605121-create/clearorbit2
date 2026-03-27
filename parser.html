@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <title>ClearOrbit &mdash; Session Intelligence Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/responsive.css"/>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:linear-gradient(135deg,#F0EEFF 0%,#E8F0FE 40%,#F5F3FF 100%);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+
+        .glass-header{background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.5)}
+        .gradient-text{background:linear-gradient(135deg,#4F46E5,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .glass-card{background:rgba(255,255,255,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.55);border-radius:1.25rem;box-shadow:0 8px 32px rgba(99,102,241,.08),0 1px 4px rgba(0,0,0,.04)}
+
+        .input-area{width:100%;min-height:150px;padding:1rem 1.25rem;border:2px solid rgba(209,213,219,.5);border-radius:1rem;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.8125rem;line-height:1.7;color:#1F2937;outline:none;transition:all .25s;background:rgba(255,255,255,.7);resize:vertical}
+        .input-area:focus{border-color:#6C5CE7;box-shadow:0 0 0 4px rgba(108,92,231,.1);background:#fff}
+        .input-area::placeholder{color:#9CA3AF;font-family:'Inter',sans-serif;font-size:.875rem}
+
+        .btn-primary{background:linear-gradient(135deg,#4F46E5,#6366F1);color:#fff;border:none;padding:.75rem 1.75rem;border-radius:.875rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .25s ease;box-shadow:0 2px 12px rgba(79,70,229,.25);display:inline-flex;align-items:center;gap:.5rem}
+        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(79,70,229,.35);filter:brightness(1.06)}
+        .btn-primary:active{transform:translateY(0)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+        .btn-success{background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;padding:.875rem 2rem;border-radius:.875rem;font-size:.9375rem;font-weight:700;cursor:pointer;transition:all .25s ease;box-shadow:0 4px 16px rgba(5,150,105,.3);display:inline-flex;align-items:center;gap:.625rem;letter-spacing:.01em}
+        .btn-success:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(5,150,105,.4);filter:brightness(1.06)}
+        .btn-success:active{transform:translateY(0)}
+        .btn-success:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+        .btn-secondary{background:rgba(255,255,255,.8);color:#4F46E5;border:1.5px solid rgba(99,102,241,.25);padding:.625rem 1.25rem;border-radius:.875rem;font-size:.8125rem;font-weight:600;cursor:pointer;transition:all .25s ease;display:inline-flex;align-items:center;gap:.5rem;backdrop-filter:blur(8px)}
+        .btn-secondary:hover{background:#fff;border-color:#6366F1;box-shadow:0 4px 16px rgba(99,102,241,.12);transform:translateY(-1px)}
+
+        .btn-danger{background:rgba(239,68,68,.08);color:#DC2626;border:1.5px solid rgba(239,68,68,.2);padding:.625rem 1.25rem;border-radius:.875rem;font-size:.8125rem;font-weight:600;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:.5rem}
+        .btn-danger:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4)}
+
+        .btn-amber{background:linear-gradient(135deg,#D97706,#F59E0B);color:#fff;border:none;padding:.75rem 1.75rem;border-radius:.875rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .25s ease;box-shadow:0 2px 12px rgba(217,119,6,.25);display:inline-flex;align-items:center;gap:.5rem}
+        .btn-amber:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(217,119,6,.35);filter:brightness(1.06)}
+        .btn-amber:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+        .tab-btn{padding:.5rem 1.25rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;color:#6B7280}
+        .tab-btn.active{background:linear-gradient(135deg,#4F46E5,#6366F1);color:#fff;box-shadow:0 2px 12px rgba(79,70,229,.25)}
+        .tab-btn:not(.active):hover{background:rgba(99,102,241,.08);color:#4F46E5}
+
+        .search-input{width:100%;padding:.625rem 1rem .625rem 2.5rem;border:1.5px solid rgba(209,213,219,.5);border-radius:.75rem;font-size:.8125rem;color:#1F2937;outline:none;transition:all .2s;background:rgba(255,255,255,.6)}
+        .search-input:focus{border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.1);background:#fff}
+
+        .data-table{width:100%;border-collapse:separate;border-spacing:0}
+        .data-table thead th{padding:.75rem 1rem;font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;background:rgba(249,250,251,.8);border-bottom:1px solid rgba(229,231,235,.7);position:sticky;top:0;z-index:1}
+        .data-table thead th:first-child{border-radius:.75rem 0 0 0}
+        .data-table thead th:last-child{border-radius:0 .75rem 0 0}
+        .data-table tbody tr{transition:background .15s}
+        .data-table tbody tr:hover{background:rgba(99,102,241,.03)}
+        .data-table tbody td{padding:.75rem 1rem;font-size:.8125rem;color:#374151;border-bottom:1px solid rgba(229,231,235,.4);vertical-align:top}
+        .data-table tbody tr:last-child td{border-bottom:none}
+        .data-table tbody tr.cookie-row{background:rgba(5,150,105,.04)}
+        .data-table tbody tr.cookie-row:hover{background:rgba(5,150,105,.08)}
+
+        .type-badge,.cat-badge{display:inline-flex;align-items:center;padding:.125rem .5rem;border-radius:.375rem;font-size:.6875rem;font-weight:600;letter-spacing:.02em}
+        .type-string{background:rgba(16,185,129,.08);color:#059669}
+        .type-boolean{background:rgba(245,158,11,.08);color:#D97706}
+        .type-number{background:rgba(59,130,246,.08);color:#2563EB}
+        .type-date{background:rgba(139,92,246,.08);color:#7C3AED}
+        .type-header{background:rgba(236,72,153,.08);color:#DB2777}
+        .type-cookie{background:rgba(5,150,105,.1);color:#047857}
+        .type-url{background:rgba(59,130,246,.1);color:#1D4ED8}
+        .type-token{background:rgba(245,158,11,.12);color:#B45309}
+
+        .cat-session{background:rgba(239,68,68,.08);color:#DC2626}
+        .cat-identity{background:rgba(236,72,153,.08);color:#DB2777}
+        .cat-account{background:rgba(99,102,241,.08);color:#4F46E5}
+        .cat-billing{background:rgba(245,158,11,.08);color:#D97706}
+        .cat-metadata{background:rgba(107,114,128,.08);color:#4B5563}
+        .cat-unknown{background:rgba(156,163,175,.08);color:#6B7280}
+
+        .pri-high{color:#DC2626;font-weight:700}
+        .pri-medium{color:#D97706;font-weight:600}
+        .pri-low{color:#6B7280}
+
+        .json-view{font-family:'JetBrains Mono','Fira Code',monospace;font-size:.8125rem;line-height:1.8;color:#E2E8F0;background:#1E1E2E;border-radius:1rem;padding:1.5rem;overflow-x:auto;max-height:500px;overflow-y:auto}
+        .json-key{color:#89B4FA}
+        .json-string{color:#A6E3A1}
+        .json-number{color:#F9E2AF}
+        .json-boolean{color:#F38BA8}
+        .json-null{color:#6C7086;font-style:italic}
+
+        .netscape-table{width:100%;border-collapse:separate;border-spacing:0;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.75rem}
+        .netscape-table thead th{padding:.5rem .75rem;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6366F1;background:rgba(99,102,241,.06);border-bottom:2px solid rgba(99,102,241,.15);white-space:nowrap}
+        .netscape-table tbody td{padding:.5rem .75rem;color:#374151;border-bottom:1px solid rgba(229,231,235,.3);white-space:nowrap}
+        .netscape-table tbody tr:hover{background:rgba(5,150,105,.04)}
+        .netscape-table .col-domain{color:#7C3AED;font-weight:600}
+        .netscape-table .col-flag,.netscape-table .col-secure{color:#059669}
+        .netscape-table .col-path{color:#6B7280}
+        .netscape-table .col-expiry{color:#D97706}
+        .netscape-table .col-name{color:#2563EB;font-weight:600}
+        .netscape-table .col-value{color:#047857;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+
+        .netscape-raw{font-family:'JetBrains Mono','Fira Code',monospace;font-size:.75rem;line-height:1.8;color:#A6E3A1;background:#1E1E2E;border-radius:.75rem;padding:1rem 1.25rem;overflow-x:auto;white-space:pre;max-height:200px;overflow-y:auto;margin-top:.75rem}
+
+        .stat-pill{display:inline-flex;align-items:center;gap:.375rem;padding:.375rem .875rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.8);border:1px solid rgba(229,231,235,.5);color:#374151}
+
+        .toast{position:fixed;bottom:2rem;right:2rem;padding:.875rem 1.5rem;border-radius:1rem;font-size:.8125rem;font-weight:600;color:#fff;z-index:9999;transform:translateY(120%);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;gap:.5rem;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+        .toast.show{transform:translateY(0);opacity:1}
+        .toast.success{background:linear-gradient(135deg,#059669,#10B981)}
+        .toast.error{background:linear-gradient(135deg,#DC2626,#EF4444)}
+        .toast.warning{background:linear-gradient(135deg,#D97706,#F59E0B)}
+
+        .empty-state{text-align:center;padding:3rem 1.5rem}
+        .empty-icon{width:4rem;height:4rem;border-radius:1.25rem;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+
+        .warning-banner{background:rgba(251,191,36,.06);border:1.5px solid rgba(251,191,36,.3);border-radius:1rem;padding:1rem 1.25rem;display:flex;align-items:start;gap:.75rem}
+        .warning-icon{width:2rem;height:2rem;border-radius:.625rem;background:rgba(251,191,36,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+        .cookie-card{background:linear-gradient(135deg,rgba(5,150,105,.04),rgba(16,185,129,.06));border:1.5px solid rgba(5,150,105,.15);border-radius:1rem;padding:1.25rem;transition:all .25s}
+        .cookie-card:hover{border-color:rgba(5,150,105,.3);box-shadow:0 4px 20px rgba(5,150,105,.08)}
+
+        .preview-panel{background:#1E1E2E;border-radius:1rem;border:1.5px solid rgba(99,102,241,.2);overflow:hidden;transition:all .3s}
+        .preview-header{background:rgba(99,102,241,.08);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:between;gap:.75rem;border-bottom:1px solid rgba(255,255,255,.06)}
+        .preview-body{padding:1rem 1.25rem;min-height:80px;max-height:200px;overflow-y:auto}
+        .preview-line{font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.9;color:#CDD6F4;display:flex;gap:.5rem;padding:.125rem 0}
+        .preview-line .pl-key{color:#89B4FA;min-width:160px;flex-shrink:0}
+        .preview-line .pl-sep{color:#6C7086}
+        .preview-line .pl-val{color:#A6E3A1;word-break:break-all}
+        .preview-line .pl-val.cookie-val{color:#F9E2AF}
+        .preview-line .pl-val.bool-val{color:#F38BA8}
+        .preview-line .pl-val.num-val{color:#FAB387}
+        .preview-line .pl-val.date-val{color:#CBA6F7}
+        .preview-empty{color:#6C7086;font-size:.8125rem;text-align:center;padding:1.5rem;font-style:italic}
+
+        .pulse-dot{width:8px;height:8px;border-radius:50%;background:#10B981;animation:pulse-glow 2s ease-in-out infinite}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+
+        .col-header-label{display:inline-flex;align-items:center;gap:.25rem}
+
+        .risk-bar{height:8px;border-radius:99px;background:#E5E7EB;overflow:hidden;position:relative}
+        .risk-bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+        .risk-low .risk-bar-fill{background:linear-gradient(90deg,#10B981,#34D399)}
+        .risk-medium .risk-bar-fill{background:linear-gradient(90deg,#F59E0B,#FBBF24)}
+        .risk-high .risk-bar-fill{background:linear-gradient(90deg,#EF4444,#F87171)}
+
+        .summary-kpi{display:flex;flex-direction:column;align-items:center;padding:.75rem;border-radius:.75rem;background:rgba(255,255,255,.6);border:1px solid rgba(229,231,235,.5);text-align:center;min-width:0}
+        .summary-kpi .kpi-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:.25rem}
+        .summary-kpi .kpi-value{font-size:.8rem;font-weight:700;color:#1F2937;word-break:break-all}
+        .summary-kpi .kpi-value.valid{color:#059669}
+        .summary-kpi .kpi-value.missing{color:#DC2626}
+
+        .ai-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.125rem .5rem;border-radius:999px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));color:#6366F1;border:1px solid rgba(99,102,241,.2)}
+
+        .format-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .625rem;border-radius:999px;font-size:.65rem;font-weight:600;background:rgba(99,102,241,.06);color:#6366F1;border:1px solid rgba(99,102,241,.15)}
+
+        .health-bar{height:10px;border-radius:99px;background:#E5E7EB;overflow:hidden;position:relative}
+        .health-bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+        .health-healthy .health-bar-fill{background:linear-gradient(90deg,#10B981,#34D399)}
+        .health-unstable .health-bar-fill{background:linear-gradient(90deg,#F59E0B,#FBBF24)}
+        .health-critical .health-bar-fill{background:linear-gradient(90deg,#EF4444,#F87171)}
+
+        .factor-row{display:flex;align-items:center;justify-content:space-between;padding:.375rem .5rem;border-radius:.5rem;font-size:.75rem;transition:background .15s}
+        .factor-row:hover{background:rgba(99,102,241,.04)}
+        .factor-positive{color:#059669}
+        .factor-negative{color:#DC2626}
+        .factor-neutral{color:#6B7280}
+
+        .tip-card{padding:.5rem .75rem;border-radius:.5rem;font-size:.75rem;border-left:3px solid;margin-bottom:.375rem}
+        .tip-critical{background:rgba(239,68,68,.04);border-color:#EF4444;color:#DC2626}
+        .tip-high{background:rgba(245,158,11,.04);border-color:#F59E0B;color:#B45309}
+        .tip-normal{background:rgba(99,102,241,.04);border-color:#6366F1;color:#4F46E5}
+        .tip-info{background:rgba(16,185,129,.04);border-color:#10B981;color:#059669}
+
+        .geo-flow{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+        .geo-node{display:flex;flex-direction:column;align-items:center;padding:.625rem 1rem;border-radius:.75rem;background:rgba(255,255,255,.7);border:1px solid rgba(229,231,235,.5);min-width:100px;text-align:center}
+        .geo-node .geo-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:.25rem}
+        .geo-node .geo-value{font-size:.85rem;font-weight:700;color:#1F2937}
+        .geo-arrow{font-size:1.25rem;color:#9CA3AF}
+        .geo-match-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .75rem;border-radius:999px;font-size:.7rem;font-weight:700}
+        .geo-match-ok{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2)}
+        .geo-match-fail{background:rgba(239,68,68,.1);color:#DC2626;border:1px solid rgba(239,68,68,.2)}
+        .geo-match-unknown{background:rgba(107,114,128,.08);color:#6B7280;border:1px solid rgba(107,114,128,.15)}
+
+        .cookie-score-ring{width:80px;height:80px;position:relative}
+        .cookie-score-ring svg{transform:rotate(-90deg)}
+        .cookie-score-ring .ring-bg{fill:none;stroke:#E5E7EB;stroke-width:6}
+        .cookie-score-ring .ring-fill{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .8s ease}
+        .cookie-score-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.875rem;font-weight:800;line-height:1}
+
+        .lifetime-badge{display:inline-flex;align-items:center;gap:.375rem;padding:.375rem .875rem;border-radius:999px;font-size:.75rem;font-weight:700}
+        .lifetime-high{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2)}
+        .lifetime-medium{background:rgba(245,158,11,.1);color:#B45309;border:1px solid rgba(245,158,11,.2)}
+        .lifetime-low{background:rgba(239,68,68,.1);color:#DC2626;border:1px solid rgba(239,68,68,.2)}
+
+        @media(max-width:768px){
+            .input-area{min-height:100px;font-size:.75rem}
+            .data-table tbody td,.data-table thead th{padding:.5rem .625rem;font-size:.75rem}
+            .json-view,.netscape-raw{font-size:.7rem;padding:1rem}
+            .action-grid{flex-direction:column}
+            .preview-line .pl-key{min-width:100px}
+            .netscape-table{font-size:.65rem}
+            .netscape-table thead th,.netscape-table tbody td{padding:.375rem .5rem}
+        }
+    </style>
+</head>
+<body>
+
+<header class="glass-header sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);box-shadow:0 3px 12px rgba(108,92,231,.3)">
+                <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M9 7v4M7 9h4"/></svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold gradient-text leading-tight">ClearOrbit</h1>
+                <p class="text-[.625rem] text-gray-400 font-medium -mt-0.5">Session Intelligence Engine</p>
+            </div>
+        </div>
+        <a href="/dashboard.html" class="btn-secondary text-xs py-2 px-3">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1l-6 6 6 6"/></svg>
+            Dashboard
+        </a>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <section class="glass-card p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-gray-900">Paste Box</h2>
+                    <span class="ai-badge">AI Detection</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-0.5">Paste any raw session data &mdash; pipe-delimited, emoji multi-line, raw cookies, or mixed formats</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="relative" id="sampleDropdown">
+                    <button onclick="toggleSampleMenu()" class="btn-secondary text-xs py-2 px-3">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h8v8H4z"/><path d="M2 2h8v8"/></svg>
+                        Sample
+                        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3l3 3 3-3"/></svg>
+                    </button>
+                    <div id="sampleMenu" class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <button onclick="loadSample('pipe')" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2">
+                            <span class="text-indigo-400">|</span> Pipe-Delimited
+                        </button>
+                        <button onclick="loadSample('multiline')" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2 border-t border-gray-50">
+                            <span class="text-indigo-400">\u{1F30D}</span> Emoji Multi-Line
+                        </button>
+                        <button onclick="loadSample('raw')" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2 border-t border-gray-50">
+                            <span class="text-indigo-400">\u{1F36A}</span> Raw Cookie String
+                        </button>
+                    </div>
+                </div>
+                <button onclick="clearAll()" class="btn-danger text-xs py-2 px-3">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="4" x2="10" y2="10"/><line x1="10" y1="4" x2="4" y2="10"/></svg>
+                    Clear
+                </button>
+            </div>
+        </div>
+        <textarea id="rawInput" class="input-area" placeholder="Paste your raw session string here...&#10;&#10;Supports any format:&#10;  ID:Pass | Key = Value | Key = Value ...&#10;  &#x1F30D; Country: Brazil&#10;  NetflixId=abc; SecureNetflixId=xyz" oninput="livePreview()"></textarea>
+
+        <div class="mt-4" id="livePreviewPanel">
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <div class="flex items-center gap-2">
+                        <div class="pulse-dot" id="previewDot" style="background:#6C7086;animation:none"></div>
+                        <span class="text-xs font-semibold text-gray-300" id="previewTitle">Live Preview</span>
+                    </div>
+                    <span class="text-[.6rem] text-gray-500 ml-auto" id="previewCount"></span>
+                </div>
+                <div class="preview-body" id="previewBody">
+                    <div class="preview-empty">Start typing or paste data to see a live preview...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
+            <div class="flex flex-wrap items-center gap-2 action-grid">
+                <button id="processBtn" onclick="processData()" class="btn-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 15 8 5 13 5 3"/></svg>
+                    Process Data
+                </button>
+                <button id="generateCookieBtn" onclick="generateWorkingCookie()" class="btn-success hidden">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H4a2 2 0 00-2 2v12l4-3h8a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
+                    Generate Working Cookie
+                </button>
+            </div>
+            <div id="statsBar" class="hidden flex flex-wrap items-center gap-2"></div>
+        </div>
+    </section>
+
+    <section id="outputSection" class="hidden space-y-6">
+
+        <div id="aiSummaryCard" class="hidden glass-card p-5">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)">
+                    <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+                </div>
+                <div>
+                    <p class="font-bold text-sm text-gray-800">AI Summary</p>
+                    <p class="text-[.6rem] text-gray-400">Intelligent field classification &amp; session analysis</p>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <span id="formatBadge" class="format-badge"></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3" id="summaryGrid"></div>
+        </div>
+
+        <div id="riskCard" class="hidden glass-card p-5">
+            <div class="flex items-center gap-2 mb-4">
+                <div id="riskIcon" class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#10B981,#34D399)">
+                    <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H4l-1 4h10l-1-4zM5 7v7M9 7v7M3 14h8"/></svg>
+                </div>
+                <div>
+                    <p class="font-bold text-sm text-gray-800">Session Risk Assessment</p>
+                    <p id="riskSubtext" class="text-[.6rem] text-gray-400">Evaluating cookie usability and geo-match</p>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <span id="riskLevelBadge" class="font-bold text-sm"></span>
+                </div>
+            </div>
+            <div class="mb-3" id="riskBarWrap">
+                <div class="risk-bar"><div class="risk-bar-fill" id="riskBarFill" style="width:0"></div></div>
+                <div class="flex justify-between mt-1">
+                    <span class="text-[.6rem] text-gray-400">Safe</span>
+                    <span class="text-[.65rem] font-bold" id="riskScoreLabel">0</span>
+                    <span class="text-[.6rem] text-gray-400">Risky</span>
+                </div>
+            </div>
+            <div id="riskGeo" class="flex flex-wrap gap-3 mb-3"></div>
+            <div id="riskFlags" class="space-y-1"></div>
+        </div>
+
+        <div id="warningBanner" class="hidden warning-banner">
+            <div class="warning-icon">
+                <svg width="16" height="16" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><line x1="8" y1="12" x2="8.01" y2="12"/></svg>
+            </div>
+            <div>
+                <p class="font-bold text-sm text-amber-800">AI Detection: No Valid Session Token Found</p>
+                <p id="warningMessage" class="text-xs text-amber-700 mt-0.5">No session cookie tokens (NetflixId, SecureNetflixId) were detected. The system cannot generate a working cookie file. Verify your source data is complete.</p>
+            </div>
+        </div>
+
+        <div id="errorBanner" class="hidden glass-card p-5 border-l-4 border-red-400">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="16" height="16" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="11" x2="8.01" y2="11"/></svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-sm text-red-700">Parse Error</p>
+                    <p id="errorMessage" class="text-xs text-red-600 mt-0.5"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultArea" class="hidden space-y-6">
+
+            <div class="glass-card overflow-hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-gray-100 gap-3">
+                    <div class="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
+                        <button class="tab-btn active" data-tab="table" onclick="switchTab('table')">
+                            <svg class="inline -mt-0.5 mr-1" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="1"/><line x1="2" y1="5" x2="11" y2="5"/><line x1="5" y1="2" x2="5" y2="11"/></svg>
+                            Table
+                        </button>
+                        <button class="tab-btn" data-tab="json" onclick="switchTab('json')">
+                            <svg class="inline -mt-0.5 mr-1" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 2 8 4 10"/><polyline points="9 6 11 8 9 10"/><line x1="7" y1="4" x2="6" y2="12"/></svg>
+                            JSON
+                        </button>
+                        <button class="tab-btn" data-tab="netscape" onclick="switchTab('netscape')">
+                            <svg class="inline -mt-0.5 mr-1" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v9H3z"/><path d="M6 3V1"/><path d="M5 6h3M5 8h2"/></svg>
+                            Netscape
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="extractCookiesOnly()" class="btn-secondary text-xs py-2 px-3" title="Copy only detected cookies">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1H4a1 1 0 00-1 1v8"/><rect x="5" y="3" width="7" height="9" rx="1"/></svg>
+                            Extract Cookies
+                        </button>
+                        <button onclick="copyCleanData()" class="btn-secondary text-xs py-2 px-3" title="Copy clean structured JSON">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="1"/><path d="M5 2V1h7a1 1 0 011 1v7h-1"/></svg>
+                            Copy Clean Data
+                        </button>
+                        <button id="downloadNetscapeBtn" onclick="downloadNetscapeCookie()" class="btn-amber text-xs py-2 px-3 hidden" title="Download Netscape cookie .txt file">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h8"/><path d="M7 1v7M4 5l3 3 3-3"/></svg>
+                            Download .txt
+                        </button>
+                        <button id="copyTokenBtn" onclick="copyLoginToken()" class="btn-secondary text-xs py-2 px-3 hidden" title="Copy nftoken from Direct Login URL" style="border-color:rgba(245,158,11,.3);color:#B45309">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="8" height="6" rx="1"/><path d="M5 5V3a2 2 0 014 0v2"/></svg>
+                            Copy Login Token
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tableView" class="p-4">
+                    <div class="relative mb-3">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="13" y2="13"/></svg>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search keys or values..." oninput="filterTable()"/>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-100" style="max-height:420px;overflow-y:auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-left w-8">#</th>
+                                    <th class="text-left">Key</th>
+                                    <th class="text-left">Raw Value</th>
+                                    <th class="text-left">Decoded Value</th>
+                                    <th class="text-left">Type</th>
+                                    <th class="text-left">Category</th>
+                                    <th class="text-left w-12">P</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="tableCount" class="text-[.6875rem] text-gray-400 mt-2 text-right"></p>
+                </div>
+
+                <div id="jsonView" class="p-4 hidden">
+                    <div class="json-view" id="jsonOutput"></div>
+                </div>
+
+                <div id="netscapeView" class="p-4 hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="pulse-dot"></div>
+                            <span class="text-xs font-semibold text-gray-600">Netscape Cookie Format &mdash; 7 Column Standard</span>
+                        </div>
+                        <span class="text-[.65rem] text-gray-400">Compatible with cookie importers &amp; browser extensions</span>
+                    </div>
+
+                    <div id="netscapeTableWrap" class="overflow-x-auto rounded-xl border border-gray-100">
+                        <table class="netscape-table">
+                            <thead>
+                                <tr>
+                                    <th><span class="col-header-label"><span style="color:#7C3AED">1</span> Domain</span></th>
+                                    <th><span class="col-header-label"><span style="color:#059669">2</span> Flag</span></th>
+                                    <th><span class="col-header-label"><span style="color:#6B7280">3</span> Path</span></th>
+                                    <th><span class="col-header-label"><span style="color:#059669">4</span> Secure</span></th>
+                                    <th><span class="col-header-label"><span style="color:#D97706">5</span> Expiration</span></th>
+                                    <th><span class="col-header-label"><span style="color:#2563EB">6</span> Name</span></th>
+                                    <th><span class="col-header-label"><span style="color:#047857">7</span> Value</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="netscapeTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="text-[.65rem] font-semibold text-gray-500 mb-1">Raw File Output:</p>
+                        <div class="netscape-raw" id="netscapeRaw"></div>
+                    </div>
+                    <p class="text-[.65rem] text-gray-400 mt-2">Import this file using EditThisCookie, Cookie-Editor, or any Netscape-format cookie tool.</p>
+                </div>
+            </div>
+
+            <div id="cookieCard" class="cookie-card hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#059669,#10B981);box-shadow:0 3px 12px rgba(5,150,105,.2)">
+                            <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H4a2 2 0 00-2 2v12l4-3h8a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-gray-800">Working Cookie Ready</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Cookies URL-decoded and formatted for browser injection</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="extractCookiesOnly()" class="btn-secondary text-xs py-2 px-3">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 1H4a1 1 0 00-1 1v8"/><rect x="5" y="3" width="7" height="9" rx="1"/></svg>
+                            Copy
+                        </button>
+                        <button onclick="downloadNetscapeCookie()" class="btn-amber text-xs py-2 px-3">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11h8"/><path d="M7 1v7M4 5l3 3 3-3"/></svg>
+                            Download .txt
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4" id="cookieSummary"></div>
+            </div>
+
+            <div id="geoCard" class="hidden glass-card p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#2563EB,#3B82F6)">
+                        <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2a10 10 0 014 6 10 10 0 01-4 6 10 10 0 01-4-6 10 10 0 014-6z"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Geo Intelligence</p>
+                        <p class="text-[.6rem] text-gray-400">Country matching, region analysis &amp; VPN recommendation</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span id="geoMatchBadge" class="geo-match-badge geo-match-unknown">Unknown</span>
+                    </div>
+                </div>
+                <div class="geo-flow mb-4" id="geoFlowViz"></div>
+                <div id="geoRecommendation" class="hidden tip-card tip-normal"></div>
+                <div id="geoRiskDetail" class="text-xs text-gray-500 mt-2"></div>
+            </div>
+
+            <div id="sessionHealthCard" class="hidden glass-card p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#10B981,#34D399)">
+                        <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l3-3 2 2 4-4 2 2"/><rect x="1" y="1" width="14" height="14" rx="2"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Session Health Indicator</p>
+                        <p id="healthSubtext" class="text-[.6rem] text-gray-400">Stability analysis &amp; lifetime estimation</p>
+                    </div>
+                    <div class="ml-auto flex items-center gap-2">
+                        <span id="healthStatusBadge" class="font-bold text-sm"></span>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[.65rem] font-semibold text-gray-500">Health Score</span>
+                            <span id="healthScoreLabel" class="text-sm font-bold">0/100</span>
+                        </div>
+                        <div id="healthBarWrap" class="health-healthy">
+                            <div class="health-bar"><div class="health-bar-fill" id="healthBarFill" style="width:0"></div></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="lifetimeBadge" class="lifetime-badge lifetime-medium">--</div>
+                    </div>
+                </div>
+                <div id="healthFactors" class="space-y-1 mb-4"></div>
+                <div id="keepAliveInfo" class="hidden p-3 rounded-lg" style="background:rgba(99,102,241,.04);border:1px solid rgba(99,102,241,.1)">
+                    <p class="text-[.65rem] font-bold text-indigo-600 uppercase tracking-wider mb-1">Keep-Alive Configuration</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="keepAliveGrid"></div>
+                </div>
+            </div>
+
+            <div id="cookieIntelCard" class="hidden glass-card p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#D97706,#F59E0B)">
+                        <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H4a2 2 0 00-2 2v12l4-3h8a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Cookie Intelligence</p>
+                        <p class="text-[.6rem] text-gray-400">Smart scoring &amp; quality analysis</p>
+                    </div>
+                    <div class="ml-auto flex items-center gap-3">
+                        <div class="cookie-score-ring" id="cookieScoreRing">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                                <circle class="ring-fill" id="cookieRingFill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+                            </svg>
+                            <div class="cookie-score-label" id="cookieScoreValue">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="cookieQualityLabel" class="text-xs font-bold mb-3"></div>
+                <div id="cookieBreakdown" class="space-y-1"></div>
+            </div>
+
+            <div id="stabilityCard" class="hidden glass-card p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)">
+                        <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8H4M8 4v8"/><circle cx="8" cy="8" r="7"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Stability Advisor</p>
+                        <p class="text-[.6rem] text-gray-400">Actionable tips for session longevity</p>
+                    </div>
+                </div>
+                <div id="stabilityTips" class="space-y-2"></div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="emptyState" class="glass-card">
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg width="24" height="24" fill="none" stroke="#6366F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6M9 12h4M9 15h5"/></svg>
+            </div>
+            <h3 class="text-sm font-bold text-gray-700">No Data Parsed Yet</h3>
+            <p class="text-xs text-gray-500 mt-1 max-w-md mx-auto">Paste any raw session data above &mdash; pipe-delimited, emoji multi-line, raw cookie strings, or mixed formats. The AI engine will auto-detect, classify, and score every field.</p>
+        </div>
+    </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const SAMPLE_PIPE = '7005506031:Manish@1 | Country = India \u{1F1EE}\u{1F1F3} | memberPlan = Basic | NetflixId = v%3D3%26m%3Dabc123%26e%3D1690000000 | SecureNetflixId = v%3D3%26s%3Dxyz789%26t%3Dsecure_token | MaxStreams = 2 | hasAds = false | isPrimary = true | isVerified = true | NextPaymentDate = 15-April-2026 | profileName = Manish_Premium | countryOfSignup = IN | memberSince = 01-January-2023 | showAllEpisodes = true | isAdultVerified = false | hdAvailable = true | canDownload = true | status = Active \u{2705} | Phone = +919876543210';
+
+const SAMPLE_MULTILINE = `\u{1F4E6} Account: Netflix Premium
+\u{1F464} Profile: Miguel_BR
+\u{1F30D} Country: Brazil \u{1F1E7}\u{1F1F7}
+\u{1F4E6} Plan: Premium 4K
+\u{1F4C5} Renewal Date: 28-March-2026
+\u{260E}\u{FE0F} Phone: +5511987654321
+\u{1F4BB} Max Screens: 4
+\u{1F36A} Cookie: NetflixId=v%3D3%26ct%3DBgjH_abc123%26ch%3DAQEAEAAe; SecureNetflixId=v%3D3%26mac%3DAQEAE_xyz789%26dt%3D1690000
+\u{1F517} Direct Login URL: https://www.netflix.com/autologin?nftoken=abc123def456_token_value&lnktrk=EMP
+\u{2705} Status: Active
+\u{1F512} Ads Free: true`;
+
+const SAMPLE_RAW = 'NetflixId=v%3D3%26ct%3DBgjH_abc123%26ch%3DAQEAEAAe; SecureNetflixId=v%3D3%26mac%3DAQEAE_xyz789%26dt%3D1690000';
+
+const COOKIE_FIELDS = ['NetflixId', 'SecureNetflixId'];
+const DATE_PATTERNS = ['date', 'since', 'expir', 'renew', 'payment', 'created', 'updated'];
+const MONTHS = {
+    january:0,february:1,march:2,april:3,may:4,june:5,
+    july:6,august:7,september:8,october:9,november:10,december:11,
+    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11
+};
+
+const CATEGORY_RULES = {
+    identity: ['name','email','phone','profile','user','owner','member'],
+    account: ['plan','country','since','status','region','signup','account','subscription','tier','type'],
+    billing: ['price','payment','billing','card','renew','cost','invoice','charge','expir'],
+    session: ['netflixid','securenetflixid','cookie','token','session','nftoken','auth','login'],
+    metadata: ['source','label','note','tag','icon','screen','stream','quality','download','ads','hd','verified','adult','episode','primary','max']
+};
+const FUZZY_MAP = {streams:'max_streams',maxstreams:'max_streams',quality:'video_quality',hdavailable:'hd_available',candownload:'can_download',hasads:'has_ads',adsfree:'ads_free',isprimary:'is_primary',isverified:'is_verified',isadultverified:'is_adult_verified',showallepisodes:'show_all_episodes',memberplan:'subscription_plan',membersince:'member_since',nextpaymentdate:'next_payment_date',renewaldate:'renewal_date',billingdate:'billing_date',profilename:'profile_name',countryofsignup:'country_of_signup',accountcredentials:'account_credentials',directloginurl:'direct_login_url'};
+
+let parsedData = null;
+let classifiedData = null;
+let hasCookieTokens = false;
+let loginToken = null;
+let detectedDomain = '.netflix.com';
+let riskData = null;
+let previewDebounce = null;
+
+function detectFormat(raw) {
+    const lines = raw.split('\n').filter(l => l.trim());
+    if (lines.length <= 1 && /^[A-Za-z_]\w*=/.test(raw.trim()) && !raw.includes('|')) {
+        const pairs = raw.trim().split(/;\s*/).filter(p => p.trim());
+        const cookieCount = pairs.filter(p => /^[A-Za-z_]\w*=/.test(p.trim())).length;
+        if (cookieCount >= 1 && cookieCount === pairs.length) return 'raw_cookie';
+    }
+    if (lines.length >= 2) {
+        const kvLines = lines.filter(l => /[A-Za-z].*[:=]/.test(l));
+        if (kvLines.length >= 2) return 'multiline';
+    }
+    return 'pipe';
+}
+
+function parseRawCookie(raw) {
+    const result = [];
+    const pairs = raw.trim().split(/;\s*/);
+    for (const pair of pairs) {
+        const p = pair.trim();
+        if (!p) continue;
+        const eqIdx = p.indexOf('=');
+        if (eqIdx === -1) continue;
+        const key = p.substring(0, eqIdx).trim();
+        const val = p.substring(eqIdx + 1).trim();
+        if (!key) continue;
+        let decoded = val.includes('%') ? (() => { try { return decodeURIComponent(val); } catch(_) { return val; } })() : val;
+        result.push({ key, rawValue: val, value: decoded, type: 'cookie' });
+    }
+    return result;
+}
+
+function parseMultiline(raw) {
+    const lines = raw.split('\n');
+    const result = [];
+    const lineRegex = /([A-Za-z][A-Za-z0-9 _]*?)\s*[:=]\s*(.+)$/;
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        const m = trimmed.match(lineRegex);
+        if (!m) continue;
+        let key = stripEmojis(m[1]).trim().replace(/\s+/g, '');
+        let rawValue = m[2].trim();
+        if (!key) continue;
+
+        if (key.toLowerCase() === 'cookie' || key.toLowerCase() === 'cookies') {
+            const pairs = rawValue.split(/;\s*/);
+            for (const pair of pairs) {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx === -1) continue;
+                const ck = pair.substring(0, eqIdx).trim();
+                const cv = pair.substring(eqIdx + 1).trim();
+                if (COOKIE_FIELDS.includes(ck)) {
+                    let decoded = cv.includes('%') ? (() => { try { return decodeURIComponent(cv); } catch(_) { return cv; } })() : cv;
+                    result.push({ key: ck, rawValue: cv, value: decoded, type: 'cookie' });
+                }
+            }
+            continue;
+        }
+
+        if (key.toLowerCase().includes('directloginurl') || key.toLowerCase().includes('loginurl') || key.toLowerCase() === 'directlogin') {
+            result.push({ key: 'DirectLoginURL', rawValue, value: rawValue, type: 'url' });
+            const nfMatch = rawValue.match(/[?&]nftoken=([^&\s]+)/i);
+            if (nfMatch) {
+                let tokenVal = nfMatch[1].includes('%') ? (() => { try { return decodeURIComponent(nfMatch[1]); } catch(_) { return nfMatch[1]; } })() : nfMatch[1];
+                result.push({ key: 'nftoken', rawValue: nfMatch[1], value: tokenVal, type: 'token' });
+            }
+            continue;
+        }
+
+        let decoded = rawValue.includes('%') ? (() => { try { return decodeURIComponent(rawValue); } catch(_) { return rawValue; } })() : rawValue;
+        let value = decoded;
+        let type = 'string';
+
+        if (COOKIE_FIELDS.includes(key)) { type = 'cookie'; }
+        else {
+            const stripped = stripEmojis(decoded);
+            const lower = stripped.toLowerCase();
+            if (lower === 'true' || lower === 'false') { value = lower === 'true'; type = 'boolean'; }
+            else if (isDateField(key)) { const d = normalizeDate(stripped); if (d) { value = d; type = 'date'; } }
+            else if (/^-?\d+$/.test(stripped) && stripped.length > 0 && stripped.length < 16 && !rawValue.trimStart().startsWith('+')) { value = parseInt(stripped, 10); type = 'number'; }
+        }
+        result.push({ key, rawValue, value, type });
+    }
+    return result;
+}
+
+function parsePipe(raw) {
+    const result = [];
+    let workStr = raw;
+    const headerMatch = workStr.match(/^(\d{5,}:[^\s|;=]+)/);
+    if (headerMatch) {
+        result.push({ key: 'AccountCredentials', rawValue: headerMatch[1], value: headerMatch[1], type: 'header' });
+        workStr = workStr.substring(headerMatch[0].length);
+    } else {
+        const altHeader = workStr.match(/^([^\s|;=]+:[^\s|;=]+)/);
+        if (altHeader && !/=/.test(altHeader[1])) {
+            result.push({ key: 'AccountCredentials', rawValue: altHeader[1], value: altHeader[1], type: 'header' });
+            workStr = workStr.substring(altHeader[0].length);
+        }
+    }
+    const kvRegex = /(?:^|[|;,\s])\s*([A-Za-z_][\w]*)\s*[=:]\s*([^|;,]*?)(?=\s*[|;,]|$)/g;
+    let match;
+    while ((match = kvRegex.exec(workStr)) !== null) {
+        let key = match[1].replace(/\s+/g, '');
+        let rawValue = match[2].trim();
+        let decoded = rawValue.includes('%') ? (() => { try { return decodeURIComponent(rawValue); } catch(_) { return rawValue; } })() : rawValue;
+        let value = decoded;
+        let type = 'string';
+        if (COOKIE_FIELDS.includes(key)) { type = 'cookie'; }
+        else {
+            const stripped = stripEmojis(decoded);
+            const lower = stripped.toLowerCase();
+            if (lower === 'true' || lower === 'false') { value = lower === 'true'; type = 'boolean'; }
+            else if (isDateField(key)) { const d = normalizeDate(stripped); if (d) { value = d; type = 'date'; } }
+            else if (/^-?\d+$/.test(stripped) && stripped.length > 0 && stripped.length < 16 && !rawValue.trimStart().startsWith('+')) { value = parseInt(stripped, 10); type = 'number'; }
+        }
+        result.push({ key, rawValue, value, type });
+    }
+    return result;
+}
+
+function universalParse(raw) {
+    raw = raw.trim();
+    if (!raw) return { error: 'Input is empty.' };
+
+    const format = detectFormat(raw);
+    let result;
+    if (format === 'raw_cookie') result = parseRawCookie(raw);
+    else if (format === 'multiline') result = parseMultiline(raw);
+    else result = parsePipe(raw);
+
+    loginToken = null;
+    const tokenItem = result.find(r => r.key === 'nftoken');
+    if (tokenItem) loginToken = tokenItem.value;
+
+    if (result.length === 0 || (result.length === 1 && result[0].type === 'header')) {
+        return { error: 'No key-value pairs detected. Check the format of your input.' };
+    }
+
+    return { data: result, format };
+}
+
+function classifyFields(fields) {
+    return fields.map(f => {
+        const lower = f.key.toLowerCase();
+        const cat = detectCategory(lower, f.type, f.value);
+        const pri = detectPriority(lower, f.type);
+        const snake = toSnakeCase(f.key);
+        return { ...f, category: cat, priority: pri, snake_key: snake };
+    }).sort((a, b) => {
+        const order = { high: 0, medium: 1, low: 2 };
+        return (order[a.priority] ?? 3) - (order[b.priority] ?? 3);
+    });
+}
+
+function detectCategory(lowerKey, type, value) {
+    if (type === 'cookie' || type === 'token' || type === 'url') return 'session';
+    if (type === 'header') return 'identity';
+    const valStr = typeof value === 'string' ? value : '';
+    if (valStr.includes('@') && valStr.includes('.')) return 'identity';
+    if (/^\+?\d{8,15}$/.test(valStr.replace(/[\s\-()]/g, ''))) return 'identity';
+    for (const [cat, patterns] of Object.entries(CATEGORY_RULES)) {
+        for (const p of patterns) { if (lowerKey.includes(p)) return cat; }
+    }
+    return 'unknown';
+}
+
+function detectPriority(lowerKey, type) {
+    if (type === 'cookie' || type === 'token' || type === 'url') return 'high';
+    const high = ['netflixid','securenetflixid','cookie','token','nftoken','session','auth','directloginurl','loginurl'];
+    const med = ['plan','country','email','phone','name','profile','status','account','subscription','member','credentials'];
+    for (const p of high) { if (lowerKey.includes(p)) return 'high'; }
+    for (const p of med) { if (lowerKey.includes(p)) return 'medium'; }
+    return 'low';
+}
+
+function toSnakeCase(key) {
+    const lower = key.toLowerCase();
+    if (FUZZY_MAP[lower]) return FUZZY_MAP[lower];
+    return key.replace(/([a-z])([A-Z])/g, '$1_$2').replace(/[\s\-]+/g, '_').toLowerCase().replace(/_+/g, '_').replace(/^_|_$/g, '');
+}
+
+function generateSummary(classified) {
+    const s = { account_name: null, country: null, plan: null, cookie_status: 'missing', has_login_url: false, total_fields: classified.length };
+    for (const f of classified) {
+        const lower = f.key.toLowerCase();
+        if ((f.type === 'header' || lower.includes('account') || lower.includes('profile') || lower.includes('name')) && !s.account_name) s.account_name = String(f.value);
+        if ((lower.includes('country') && !lower.includes('signup')) || lower.includes('region')) { if (!s.country) s.country = String(f.value); }
+        if (lower.includes('plan') || lower.includes('subscription') || lower.includes('tier')) { if (!s.plan) s.plan = String(f.value); }
+        if (f.key === 'NetflixId') s.cookie_status = 'valid';
+        if (f.type === 'url') s.has_login_url = true;
+    }
+    return s;
+}
+
+function calculateRisk(classified, userCountry) {
+    const cookies = {};
+    classified.filter(f => f.type === 'cookie').forEach(f => { cookies[f.key] = f.value; });
+    let score = 0;
+    const flags = [];
+    const hasNid = cookies.NetflixId && cookies.NetflixId.trim();
+    const hasSid = cookies.SecureNetflixId && cookies.SecureNetflixId.trim();
+
+    if (!hasNid) {
+        return { risk_score: 100, risk_level: 'HIGH', message: 'No valid session token found', emoji: '\u{274C}', geo: { account_country: 'unknown', user_country: userCountry || 'unknown', match: null }, flags: [{ type: 'critical', message: 'No NetflixId cookie — session invalid' }] };
+    }
+
+    score += 20;
+    flags.push({ type: 'info', message: 'NetflixId cookie detected' });
+    if (hasSid) { score -= 10; flags.push({ type: 'positive', message: 'SecureNetflixId present' }); }
+    else { score += 15; flags.push({ type: 'warning', message: 'SecureNetflixId missing' }); }
+
+    const summary = generateSummary(classified);
+    const acNorm = summary.country ? stripEmojis(summary.country).toLowerCase().trim() : null;
+    const usNorm = userCountry ? userCountry.toLowerCase().trim() : null;
+
+    if (acNorm && usNorm && acNorm !== usNorm) { score += 40; flags.push({ type: 'warning', message: `Geo mismatch: account=${acNorm}, you=${usNorm}` }); }
+    else if (acNorm && usNorm && acNorm === usNorm) { score -= 5; flags.push({ type: 'positive', message: `Geo match: ${acNorm}` }); }
+
+    if (hasNid && cookies.NetflixId.length < 20) { score += 20; flags.push({ type: 'warning', message: 'NetflixId appears too short' }); }
+
+    score = Math.max(0, Math.min(100, score));
+    let level, message, emoji;
+    if (score <= 30) { level = 'LOW'; message = 'Cookie should work normally'; emoji = '\u{2705}'; }
+    else if (score <= 60) { level = 'MEDIUM'; message = 'May require same region IP'; emoji = '\u{26A0}\u{FE0F}'; }
+    else { level = 'HIGH'; message = 'High chance of failure'; emoji = '\u{274C}'; }
+
+    return { risk_score: score, risk_level: level, message, emoji, geo: { account_country: acNorm || 'unknown', user_country: usNorm || 'unknown', match: (acNorm && usNorm) ? acNorm === usNorm : null }, flags };
+}
+
+function isDateField(key) { return DATE_PATTERNS.some(p => key.toLowerCase().includes(p)); }
+
+function normalizeDate(raw) {
+    raw = raw.trim();
+    let m = raw.match(/^(\d{1,2})[-\/](\w+)[-\/](\d{4})$/);
+    if (m) {
+        const day = m[1].padStart(2, '0');
+        const mon = MONTHS[m[2].toLowerCase()];
+        if (mon !== undefined) return `${m[3]}-${String(mon+1).padStart(2,'0')}-${day}`;
+        if (/^\d{1,2}$/.test(m[2])) return `${m[3]}-${m[2].padStart(2,'0')}-${day}`;
+    }
+    m = raw.match(/^(\w+)\s+(\d{1,2}),?\s*(\d{4})$/);
+    if (m) { const mon = MONTHS[m[1].toLowerCase()]; if (mon !== undefined) return `${m[3]}-${String(mon+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`; }
+    m = raw.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    return null;
+}
+
+function stripEmojis(str) {
+    return str.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FEFF}]|[\u{1F900}-\u{1F9FF}]|[\u{200D}\u{20E3}\u{FE0F}]|[\u{2702}-\u{27B0}]|[\u{E0020}-\u{E007F}]|[\u{2000}-\u{206F}]|[\u{2300}-\u{23FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
+}
+
+function livePreview() {
+    clearTimeout(previewDebounce);
+    previewDebounce = setTimeout(() => {
+        const raw = document.getElementById('rawInput').value;
+        const body = document.getElementById('previewBody');
+        const dot = document.getElementById('previewDot');
+        const title = document.getElementById('previewTitle');
+        const count = document.getElementById('previewCount');
+
+        if (!raw.trim()) {
+            body.innerHTML = '<div class="preview-empty">Start typing or paste data to see a live preview...</div>';
+            dot.style.background = '#6C7086'; dot.style.animation = 'none';
+            title.textContent = 'Live Preview'; count.textContent = '';
+            return;
+        }
+
+        const result = universalParse(raw);
+        if (result.error) {
+            body.innerHTML = `<div class="preview-empty" style="color:#F38BA8">${escapeHtml(result.error)}</div>`;
+            dot.style.background = '#F38BA8'; dot.style.animation = 'none';
+            title.textContent = 'Live Preview'; count.textContent = '';
+            return;
+        }
+
+        dot.style.background = '#10B981'; dot.style.animation = 'pulse-glow 2s ease-in-out infinite';
+        const formatLabels = { pipe: 'Pipe', multiline: 'Multi-Line', raw_cookie: 'Raw Cookie' };
+        title.textContent = `Live Preview (${formatLabels[result.format] || result.format})`;
+
+        const hasCookies = result.data.some(r => r.key === 'NetflixId');
+        const hasToken = result.data.some(r => r.key === 'nftoken');
+        let countParts = [`${result.data.length} fields`];
+        if (hasCookies) countParts.push('Cookies \u{2705}');
+        if (hasToken) countParts.push('Token \u{1F511}');
+        count.textContent = countParts.join(' \u2022 ');
+
+        let html = '';
+        for (const item of result.data) {
+            let valClass = '';
+            let displayVal = String(item.value);
+            if (item.type === 'cookie') valClass = 'cookie-val';
+            else if (item.type === 'boolean') { valClass = 'bool-val'; displayVal = item.value ? 'true' : 'false'; }
+            else if (item.type === 'number') valClass = 'num-val';
+            else if (item.type === 'date') valClass = 'date-val';
+            else if (item.type === 'url') valClass = 'cookie-val';
+            else if (item.type === 'token') valClass = 'num-val';
+            html += `<div class="preview-line"><span class="pl-key">${escapeHtml(item.key)}</span><span class="pl-sep">=</span><span class="pl-val ${valClass}">${escapeHtml(displayVal)}</span></div>`;
+        }
+
+        const cookieItems = result.data.filter(r => r.type === 'cookie');
+        if (cookieItems.length > 0) {
+            const expiry = Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60);
+            html += '<div style="border-top:1px solid rgba(255,255,255,.08);margin:.5rem 0;padding-top:.5rem">';
+            html += '<div style="font-size:.65rem;color:#89B4FA;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.375rem">Netscape Cookie Preview</div>';
+            for (const c of cookieItems) {
+                html += `<div class="preview-line" style="font-size:.7rem"><span style="color:#CBA6F7">${detectedDomain}</span><span class="pl-sep">&emsp;</span><span style="color:#A6E3A1">TRUE</span><span class="pl-sep">&emsp;</span><span style="color:#6C7086">/</span><span class="pl-sep">&emsp;</span><span style="color:#A6E3A1">TRUE</span><span class="pl-sep">&emsp;</span><span style="color:#FAB387">${expiry}</span><span class="pl-sep">&emsp;</span><span style="color:#89B4FA;font-weight:600">${escapeHtml(c.key)}</span><span class="pl-sep">&emsp;</span><span style="color:#F9E2AF;word-break:break-all">${escapeHtml(String(c.value))}</span></div>`;
+            }
+            html += '</div>';
+        } else if (result.data.length > 1) {
+            html += '<div style="border-top:1px solid rgba(255,255,255,.08);margin:.5rem 0;padding-top:.5rem"><div style="font-size:.7rem;color:#FAB387;font-style:italic">No cookie tokens detected yet</div></div>';
+        }
+
+        const tokenItem = result.data.find(r => r.key === 'nftoken');
+        if (tokenItem) {
+            html += '<div style="border-top:1px solid rgba(255,255,255,.08);margin:.5rem 0;padding-top:.5rem">';
+            html += '<div style="font-size:.65rem;color:#F9E2AF;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.375rem">\u{1F511} Login Token</div>';
+            html += `<div class="preview-line" style="font-size:.7rem"><span style="color:#F9E2AF;word-break:break-all">${escapeHtml(tokenItem.value)}</span></div></div>`;
+        }
+
+        body.innerHTML = html;
+    }, 150);
+}
+
+function processData() {
+    const raw = document.getElementById('rawInput').value;
+    const outputSection = document.getElementById('outputSection');
+    const errorBanner = document.getElementById('errorBanner');
+    const warningBanner = document.getElementById('warningBanner');
+    const resultArea = document.getElementById('resultArea');
+    const emptyState = document.getElementById('emptyState');
+
+    outputSection.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    warningBanner.classList.add('hidden');
+    document.getElementById('aiSummaryCard').classList.add('hidden');
+    document.getElementById('riskCard').classList.add('hidden');
+
+    const result = universalParse(raw);
+
+    if (result.error) {
+        parsedData = null; classifiedData = null; hasCookieTokens = false;
+        errorBanner.classList.remove('hidden');
+        resultArea.classList.add('hidden');
+        document.getElementById('errorMessage').textContent = result.error;
+        document.getElementById('statsBar').classList.add('hidden');
+        document.getElementById('generateCookieBtn').classList.add('hidden');
+        return;
+    }
+
+    parsedData = result.data;
+    classifiedData = classifyFields(parsedData);
+    errorBanner.classList.add('hidden');
+    resultArea.classList.remove('hidden');
+
+    hasCookieTokens = classifiedData.some(r => r.key === 'NetflixId');
+
+    if (!hasCookieTokens) {
+        warningBanner.classList.remove('hidden');
+        document.getElementById('cookieCard').classList.add('hidden');
+        document.getElementById('downloadNetscapeBtn').classList.add('hidden');
+        document.getElementById('generateCookieBtn').classList.add('hidden');
+    } else {
+        warningBanner.classList.add('hidden');
+        document.getElementById('generateCookieBtn').classList.remove('hidden');
+        document.getElementById('downloadNetscapeBtn').classList.remove('hidden');
+    }
+
+    document.getElementById(loginToken ? 'copyTokenBtn' : 'copyTokenBtn').classList.toggle('hidden', !loginToken);
+
+    detectedDomain = detectDomainFromFields(classifiedData);
+
+    renderAISummary(classifiedData, result.format);
+    renderRisk(classifiedData);
+    renderTable(classifiedData);
+    renderJSON(classifiedData);
+    renderNetscape(classifiedData);
+    renderStats(classifiedData);
+    renderIntelligencePanels(classifiedData);
+    showToast(`AI parsed ${classifiedData.length} field${classifiedData.length !== 1 ? 's' : ''} successfully`, 'success');
+}
+
+function detectDomainFromFields(fields) {
+    for (const f of fields) {
+        if (f.type === 'url' && typeof f.value === 'string') {
+            try { const u = new URL(f.value); return '.' + u.hostname.replace(/^www\./, ''); } catch(_) {}
+        }
+    }
+    for (const f of fields) {
+        if (typeof f.value === 'string') {
+            const m = f.value.match(/https?:\/\/([^\/\s?]+)/);
+            if (m) return '.' + m[1].replace(/^www\./, '');
+        }
+    }
+    return '.netflix.com';
+}
+
+function renderAISummary(classified, format) {
+    const card = document.getElementById('aiSummaryCard');
+    const grid = document.getElementById('summaryGrid');
+    const formatBadge = document.getElementById('formatBadge');
+
+    const summary = generateSummary(classified);
+
+    const formatLabels = { pipe: '\u{1F4E6} Pipe', multiline: '\u{1F30D} Multi-Line', raw_cookie: '\u{1F36A} Raw Cookie' };
+    formatBadge.textContent = formatLabels[format] || format;
+
+    grid.innerHTML = '';
+
+    if (summary.account_name) {
+        grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Account</span><span class="kpi-value">${escapeHtml(summary.account_name)}</span></div>`;
+    }
+    if (summary.country) {
+        grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Country</span><span class="kpi-value">${escapeHtml(summary.country)}</span></div>`;
+    }
+    if (summary.plan) {
+        grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Plan</span><span class="kpi-value">${escapeHtml(summary.plan)}</span></div>`;
+    }
+
+    const statusClass = summary.cookie_status === 'valid' ? 'valid' : 'missing';
+    const statusLabel = summary.cookie_status === 'valid' ? '\u{2705} Valid' : '\u{274C} Missing';
+    grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Cookie Status</span><span class="kpi-value ${statusClass}">${statusLabel}</span></div>`;
+
+    grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Fields</span><span class="kpi-value">${summary.total_fields}</span></div>`;
+
+    if (summary.has_login_url) {
+        grid.innerHTML += `<div class="summary-kpi"><span class="kpi-label">Login URL</span><span class="kpi-value valid">\u{1F517} Detected</span></div>`;
+    }
+
+    card.classList.remove('hidden');
+}
+
+function renderRisk(classified) {
+    const card = document.getElementById('riskCard');
+
+    fetchUserCountry().then(userCountry => {
+        riskData = calculateRisk(classified, userCountry);
+        const r = riskData;
+
+        document.getElementById('riskScoreLabel').textContent = `${r.risk_score}/100`;
+        document.getElementById('riskBarFill').style.width = `${r.risk_score}%`;
+
+        const wrap = document.getElementById('riskBarWrap');
+        wrap.className = r.risk_level === 'LOW' ? 'mb-3 risk-low' : r.risk_level === 'MEDIUM' ? 'mb-3 risk-medium' : 'mb-3 risk-high';
+
+        const icon = document.getElementById('riskIcon');
+        if (r.risk_level === 'LOW') icon.style.background = 'linear-gradient(135deg,#10B981,#34D399)';
+        else if (r.risk_level === 'MEDIUM') icon.style.background = 'linear-gradient(135deg,#F59E0B,#FBBF24)';
+        else icon.style.background = 'linear-gradient(135deg,#EF4444,#F87171)';
+
+        const badge = document.getElementById('riskLevelBadge');
+        badge.textContent = `${r.emoji} ${r.risk_level}`;
+        badge.className = r.risk_level === 'LOW' ? 'font-bold text-sm text-emerald-600' : r.risk_level === 'MEDIUM' ? 'font-bold text-sm text-amber-600' : 'font-bold text-sm text-red-600';
+
+        document.getElementById('riskSubtext').textContent = r.message;
+
+        const geoEl = document.getElementById('riskGeo');
+        if (r.geo.account_country !== 'unknown' || r.geo.user_country !== 'unknown') {
+            geoEl.innerHTML = `
+                <div class="summary-kpi" style="flex:1"><span class="kpi-label">Account Country</span><span class="kpi-value">${escapeHtml(r.geo.account_country)}</span></div>
+                <div class="summary-kpi" style="flex:1"><span class="kpi-label">Your IP Country</span><span class="kpi-value">${escapeHtml(r.geo.user_country)}</span></div>
+                <div class="summary-kpi" style="flex:1"><span class="kpi-label">Geo Match</span><span class="kpi-value ${r.geo.match === true ? 'valid' : r.geo.match === false ? 'missing' : ''}">${r.geo.match === true ? '\u{2705} Match' : r.geo.match === false ? '\u{274C} Mismatch' : '\u{2753} Unknown'}</span></div>`;
+        } else {
+            geoEl.innerHTML = '';
+        }
+
+        const flagsEl = document.getElementById('riskFlags');
+        flagsEl.innerHTML = r.flags.map(f => {
+            const colors = { critical: 'text-red-600', warning: 'text-amber-600', positive: 'text-emerald-600', info: 'text-blue-600' };
+            const icons = { critical: '\u{274C}', warning: '\u{26A0}\u{FE0F}', positive: '\u{2705}', info: '\u{2139}\u{FE0F}' };
+            return `<div class="text-xs ${colors[f.type] || 'text-gray-500'}">${icons[f.type] || ''} ${escapeHtml(f.message)}</div>`;
+        }).join('');
+
+        card.classList.remove('hidden');
+    });
+}
+
+let _cachedUserCountry = undefined;
+function fetchUserCountry() {
+    if (_cachedUserCountry !== undefined) return Promise.resolve(_cachedUserCountry);
+    return fetch('https://ipapi.co/json/')
+        .then(r => r.json())
+        .then(d => { _cachedUserCountry = d.country_name || null; return _cachedUserCountry; })
+        .catch(() => { _cachedUserCountry = null; return null; });
+}
+
+function generateWorkingCookie() {
+    if (!classifiedData || !hasCookieTokens) { showToast('Cookie Token Missing - Check your Source', 'warning'); return; }
+    const cookieCard = document.getElementById('cookieCard');
+    cookieCard.classList.remove('hidden');
+    const summary = document.getElementById('cookieSummary');
+    const cookieItems = classifiedData.filter(r => r.type === 'cookie');
+    const creds = classifiedData.find(r => r.type === 'header');
+    summary.innerHTML = '';
+    if (creds) {
+        summary.innerHTML += `<div class="bg-white rounded-lg p-3 border border-gray-100"><p class="text-[.65rem] text-gray-400 font-semibold uppercase tracking-wider">Account</p><p class="text-sm font-bold text-gray-800 mt-1 font-mono">${escapeHtml(String(creds.value))}</p></div>`;
+    }
+    cookieItems.forEach(item => {
+        summary.innerHTML += `<div class="bg-white rounded-lg p-3 border border-emerald-100" style="background:rgba(5,150,105,.02)"><p class="text-[.65rem] text-emerald-600 font-semibold uppercase tracking-wider">${escapeHtml(item.key)}</p><p class="text-xs font-semibold text-emerald-700 mt-1 font-mono break-all">${escapeHtml(String(item.value))}</p></div>`;
+    });
+    const plan = classifiedData.find(r => r.key.toLowerCase().includes('plan'));
+    if (plan) summary.innerHTML += `<div class="bg-white rounded-lg p-3 border border-gray-100"><p class="text-[.65rem] text-gray-400 font-semibold uppercase tracking-wider">Plan</p><p class="text-sm font-bold text-gray-800 mt-1">${escapeHtml(String(plan.value))}</p></div>`;
+    const country = classifiedData.find(r => r.key.toLowerCase().includes('country') && !r.key.toLowerCase().includes('signup'));
+    if (country) summary.innerHTML += `<div class="bg-white rounded-lg p-3 border border-gray-100"><p class="text-[.65rem] text-gray-400 font-semibold uppercase tracking-wider">Region</p><p class="text-sm font-bold text-gray-800 mt-1">${escapeHtml(String(country.value))}</p></div>`;
+    switchTab('netscape');
+    cookieCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('Working cookie generated', 'success');
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    data.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.dataset.key = item.key.toLowerCase();
+        tr.dataset.value = String(item.value).toLowerCase();
+        if (item.type === 'cookie') tr.classList.add('cookie-row');
+
+        let displayValue;
+        if (typeof item.value === 'boolean') {
+            displayValue = item.value ? '<span class="text-emerald-600 font-semibold">true</span>' : '<span class="text-red-500 font-semibold">false</span>';
+        } else if (typeof item.value === 'number') {
+            displayValue = `<span class="font-semibold text-blue-600">${item.value}</span>`;
+        } else if (item.type === 'date') {
+            displayValue = `<span class="font-semibold text-purple-600">${item.value}</span>`;
+        } else if (item.type === 'cookie') {
+            displayValue = `<span class="font-semibold text-emerald-700 break-all">${escapeHtml(String(item.value))}</span>`;
+        } else if (item.type === 'url') {
+            const urlStr = String(item.value);
+            const isSafe = /^https?:\/\//i.test(urlStr);
+            displayValue = isSafe ? `<a href="${escapeHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-600 break-all hover:underline">${escapeHtml(urlStr)}</a>` : `<span class="font-semibold text-blue-600 break-all">${escapeHtml(urlStr)}</span>`;
+        } else if (item.type === 'token') {
+            displayValue = `<span class="font-semibold text-amber-600 break-all">${escapeHtml(String(item.value))}</span>`;
+        } else {
+            displayValue = escapeHtml(String(item.value));
+        }
+
+        const typeClass = `type-${item.type}`;
+        const typeLabel = item.type.charAt(0).toUpperCase() + item.type.slice(1);
+        const catClass = `cat-${item.category || 'unknown'}`;
+        const catLabel = (item.category || 'unknown').charAt(0).toUpperCase() + (item.category || 'unknown').slice(1);
+        const priClass = `pri-${item.priority || 'low'}`;
+        const priIcons = { high: '\u{25CF}', medium: '\u{25CB}', low: '\u{25CB}' };
+
+        const rawDisplay = item.rawValue !== String(item.value) ? `<span class="text-gray-400 text-xs break-all">${escapeHtml(item.rawValue)}</span>` : '<span class="text-gray-300 text-xs italic">same</span>';
+
+        tr.innerHTML = `
+            <td class="text-gray-400 font-mono text-xs">${idx + 1}</td>
+            <td class="font-semibold text-gray-800" style="font-family:'JetBrains Mono',monospace;font-size:.8rem">${escapeHtml(item.key)}</td>
+            <td style="max-width:200px;word-break:break-all">${rawDisplay}</td>
+            <td style="max-width:250px;word-break:break-all">${displayValue}</td>
+            <td><span class="type-badge ${typeClass}">${typeLabel}</span></td>
+            <td><span class="cat-badge ${catClass}">${catLabel}</span></td>
+            <td class="${priClass}" title="${item.priority}">${priIcons[item.priority] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('tableCount').textContent = `${data.length} field${data.length !== 1 ? 's' : ''} auto-detected \u{2022} sorted by priority`;
+}
+
+function renderJSON(data) {
+    const structured = {};
+    const cats = {};
+    data.forEach(item => {
+        const cat = item.category || 'unknown';
+        if (!cats[cat]) cats[cat] = {};
+        cats[cat][item.snake_key || item.key] = item.value;
+    });
+    const jsonStr = JSON.stringify(cats, null, 2);
+    document.getElementById('jsonOutput').innerHTML = syntaxHighlight(jsonStr);
+}
+
+function renderNetscape(data) {
+    const tbody = document.getElementById('netscapeTableBody');
+    const rawEl = document.getElementById('netscapeRaw');
+    const cookieItems = data.filter(r => r.type === 'cookie');
+
+    if (cookieItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#6B7280;padding:1.5rem;font-style:italic;font-family:Inter,sans-serif;font-size:.8rem">No cookie tokens found in input.</td></tr>`;
+        rawEl.textContent = '# No cookie tokens found in input.';
+        return;
+    }
+
+    const expiry = Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60);
+    const expiryDate = new Date(expiry * 1000).toISOString().split('T')[0];
+    tbody.innerHTML = '';
+    let rawLines = '# Netscape HTTP Cookie File\n# Generated by ClearOrbit Session Intelligence Engine\n# https://curl.se/docs/http-cookies.html\n\n';
+    cookieItems.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="col-domain">${escapeHtml(detectedDomain)}</td><td class="col-flag">TRUE</td><td class="col-path">/</td><td class="col-secure">TRUE</td><td class="col-expiry" title="${expiryDate}">${expiry}</td><td class="col-name">${escapeHtml(item.key)}</td><td class="col-value" title="${escapeHtml(String(item.value))}">${escapeHtml(String(item.value))}</td>`;
+        tbody.appendChild(tr);
+        rawLines += `${detectedDomain}\tTRUE\t/\tTRUE\t${expiry}\t${item.key}\t${item.value}\n`;
+    });
+    rawEl.textContent = rawLines;
+}
+
+function syntaxHighlight(json) {
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+        let cls = 'json-number';
+        if (/^"/.test(match)) cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        else if (/true|false/.test(match)) cls = 'json-boolean';
+        else if (/null/.test(match)) cls = 'json-null';
+        return `<span class="${cls}">${match}</span>`;
+    });
+}
+
+function renderStats(data) {
+    const bar = document.getElementById('statsBar');
+    const types = {};
+    data.forEach(item => { types[item.type] = (types[item.type] || 0) + 1; });
+    const icons = {
+        header: '<svg width="12" height="12" fill="none" stroke="#DB2777" stroke-width="2"><circle cx="6" cy="6" r="4"/></svg>',
+        string: '<svg width="12" height="12" fill="none" stroke="#059669" stroke-width="2"><path d="M3 4h6M3 6h4M3 8h5"/></svg>',
+        boolean: '<svg width="12" height="12" fill="none" stroke="#D97706" stroke-width="2"><polyline points="3 6 5 8 9 4"/></svg>',
+        number: '<svg width="12" height="12" fill="none" stroke="#2563EB" stroke-width="2"><path d="M4 3v6M7 3v6"/></svg>',
+        date: '<svg width="12" height="12" fill="none" stroke="#7C3AED" stroke-width="2"><rect x="2" y="3" width="8" height="7" rx="1"/><path d="M2 5h8"/></svg>',
+        cookie: '<svg width="12" height="12" fill="none" stroke="#047857" stroke-width="2"><circle cx="6" cy="6" r="4"/><circle cx="4" cy="5" r="1"/><circle cx="7" cy="7" r="1"/></svg>',
+        url: '<svg width="12" height="12" fill="none" stroke="#2563EB" stroke-width="2"><path d="M5 7a3 3 0 014 0"/><circle cx="6" cy="6" r="5"/></svg>',
+        token: '<svg width="12" height="12" fill="none" stroke="#D97706" stroke-width="2"><rect x="3" y="5" width="6" height="4" rx="1"/><path d="M4 5V3a2 2 0 014 0v2"/></svg>'
+    };
+    bar.innerHTML = Object.entries(types).map(([type, count]) => `<span class="stat-pill">${icons[type] || ''}${count} ${type}</span>`).join('');
+    bar.classList.remove('hidden');
+}
+
+function filterTable() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#tableBody tr');
+    let visible = 0;
+    rows.forEach(row => {
+        const match = row.dataset.key.includes(query) || row.dataset.value.includes(query);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('tableCount').textContent = `${visible} of ${rows.length} field${rows.length !== 1 ? 's' : ''} shown`;
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    document.getElementById('tableView').classList.toggle('hidden', tab !== 'table');
+    document.getElementById('jsonView').classList.toggle('hidden', tab !== 'json');
+    document.getElementById('netscapeView').classList.toggle('hidden', tab !== 'netscape');
+}
+
+function extractCookiesOnly() {
+    if (!classifiedData) return;
+    const cookies = {};
+    classifiedData.filter(r => r.type === 'cookie').forEach(r => { cookies[r.key] = r.value; });
+    if (!Object.keys(cookies).length) { showToast('No cookies detected', 'warning'); return; }
+    clipCopy(JSON.stringify(cookies, null, 2), 'Cookies extracted to clipboard');
+}
+
+function copyCleanData() {
+    if (!classifiedData) return;
+    const grouped = {};
+    classifiedData.forEach(item => {
+        const cat = item.category || 'unknown';
+        if (!grouped[cat]) grouped[cat] = {};
+        grouped[cat][item.snake_key || item.key] = item.value;
+    });
+    clipCopy(JSON.stringify(grouped, null, 2), 'Clean structured data copied');
+}
+
+function downloadNetscapeCookie() {
+    if (!classifiedData || !hasCookieTokens) { showToast('Cookie Token Missing - Check your Source', 'warning'); return; }
+    let content = '# Netscape HTTP Cookie File\n# Generated by ClearOrbit Session Intelligence Engine\n# https://curl.se/docs/http-cookies.html\n\n';
+    const expiry = Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60);
+    classifiedData.filter(r => r.type === 'cookie').forEach(item => {
+        content += `${detectedDomain}\tTRUE\t/\tTRUE\t${expiry}\t${item.key}\t${item.value}\n`;
+    });
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'cookies.txt';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('Netscape cookie file downloaded', 'success');
+}
+
+function clipCopy(text, msg) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg, 'success')).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showToast(msg, 'success'); } catch(_) { showToast('Copy failed', 'error'); }
+        document.body.removeChild(ta);
+    });
+}
+
+function toggleSampleMenu() {
+    const menu = document.getElementById('sampleMenu');
+    menu.classList.toggle('hidden');
+    const close = (e) => {
+        if (!document.getElementById('sampleDropdown').contains(e.target)) { menu.classList.add('hidden'); document.removeEventListener('click', close); }
+    };
+    if (!menu.classList.contains('hidden')) setTimeout(() => document.addEventListener('click', close), 0);
+}
+
+function loadSample(type) {
+    document.getElementById('sampleMenu').classList.add('hidden');
+    const samples = { pipe: SAMPLE_PIPE, multiline: SAMPLE_MULTILINE, raw: SAMPLE_RAW };
+    document.getElementById('rawInput').value = samples[type] || SAMPLE_PIPE;
+    livePreview();
+    const labels = { pipe: 'Pipe', multiline: 'Multi-Line', raw: 'Raw Cookie' };
+    showToast(`Sample loaded (${labels[type] || type})`, 'success');
+}
+
+function copyLoginToken() {
+    if (!loginToken) { showToast('No login token found', 'warning'); return; }
+    clipCopy(loginToken, 'Login token (nftoken) copied');
+}
+
+function clearAll() {
+    document.getElementById('rawInput').value = '';
+    document.getElementById('outputSection').classList.add('hidden');
+    document.getElementById('emptyState').classList.remove('hidden');
+    document.getElementById('statsBar').classList.add('hidden');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('generateCookieBtn').classList.add('hidden');
+    document.getElementById('cookieCard').classList.add('hidden');
+    document.getElementById('copyTokenBtn').classList.add('hidden');
+    document.getElementById('aiSummaryCard').classList.add('hidden');
+    document.getElementById('riskCard').classList.add('hidden');
+    document.getElementById('geoCard').classList.add('hidden');
+    document.getElementById('sessionHealthCard').classList.add('hidden');
+    document.getElementById('cookieIntelCard').classList.add('hidden');
+    document.getElementById('stabilityCard').classList.add('hidden');
+    parsedData = null; classifiedData = null; hasCookieTokens = false; loginToken = null; riskData = null;
+    livePreview();
+}
+
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    const icons = {
+        success: '<svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2"><polyline points="4 8 7 11 12 5"/></svg>',
+        error: '<svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="11" x2="8.01" y2="11"/></svg>',
+        warning: '<svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><line x1="8" y1="12" x2="8.01" y2="12"/></svg>'
+    };
+    toast.className = `toast ${type}`;
+    toast.innerHTML = (icons[type] || '') + message;
+    requestAnimationFrame(() => toast.classList.add('show'));
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+const COUNTRY_CODES = {india:'IN',brazil:'BR','united states':'US',usa:'US','united kingdom':'GB',uk:'GB',canada:'CA',australia:'AU',germany:'DE',france:'FR',japan:'JP','south korea':'KR',mexico:'MX',spain:'ES',italy:'IT',turkey:'TR',argentina:'AR',colombia:'CO',thailand:'TH',indonesia:'ID',philippines:'PH',pakistan:'PK',singapore:'SG',malaysia:'MY',vietnam:'VN',chile:'CL',peru:'PE',israel:'IL',uae:'AE','saudi arabia':'SA',russia:'RU','new zealand':'NZ',in:'IN',br:'BR',us:'US',gb:'GB',ca:'CA',au:'AU',de:'DE',fr:'FR',jp:'JP',kr:'KR',mx:'MX',es:'ES',it:'IT',tr:'TR',ar:'AR'};
+const REGION_MAP = {IN:'Asia',BR:'South America',US:'North America',GB:'Europe',CA:'North America',AU:'Oceania',DE:'Europe',FR:'Europe',JP:'Asia',KR:'Asia',MX:'North America',ES:'Europe',IT:'Europe',TR:'Europe',AR:'South America',CO:'South America',TH:'Asia',ID:'Asia',PH:'Asia',PK:'Asia',SG:'Asia',MY:'Asia',VN:'Asia',CL:'South America',PE:'South America',IL:'Middle East',AE:'Middle East',SA:'Middle East',RU:'Europe',NZ:'Oceania'};
+
+function toCountryCode(country) {
+    if (!country) return null;
+    const c = stripEmojis(country).toLowerCase().trim();
+    if (COUNTRY_CODES[c]) return COUNTRY_CODES[c];
+    if (c.length === 2) { const u = c.toUpperCase(); if (REGION_MAP[u]) return u; }
+    for (const [name, code] of Object.entries(COUNTRY_CODES)) {
+        if (c.includes(name) || name.includes(c)) return code;
+    }
+    return null;
+}
+
+function clientGeoAnalyze(accountCountry, userCountry) {
+    const acCode = toCountryCode(accountCountry);
+    const usCode = toCountryCode(userCountry);
+    const acRegion = acCode ? (REGION_MAP[acCode] || 'Unknown') : 'Unknown';
+    const usRegion = usCode ? (REGION_MAP[usCode] || 'Unknown') : 'Unknown';
+    const exactMatch = (acCode && usCode) ? acCode === usCode : null;
+    const regionMatch = (acRegion !== 'Unknown' && usRegion !== 'Unknown') ? acRegion === usRegion : null;
+
+    let geoRisk, recommendation;
+    if (!acCode || !usCode) { geoRisk = { level: 'unknown', score: 0, message: 'Insufficient geo data' }; }
+    else if (acCode === usCode) { geoRisk = { level: 'none', score: 0, message: 'Same country \u2014 optimal connection' }; }
+    else if (acRegion === usRegion) { geoRisk = { level: 'low', score: 15, message: `Same region (${acRegion}) \u2014 low risk` }; }
+    else { geoRisk = { level: 'high', score: 40, message: `Cross-region: ${acRegion} vs ${usRegion} \u2014 VPN recommended` }; }
+
+    if (exactMatch === true) { recommendation = { action: 'direct', vpn_needed: false, suggested_ip: null, message: 'Direct connection is safe \u2014 no VPN needed' }; }
+    else if (exactMatch === false) { recommendation = { action: 'vpn', vpn_needed: true, suggested_ip: acCode, message: `Use a ${acCode} IP address for best stability` }; }
+    else { recommendation = { action: 'unknown', vpn_needed: false, suggested_ip: null, message: 'Country data unavailable \u2014 use caution' }; }
+
+    return {
+        account: { country: accountCountry, country_code: acCode, region: acRegion },
+        user: { country: userCountry, country_code: usCode, region: usRegion },
+        match: { exact_country: exactMatch, same_region: regionMatch },
+        geo_risk: geoRisk,
+        recommendation: recommendation
+    };
+}
+
+function clientSessionHealth(cookies, classified, geoAnalysis) {
+    let score = 100;
+    const factors = [];
+    const hasNid = cookies.NetflixId && cookies.NetflixId.trim();
+    const hasSid = cookies.SecureNetflixId && cookies.SecureNetflixId.trim();
+
+    if (!hasNid) {
+        return { health_score: 0, status: 'critical', status_emoji: '\u{1F534}', status_label: 'Critical', factors: [{ factor: 'missing_primary', impact: -100, label: 'Primary session token missing' }] };
+    }
+    factors.push({ factor: 'has_primary', impact: 0, label: 'Primary session token present' });
+    if (hasSid) { factors.push({ factor: 'has_secure', impact: 0, label: 'Secure token present \u2014 dual-layer auth' }); }
+    else { score -= 15; factors.push({ factor: 'missing_secure', impact: -15, label: 'Secure token missing \u2014 single-layer auth' }); }
+    if (hasNid && cookies.NetflixId.length < 20) { score -= 20; factors.push({ factor: 'short_token', impact: -20, label: 'Token length below expected minimum' }); }
+    if (hasNid && cookies.NetflixId.length > 100) { factors.push({ factor: 'good_length', impact: 0, label: 'Token length is healthy' }); }
+
+    const hasUrl = classified.some(f => f.type === 'url');
+    if (hasUrl) { score += 5; factors.push({ factor: 'has_login_url', impact: 5, label: 'Direct login URL available \u2014 recovery option' }); }
+
+    if (geoAnalysis) {
+        const gr = geoAnalysis.geo_risk.score || 0;
+        if (gr > 0) { score -= gr; factors.push({ factor: 'geo_penalty', impact: -gr, label: geoAnalysis.geo_risk.message }); }
+        else if (geoAnalysis.match.exact_country === true) { score += 5; factors.push({ factor: 'geo_bonus', impact: 5, label: 'Same country \u2014 no geo risk' }); }
+    }
+
+    score = Math.max(0, Math.min(100, score));
+    let status, emoji, label;
+    if (score >= 80) { status = 'healthy'; emoji = '\u{1F7E2}'; label = 'Healthy'; }
+    else if (score >= 50) { status = 'unstable'; emoji = '\u{1F7E1}'; label = 'Unstable'; }
+    else { status = 'critical'; emoji = '\u{1F534}'; label = 'Critical'; }
+
+    return { health_score: score, status, status_emoji: emoji, status_label: label, factors };
+}
+
+function clientEstimateLifetime(healthScore, hasSecureId, geoMatch) {
+    let baseH = 48, mult = 1;
+    if (healthScore >= 80) mult = hasSecureId ? 3 : 2;
+    else if (healthScore >= 50) mult = hasSecureId ? 2 : 1.5;
+    if (geoMatch === true) mult *= 1.25;
+    else if (geoMatch === false) mult *= 0.6;
+    const est = Math.round(baseH * mult);
+    let level, lbl;
+    if (est >= 120) { level = 'HIGH'; lbl = `${est}h+ estimated remaining life`; }
+    else if (est >= 48) { level = 'MEDIUM'; lbl = `${est}h estimated remaining life`; }
+    else { level = 'LOW'; lbl = `${est}h estimated \u2014 replace soon`; }
+    return { level, estimated_hours: est, label: lbl };
+}
+
+function clientKeepAliveConfig(healthScore) {
+    let interval;
+    if (healthScore >= 80) interval = 600;
+    else if (healthScore >= 50) interval = 420;
+    else interval = 300;
+    const jitter = Math.round(interval * 0.2);
+    return { enabled: true, interval_sec: interval, jitter_sec: jitter, min_interval: interval - jitter, max_interval: interval + jitter, idle_multiplier: 2.0, max_retries: 3 };
+}
+
+function clientStabilityAdvice(healthScore, geoAnalysis) {
+    const tips = [];
+    if (healthScore < 40) tips.push({ priority: 'critical', tip: 'Session health is critical \u2014 consider obtaining a fresh cookie' });
+    if (geoAnalysis && geoAnalysis.recommendation.vpn_needed) {
+        tips.push({ priority: 'high', tip: `Use a ${geoAnalysis.recommendation.suggested_ip} IP/VPN for stable connection` });
+    }
+    tips.push({ priority: 'normal', tip: 'Keep browser activity within 5-10 minute intervals' });
+    tips.push({ priority: 'normal', tip: 'Avoid concurrent logins from multiple devices' });
+    tips.push({ priority: 'normal', tip: 'Do not clear browser cookies while session is active' });
+    if (healthScore >= 70) tips.push({ priority: 'info', tip: 'Session appears stable \u2014 normal usage is safe' });
+    return tips;
+}
+
+function clientCookieScore(cookies, classified, userCountry) {
+    let score = 0;
+    const breakdown = [];
+    const hasNid = !!(cookies.NetflixId && cookies.NetflixId.trim());
+    const hasSid = !!(cookies.SecureNetflixId && cookies.SecureNetflixId.trim());
+
+    if (hasNid) { score += 50; breakdown.push({ rule: 'has_netflix_id', points: 50, label: 'Has NetflixId' }); }
+    if (hasSid) { score += 20; breakdown.push({ rule: 'has_secure_id', points: 20, label: 'Has SecureNetflixId' }); }
+
+    let acCountry = null;
+    for (const f of classified) {
+        const lk = f.key.toLowerCase();
+        if ((lk.includes('country') && !lk.includes('signup')) || lk.includes('region')) {
+            acCountry = typeof f.value === 'string' ? f.value : null;
+            break;
+        }
+    }
+    if (userCountry && acCountry) {
+        const acN = stripEmojis(acCountry).toLowerCase().trim();
+        const usN = userCountry.toLowerCase().trim();
+        if (acN === usN) { score += 20; breakdown.push({ rule: 'geo_match', points: 20, label: 'Geo match' }); }
+        else { score -= 20; breakdown.push({ rule: 'geo_mismatch', points: -20, label: 'Geo mismatch' }); }
+    }
+    score = Math.max(0, Math.min(100, score));
+    let quality;
+    if (score >= 70) quality = 'excellent';
+    else if (score >= 50) quality = 'good';
+    else if (score >= 30) quality = 'fair';
+    else quality = 'poor';
+    return { cookie_score: score, quality, breakdown };
+}
+
+function renderIntelligencePanels(classified) {
+    try {
+        fetchUserCountry().then(userCountry => {
+            try {
+                const cookies = {};
+                classified.filter(f => f.type === 'cookie').forEach(f => { cookies[f.key] = f.value; });
+
+                const summary = generateSummary(classified);
+                const acCountry = summary.country || null;
+
+                const geo = clientGeoAnalyze(acCountry, userCountry);
+                renderGeoCard(geo);
+
+                const health = clientSessionHealth(cookies, classified, geo);
+                const hasSid = !!(cookies.SecureNetflixId && cookies.SecureNetflixId.trim());
+                const lifetime = clientEstimateLifetime(health.health_score, hasSid, geo.match.exact_country);
+                const keepAlive = clientKeepAliveConfig(health.health_score);
+                renderSessionHealthCard(health, lifetime, keepAlive);
+
+                const cookieScore = clientCookieScore(cookies, classified, userCountry);
+                renderCookieIntelCard(cookieScore);
+
+                const tips = clientStabilityAdvice(health.health_score, geo);
+                renderStabilityCard(tips);
+            } catch(_) {}
+        });
+    } catch(_) {}
+}
+
+function renderGeoCard(geo) {
+    const card = document.getElementById('geoCard');
+    const badge = document.getElementById('geoMatchBadge');
+    const flow = document.getElementById('geoFlowViz');
+    const recEl = document.getElementById('geoRecommendation');
+    const detailEl = document.getElementById('geoRiskDetail');
+
+    if (geo.match.exact_country === true) {
+        badge.className = 'geo-match-badge geo-match-ok';
+        badge.textContent = '\u{2705} Match';
+    } else if (geo.match.exact_country === false) {
+        badge.className = 'geo-match-badge geo-match-fail';
+        badge.textContent = '\u{274C} Mismatch';
+    } else {
+        badge.className = 'geo-match-badge geo-match-unknown';
+        badge.textContent = '\u{2753} Unknown';
+    }
+
+    flow.innerHTML = `
+        <div class="geo-node">
+            <span class="geo-label">Account</span>
+            <span class="geo-value">${escapeHtml(geo.account.country_code || '--')}</span>
+            <span class="text-[.6rem] text-gray-400 mt-0.5">${escapeHtml(geo.account.region)}</span>
+        </div>
+        <div class="geo-arrow">${geo.match.exact_country === true ? '\u{2705}' : geo.match.exact_country === false ? '\u{26A0}\u{FE0F}' : '\u{2194}\u{FE0F}'}</div>
+        <div class="geo-node">
+            <span class="geo-label">Your IP</span>
+            <span class="geo-value">${escapeHtml(geo.user.country_code || '--')}</span>
+            <span class="text-[.6rem] text-gray-400 mt-0.5">${escapeHtml(geo.user.region)}</span>
+        </div>
+        ${geo.match.same_region !== null ? `<div class="geo-node" style="border-color:${geo.match.same_region ? 'rgba(16,185,129,.3)' : 'rgba(239,68,68,.3)'}">
+            <span class="geo-label">Region</span>
+            <span class="geo-value">${geo.match.same_region ? '\u{2705} Same' : '\u{274C} Different'}</span>
+        </div>` : ''}
+    `;
+
+    if (geo.recommendation.message) {
+        recEl.classList.remove('hidden');
+        const tipClass = geo.recommendation.vpn_needed ? 'tip-high' : 'tip-info';
+        recEl.className = `tip-card ${tipClass}`;
+        recEl.innerHTML = `${geo.recommendation.vpn_needed ? '\u{1F30D} ' : '\u{2705} '}${escapeHtml(geo.recommendation.message)}`;
+    } else {
+        recEl.classList.add('hidden');
+    }
+
+    detailEl.textContent = geo.geo_risk.message;
+    card.classList.remove('hidden');
+}
+
+function renderSessionHealthCard(health, lifetime, keepAlive) {
+    const card = document.getElementById('sessionHealthCard');
+
+    document.getElementById('healthScoreLabel').textContent = `${health.health_score}/100`;
+    document.getElementById('healthBarFill').style.width = `${health.health_score}%`;
+    document.getElementById('healthBarWrap').className = `health-${health.status}`;
+
+    const badge = document.getElementById('healthStatusBadge');
+    badge.textContent = `${health.status_emoji} ${health.status_label}`;
+    const badgeColors = { healthy: 'text-emerald-600', unstable: 'text-amber-600', critical: 'text-red-600' };
+    badge.className = `font-bold text-sm ${badgeColors[health.status] || 'text-gray-600'}`;
+
+    document.getElementById('healthSubtext').textContent = lifetime.label;
+
+    const ltBadge = document.getElementById('lifetimeBadge');
+    ltBadge.textContent = `\u{23F1}\u{FE0F} ${lifetime.estimated_hours}h`;
+    ltBadge.className = `lifetime-badge lifetime-${lifetime.level.toLowerCase()}`;
+
+    const factorsEl = document.getElementById('healthFactors');
+    factorsEl.innerHTML = health.factors.map(f => {
+        const cls = f.impact > 0 ? 'factor-positive' : f.impact < 0 ? 'factor-negative' : 'factor-neutral';
+        const sign = f.impact > 0 ? '+' : '';
+        return `<div class="factor-row ${cls}"><span>${escapeHtml(f.label)}</span><span class="font-bold">${f.impact !== 0 ? sign + f.impact : '\u{2022}'}</span></div>`;
+    }).join('');
+
+    const kaGrid = document.getElementById('keepAliveGrid');
+    kaGrid.innerHTML = `
+        <div class="text-center"><p class="text-[.6rem] text-gray-400 font-semibold">Interval</p><p class="text-xs font-bold text-indigo-700">${keepAlive.min_interval}-${keepAlive.max_interval}s</p></div>
+        <div class="text-center"><p class="text-[.6rem] text-gray-400 font-semibold">Jitter</p><p class="text-xs font-bold text-indigo-700">\u{00B1}${keepAlive.jitter_sec}s</p></div>
+        <div class="text-center"><p class="text-[.6rem] text-gray-400 font-semibold">Idle \u{00D7}</p><p class="text-xs font-bold text-indigo-700">${keepAlive.idle_multiplier}x</p></div>
+        <div class="text-center"><p class="text-[.6rem] text-gray-400 font-semibold">Retries</p><p class="text-xs font-bold text-indigo-700">${keepAlive.max_retries}</p></div>
+    `;
+    document.getElementById('keepAliveInfo').classList.remove('hidden');
+
+    card.classList.remove('hidden');
+}
+
+function renderCookieIntelCard(cookieScore) {
+    const card = document.getElementById('cookieIntelCard');
+    const scoreVal = document.getElementById('cookieScoreValue');
+    const ringFill = document.getElementById('cookieRingFill');
+    const qualityLabel = document.getElementById('cookieQualityLabel');
+    const breakdownEl = document.getElementById('cookieBreakdown');
+
+    scoreVal.textContent = cookieScore.cookie_score;
+    const circumference = 213.6;
+    const offset = circumference - (cookieScore.cookie_score / 100) * circumference;
+    ringFill.style.strokeDashoffset = offset;
+
+    const ringColors = { excellent: '#10B981', good: '#3B82F6', fair: '#F59E0B', poor: '#EF4444' };
+    ringFill.style.stroke = ringColors[cookieScore.quality] || '#6B7280';
+
+    const qualityColors = { excellent: 'text-emerald-600', good: 'text-blue-600', fair: 'text-amber-600', poor: 'text-red-600' };
+    const qualityEmojis = { excellent: '\u{1F31F}', good: '\u{2705}', fair: '\u{26A0}\u{FE0F}', poor: '\u{274C}' };
+    qualityLabel.className = `text-xs font-bold mb-3 ${qualityColors[cookieScore.quality] || 'text-gray-600'}`;
+    qualityLabel.textContent = `${qualityEmojis[cookieScore.quality] || ''} Quality: ${cookieScore.quality.charAt(0).toUpperCase() + cookieScore.quality.slice(1)}`;
+
+    breakdownEl.innerHTML = cookieScore.breakdown.map(b => {
+        const cls = b.points > 0 ? 'factor-positive' : b.points < 0 ? 'factor-negative' : 'factor-neutral';
+        const sign = b.points > 0 ? '+' : '';
+        return `<div class="factor-row ${cls}"><span>${escapeHtml(b.label)}</span><span class="font-bold">${sign}${b.points}</span></div>`;
+    }).join('');
+
+    card.classList.remove('hidden');
+}
+
+function renderStabilityCard(tips) {
+    const card = document.getElementById('stabilityCard');
+    const tipsEl = document.getElementById('stabilityTips');
+
+    const priorityIcons = { critical: '\u{1F6A8}', high: '\u{26A0}\u{FE0F}', normal: '\u{1F4A1}', info: '\u{2705}' };
+
+    tipsEl.innerHTML = tips.map(t => {
+        return `<div class="tip-card tip-${t.priority}">${priorityIcons[t.priority] || '\u{2022}'} ${escapeHtml(t.tip)}</div>`;
+    }).join('');
+
+    card.classList.remove('hidden');
+}
+
+document.getElementById('rawInput').addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); processData(); }
+});
+</script>
+</body>
+</html>

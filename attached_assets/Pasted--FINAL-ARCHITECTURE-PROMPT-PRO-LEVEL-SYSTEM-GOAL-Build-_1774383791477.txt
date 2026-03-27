@@ -1,0 +1,200 @@
+🚀 FINAL ARCHITECTURE PROMPT (PRO LEVEL)
+🎯 SYSTEM GOAL
+
+Build a clean SaaS user management system where:
+
+Admin creates minimal user
+User completes profile from dashboard
+All data stays 100% synchronized (real-time DB source)
+No duplicate storage
+No data mismatch
+👨‍💼 ADMIN PANEL LOGIC
+➕ Add User (CREATE USER)
+
+Admin sirf yeh fields enter kare:
+
+username ✅ (required)
+email ✅ (required, unique)
+password ✅ (required)
+
+❌ REMOVE:
+
+full_name
+phone
+country
+city
+gender
+📄 Users Table (ADMIN VIEW)
+
+Admin dekh sakta hai:
+
+username
+email
+phone (auto from user profile)
+country (auto)
+profile image (auto)
+status (active / inactive)
+expiry date (editable by admin ONLY)
+✏️ Admin Permissions
+
+Admin kar sakta hai:
+
+Reset user password
+Set/update expiry date
+(Optional) manually edit profile fields (but not required)
+👤 USER DASHBOARD (PROFILE SYSTEM)
+
+User apni profile complete kare:
+
+Required fields:
+full_name ✅
+phone ✅
+country ✅
+Optional:
+city
+gender
+profile_image
+🔐 Password System
+
+User:
+
+Apna password change kar sakta hai (current password required)
+
+Admin:
+
+Password reset kar sakta hai
+🧠 DATABASE DESIGN (SINGLE SOURCE OF TRUTH)
+users table:
+id
+username
+email (UNIQUE)
+password
+role
+profile_completed (boolean)
+
+full_name
+phone
+country
+city
+gender
+profile_image
+
+expiry_date
+created_at
+updated_at
+
+💡 IMPORTANT:
+👉 Separate profile table mat banao
+👉 Sab kuch same table me rakho for simplicity + sync
+
+🔁 DATA SYNC (CRITICAL RULE)
+
+✔ Database = single source of truth
+
+Flow:
+User profile update kare
+→ DB update
+→ Admin panel refresh → updated data show
+🔄 Sync Examples
+User changes phone → Admin table shows updated phone
+User uploads image → Admin sees image
+User changes password → Admin system reflects it
+Admin changes expiry → User dashboard reflects it
+📡 API DESIGN (PHP)
+1. Get Profile
+GET /api/get_user_profile.php
+
+Returns full user data
+
+2. Update Profile
+POST /api/update_profile.php
+
+Handles:
+
+full_name
+phone
+country
+city
+gender
+profile_image upload
+3. Change Password
+POST /api/change_password.php
+4. Admin Reset Password
+POST /api/admin_reset_password.php
+📸 PROFILE IMAGE SYSTEM
+Upload path:
+/uploads/profile/
+Save in DB:
+/uploads/profile/user123.jpg
+
+✔ Show in:
+
+User dashboard
+Admin panel
+🔐 VALIDATION RULES
+Admin:
+username required
+email required
+password required
+User:
+full_name required
+phone required
+country required
+🎨 UI BEHAVIOR
+Admin Users Page
+Auto-updated data (via API / reload)
+No manual refresh logic required (optional AJAX)
+User Dashboard
+Editable fields
+Save button → instant update feel
+Show success toast
+⚠️ CORE RULES (VERY IMPORTANT)
+
+✔ No duplicate tables
+✔ No separate profile storage
+✔ Always fetch latest DB data
+✔ No hardcoded values
+✔ Keep login system unchanged
+
+💎 FINAL FLOW
+Step 1:
+
+Admin creates user
+→ minimal data
+
+Step 2:
+
+User logs in
+→ completes profile
+
+Step 3:
+
+System auto sync:
+
+Admin sees full data
+User sees updated data
+🔥 YOUR CUSTOM REQUIREMENT (ADDED)
+
+✔ Admin sirf username + password + email dale
+✔ Expiry date admin users page me set kare
+
+✔ User:
+
+Profile complete kare (mandatory fields)
+Password change kare
+
+✔ Jo bhi user update kare:
+
+👉 Admin panel me automatically reflect ho
+
+✔ Jo admin update kare:
+
+👉 User dashboard me reflect ho
+
+🚀 RESULT
+
+✔ Clean SaaS architecture
+✔ Fully synchronized system
+✔ Scalable structure
+✔ Zero confusion
+✔ Production-ready flow

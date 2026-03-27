@@ -1,0 +1,152 @@
+Act as a Senior PHP Deployment Engineer and SaaS Migration Specialist.
+
+I have an existing project named **ClearOrbit**.
+
+Your task is NOT to rebuild the project.
+
+👉 Your task is to prepare the EXISTING project for deployment on **Hostinger Premium Shared Hosting (NO Node.js support)** and provide a **ready-to-upload ZIP file**.
+
+---
+
+## 🎯 OBJECTIVE
+
+* Convert only necessary parts
+* Keep existing logic and UI intact
+* Ensure compatibility with:
+  PHP + MySQL + Apache (Hostinger)
+
+---
+
+## ⚠️ STRICT REQUIREMENTS
+
+* NO Node.js
+* NO Express
+* NO server.js
+* Only PHP backend
+
+---
+
+## 🔁 REQUIRED CHANGES
+
+1. REMOVE NODE DEPENDENCIES
+
+* Remove:
+  node_modules/
+  package.json
+  server.js (if exists)
+
+---
+
+2. BACKEND COMPATIBILITY
+
+* Replace any backend API calls with PHP files
+* Convert routes into:
+  login.php
+  dashboard.php
+  api/*.php
+
+---
+
+3. DATABASE INTEGRATION
+
+* Use MySQL (phpMyAdmin compatible)
+
+* Create config.php:
+
+  * DB_HOST
+  * DB_NAME
+  * DB_USER
+  * DB_PASS
+
+* Use PDO prepared statements
+
+---
+
+4. COOKIE SYSTEM
+
+* Ensure cookie storage works with PHP
+* Validate domain before saving
+* Keep platform isolation intact
+
+---
+
+5. FILE STRUCTURE
+
+Prepare clean structure:
+
+/public_html/
+├── index.php
+├── login.php
+├── dashboard.php
+├── /admin/
+├── /user/
+├── /api/
+├── /config/
+├── /includes/
+├── /assets/
+
+---
+
+6. REMOVE JUNK FILES
+
+Exclude from final ZIP:
+
+* .cache/
+* .local/
+* .git/
+* node_modules/
+* *.log
+
+---
+
+7. SECURITY BASICS
+
+* Use sessions properly
+* Add input validation
+* Use prepared statements
+
+---
+
+8. ADD .HTACCESS
+
+* Force HTTPS
+* Block sensitive folders
+
+---
+
+## 📦 FINAL OUTPUT REQUIRED
+
+1. Provide FULL CLEAN ZIP file:
+
+👉 clearorbit-hostinger.zip
+
+2. ZIP must:
+
+* Run directly on Hostinger
+* No errors
+* No missing dependencies
+
+---
+
+## 📤 DEPLOYMENT READY
+
+The ZIP should be ready so I can:
+
+1. Upload to Hostinger → public_html
+2. Extract
+3. Import database
+4. Update config.php
+5. Run website
+
+---
+
+## 🎯 FINAL GOAL
+
+Deliver a **ready-to-upload ZIP** that:
+
+✔ Works on Hostinger Premium
+✔ No Node.js required
+✔ Clean and optimized
+✔ Uses PHP + MySQL
+
+NO REBUILD. ONLY COMPATIBILITY FIX.

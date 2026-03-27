@@ -1,0 +1,250 @@
+Act as a Senior SaaS Product Designer, PHP Full-Stack Architect, and UX Engineer.
+
+We are building a production-ready SaaS platform called:
+
+"ClearOrbit"
+
+This system already exists but needs a FINAL COMPLETE UPGRADE in:
+
+* UI/UX (Professional White Theme)
+* Admin Panel Features
+* User Dashboard Experience
+* Platform Management System
+
+========================
+🎯 MAIN GOAL
+============
+
+Transform the platform into a HIGH-END SaaS product that looks like:
+
+* Stripe Dashboard
+* Notion
+* Modern Admin Panels
+
+Clean. Minimal. Professional. White theme ONLY.
+
+========================
+🎨 DESIGN SYSTEM (STRICT)
+=========================
+
+Theme: LIGHT ONLY
+
+Colors:
+
+* Background: #F9FAFB
+* Card: #FFFFFF
+* Border: #E5E7EB
+* Primary: #4F46E5
+* Success: #10B981
+* Danger: #EF4444
+* Warning: #F59E0B
+* Text: #111827
+* Subtext: #6B7280
+
+UI Rules:
+
+* No dark theme
+* No gradients
+* No glassmorphism
+* No blur effects
+* Use rounded-xl + shadow-sm
+* Clean spacing (p-6, gap-6)
+
+========================
+🧠 ADMIN PANEL (FINAL FEATURES)
+===============================
+
+1. 👥 USER MANAGEMENT
+
+* Add user
+* Delete user
+* Activate / deactivate toggle
+* Reset device button
+* Search users
+* Pagination
+
+2. 🧩 PLATFORM MANAGEMENT (UPGRADE)
+
+* Add platform:
+
+  * Platform Name
+  * Logo Upload (file input)
+  * Brand Color
+
+* Store uploaded logo in /uploads folder
+
+* Save file path in database
+
+* Show platform list:
+
+  * Logo (image preview)
+  * Name
+  * Status (Enabled/Disabled)
+  * Actions:
+
+    * Disable
+    * Delete
+
+3. 🍪 COOKIE VAULT (IMPROVED)
+
+* Add / update cookie
+* Show:
+
+  * Last updated
+  * Expiry date
+  * Status badge (Valid / Expired)
+* Button: Copy Cookie
+
+4. ⏳ SUBSCRIPTION MANAGEMENT
+
+* Assign access (days)
+* Table view:
+
+  * user
+  * platform
+  * expiry
+* Button: Extend (+7 days)
+
+5. 📊 DASHBOARD STATS
+
+* Total users
+* Active subscriptions
+* Expiring soon
+* Platforms count
+
+6. 📜 ACTIVITY LOGS
+
+* Show:
+
+  * login
+  * logout
+  * subscription assigned
+  * cookie updated
+
+========================
+👤 USER DASHBOARD (FINAL EXPERIENCE)
+====================================
+
+1. HEADER
+
+* Welcome message
+* Username
+* Logout button
+
+2. SUMMARY CARDS
+
+* Total platforms
+* Active
+* Expiring soon
+* Expired
+
+3. 🔥 PLATFORM CARDS (IMPORTANT)
+
+Each card must include:
+
+* Platform logo (image)
+
+* Platform name
+
+* Status badge:
+
+  * Active (green)
+  * Expired (red)
+
+* Countdown:
+  "3 Days 4 Hours left"
+
+* Progress bar (time usage)
+
+* Button:
+  "Access Now" (clearly visible primary button)
+
+4. 🔍 FILTER + SEARCH
+
+* Filter:
+
+  * All
+  * Active
+  * Expired
+
+5. EMPTY STATE
+
+* If no platforms:
+  Show friendly message:
+  "No active subscriptions"
+
+6. ERROR HANDLING UI
+
+* Small alert box (not full screen)
+* Clear message style
+
+========================
+⚙️ BACKEND UPGRADES
+===================
+
+1. FILE UPLOAD HANDLING (IMPORTANT)
+
+* Accept image upload
+* Validate file type (png, jpg, svg)
+* Store in /uploads
+* Save path in database
+
+2. API ADDITIONS
+
+* add_platform.php (with image upload)
+* delete_platform.php
+* get_platforms.php
+* get_dashboard.php
+* add_user.php
+* admin_stats.php
+
+3. SECURITY
+
+* Use PDO prepared statements
+* Validate inputs
+* Session-based auth
+
+========================
+⚡ UX IMPROVEMENTS
+=================
+
+* Toast notifications:
+
+  * success
+  * error
+
+* Loading spinner
+
+* Disable buttons while processing
+
+* Smooth hover effects
+
+========================
+📦 FRONTEND FILES
+=================
+
+Update FULL:
+
+* admin.html (complete redesign)
+* dashboard.html (complete redesign)
+
+========================
+🎯 OUTPUT REQUIRED
+==================
+
+Provide COMPLETE WORKING CODE for:
+
+* admin.html
+* dashboard.html
+* file upload handling (PHP)
+* updated APIs
+* UI improvements
+
+Ensure:
+
+* Fully responsive
+* Clean white SaaS look
+* All buttons visible
+* Platform logos working
+
+If output too long, I will say "continue"

@@ -1,0 +1,96 @@
+Upgrade the entire ClearOrbit UI to a premium, high-end SaaS design system with improved colors, depth, and visual hierarchy — without changing any functionality.
+
+-----------------------------------
+
+🎨 COLOR SYSTEM (IMPORTANT):
+
+Replace current flat colors with premium gradients and tones:
+
+- Primary:
+  #6C5CE7 (purple)
+
+- Gradient Primary:
+  linear-gradient(135deg, #6C5CE7, #4A90E2)
+
+- Background:
+  soft gradient:
+  linear-gradient(to bottom right, #F8FAFC, #EEF2FF)
+
+- Card background:
+  rgba(255, 255, 255, 0.7)
+  backdrop-blur: 12px
+
+- Borders:
+  rgba(255, 255, 255, 0.2)
+
+-----------------------------------
+
+✨ DASHBOARD IMPROVEMENTS:
+
+- Add soft gradient background
+- All cards → glassmorphism style:
+  - blur
+  - soft shadow
+  - rounded 18px
+
+- Stats cards:
+  - Add subtle gradient icons background
+  - Add hover lift + glow
+
+- Platform card:
+  - Add top gradient border highlight
+  - Add smooth hover animation
+  - Add progress bar with gradient fill
+
+-----------------------------------
+
+🔘 BUTTONS (VERY IMPORTANT):
+
+Upgrade ALL buttons:
+
+- Gradient:
+  purple → blue
+
+- Style:
+  - rounded-xl
+  - shadow-lg
+
+- Hover:
+  - scale(1.05)
+  - glow shadow
+  - slight brightness increase
+
+-----------------------------------
+
+🟢 STATUS COLORS (PREMIUM LOOK):
+
+- Active → soft green gradient
+- Expired → soft red gradient
+- Expiring → orange gradient
+
+Use subtle background badges (not harsh colors)
+
+-----------------------------------
+
+🔤 TYPOGRAPHY:
+
+- Font: Inter
+- Headings:
+  bold + tight spacing
+- Subtext:
+  muted gray (#64748B)
+
+-----------------------------------
+
+✨ MICRO INTERACTIONS:
+
+- Hover animations on cards
+- Smooth transitions (0.3s ease)
+- Button press animation
+- Loading skeletons (optional)
+
+-----------------------------------
+
+🎯 RESULT:
+Make the dashboard look like a premium SaaS product (Stripe / Linear style)
+with depth, gradients, glass effects, and modern UI polish.

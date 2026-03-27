@@ -1,0 +1,120 @@
+Act as a Senior SaaS Security Architect.
+
+Implement a PROFESSIONAL LOGOUT MESSAGE SYSTEM in ClearOrbit.
+
+--------------------------------------------------
+
+## 🎯 OBJECTIVE
+
+When a user is logged out, ALWAYS show a clear reason.
+
+No silent logout allowed.
+
+--------------------------------------------------
+
+## 🧠 DATABASE UPDATE
+
+In user_sessions table, add:
+
+- logout_reason (VARCHAR)
+
+This will store WHY the session was terminated.
+
+--------------------------------------------------
+
+## 🔄 WHEN TO SET logout_reason
+
+Set logout_reason in these cases:
+
+1. Duplicate login:
+   "Another device login detected"
+
+2. Session expired:
+   "Session expired due to inactivity"
+
+3. Multi-tab violation:
+   "Multiple sessions detected"
+
+4. Manual admin termination:
+   "Session terminated by admin"
+
+5. Security issue:
+   "Security logout: suspicious activity"
+
+--------------------------------------------------
+
+## 🔐 BACKEND LOGIC
+
+When terminating a session:
+
+- Update:
+    status = inactive
+    logout_reason = "<reason>"
+
+- Destroy session
+- Redirect user to logout page
+
+--------------------------------------------------
+
+## 📄 LOGOUT PAGE (logout.php)
+
+Create a clean UI page.
+
+Display message:
+
+IF logout_reason exists:
+
+→ Show message in RED alert box
+
+Example:
+
+"You were logged out because another device logged in."
+
+ELSE:
+
+→ Show default message:
+"Logged out successfully"
+
+--------------------------------------------------
+
+## 🔁 PASSING MESSAGE
+
+Pass logout_reason using:
+
+- Session variable
+OR
+- Query param (?reason=...)
+
+Example:
+
+logout.php?reason=duplicate_login
+
+--------------------------------------------------
+
+## 🎨 UI REQUIREMENTS
+
+- Centered card
+- Red warning alert
+- Clean SaaS design
+- Optional icon ⚠️
+
+--------------------------------------------------
+
+## 📡 REAL-TIME CHECK
+
+On every request:
+
+IF session invalid:
+
+→ redirect to logout.php with reason
+
+--------------------------------------------------
+
+## 🎯 FINAL RESULT
+
+✔ User always knows WHY logout happened
+✔ No confusion
+✔ Professional SaaS experience
+✔ Better security transparency
+
+PRODUCTION READY. NO SILENT FAILURES.

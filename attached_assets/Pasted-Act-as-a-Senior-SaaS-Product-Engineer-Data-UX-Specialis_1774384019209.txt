@@ -1,0 +1,146 @@
+Act as a Senior SaaS Product Engineer + Data UX Specialist.
+
+My ClearOrbit dashboard is already fully database-driven and working correctly.
+
+Now I want to upgrade it from "working system" to "high-quality production SaaS".
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Refine logic, improve UX clarity, and ensure all metrics are MEANINGFUL and ACCURATE.
+
+--------------------------------------
+🧠 DATA QUALITY IMPROVEMENTS
+--------------------------------------
+
+1. PLATFORM LOAD FIX
+
+Currently showing 0% incorrectly in some cases.
+
+Fix logic:
+
+IF total_slots = 0 → show:
+
+"NO SLOTS CONFIGURED"
+
+ELSE:
+
+(active_sessions / total_slots) * 100
+
+--------------------------------------
+
+2. SLOT HEALTH IMPROVEMENT
+
+Avoid showing 100% for all slots.
+
+Use real logic:
+
+health_score = 
+(success_sessions / total_sessions) * 100
+
+If no data:
+
+→ show "No activity yet"
+
+--------------------------------------
+
+3. LIVE EVENT STREAM FIX
+
+Improve timestamps:
+
+Instead of static "5h ago":
+
+✔ Use dynamic time ago (seconds/minutes)
+✔ Auto-update every refresh
+
+--------------------------------------
+
+4. ACTIVE USERS vs LIVE SESSIONS
+
+Ensure distinction:
+
+✔ Active Users = unique users
+✔ Live Sessions = total sessions
+
+--------------------------------------
+
+5. EMPTY STATE HANDLING
+
+If no data:
+
+✔ Show message instead of 0:
+
+"No active sessions"
+"No slot activity yet"
+
+--------------------------------------
+
+--------------------------------------
+⚡ PERFORMANCE IMPROVEMENT
+--------------------------------------
+
+✔ Reduce refresh interval from 15s → 8–10s
+✔ Avoid unnecessary API calls
+✔ Only update changed sections
+
+--------------------------------------
+
+--------------------------------------
+🎨 UX CLARITY IMPROVEMENTS
+--------------------------------------
+
+✔ Add tooltips:
+
+- what is slot usage?
+- what is platform load?
+
+✔ Add labels:
+
+"Real-time"
+"Last updated X sec ago"
+
+--------------------------------------
+
+--------------------------------------
+🧭 ADMIN USER FORM FIX (IMPORTANT)
+--------------------------------------
+
+Add User form should ONLY include:
+
+✔ username (required)
+✔ email (required)
+✔ password (required)
+
+Remove:
+
+❌ full_name
+❌ phone
+❌ expiry
+
+--------------------------------------
+
+--------------------------------------
+🔐 VALIDATION IMPROVEMENTS
+--------------------------------------
+
+✔ Email must be required + unique
+✔ Password min length enforced
+✔ Show error messages clearly
+
+--------------------------------------
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Accurate dashboard  
+✔ Clean data logic  
+✔ Clear UX  
+✔ No misleading numbers  
+✔ Production-ready SaaS  
+
+--------------------------------------
+
+DO NOT REWRITE SYSTEM.
+ONLY REFINE LOGIC + UX + DATA ACCURACY.

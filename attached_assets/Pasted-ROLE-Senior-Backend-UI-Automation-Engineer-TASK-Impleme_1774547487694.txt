@@ -1,0 +1,126 @@
+ROLE: Senior Backend + UI Automation Engineer
+
+TASK:
+Implement fully automated platform detection and logo assignment system based on cookies.
+
+---
+
+FEATURE 1 — AUTO PLATFORM DETECTION
+
+When admin adds cookies:
+
+* Detect platform automatically using:
+
+  * cookie domain (e.g. .netflix.com, .openai.com)
+  * cookie names (e.g. NetflixId, SecureNetflixId)
+
+Create mapping system:
+
+Examples:
+
+* netflix.com → Netflix
+* openai.com → ChatGPT
+* coursera.org → Coursera
+* spotify.com → Spotify
+* disneyplus.com → Disney+
+
+---
+
+FEATURE 2 — AUTO LOGO ASSIGNMENT
+
+System should:
+
+* Automatically assign platform logo
+* Use one of these methods:
+
+OPTION A (Preferred):
+
+* Maintain local logo library:
+  /assets/logos/netflix.png
+  /assets/logos/chatgpt.png
+  /assets/logos/coursera.png
+
+OPTION B:
+
+* Fetch favicon dynamically:
+  https://domain.com/favicon.ico
+
+OPTION C (fallback):
+
+* Use external API (like Clearbit logo API)
+
+---
+
+FEATURE 3 — AUTO CREATE PLATFORM
+
+If platform does NOT exist:
+
+* Auto create platform entry:
+
+  * name
+  * domain
+  * logo
+  * default color
+
+If platform already exists:
+
+* Do NOT duplicate
+* Just link cookies
+
+---
+
+FEATURE 4 — COLOR AUTO DETECT (OPTIONAL)
+
+Assign brand color automatically:
+
+* Netflix → red
+* Spotify → green
+* ChatGPT → teal
+
+Fallback:
+
+* generate random soft color
+
+---
+
+FEATURE 5 — UI UPDATE
+
+In Platform Intelligence page:
+
+* Show:
+  ✔ correct logo
+  ✔ platform name
+  ✔ health %
+
+Remove manual platform creation dependency.
+
+---
+
+FEATURE 6 — SMART FALLBACK
+
+If detection fails:
+
+* mark as "Unknown Platform"
+* allow manual correction
+
+---
+
+FEATURE 7 — PERFORMANCE
+
+* Cache platform detection results
+* Avoid repeated API/logo calls
+
+---
+
+GOAL:
+
+Zero manual work system:
+Admin pastes cookies → system auto detects platform → auto assigns logo → auto creates entry.
+
+---
+
+OUTPUT:
+
+Fully automated platform detection + logo system like premium SaaS.
+
+---

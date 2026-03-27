@@ -1,0 +1,162 @@
+Act as a Senior PHP Backend Developer and Frontend UX Engineer.
+
+Upgrade the ClearOrbit Announcement System to a PROFESSIONAL, TIME-BASED, MULTI-TYPE system.
+
+---
+
+## 🎯 OBJECTIVE
+
+Build a smart announcement system where:
+
+✔ Admin can schedule announcements
+✔ Announcements auto activate/deactivate
+✔ Two types supported:
+
+* Popup (modal)
+* Notification (non-intrusive)
+
+---
+
+## 🧩 DATABASE CHANGES
+
+Update announcements table:
+
+Add fields:
+
+* type ENUM('popup','notification')
+* start_time DATETIME
+* end_time DATETIME
+* is_active BOOLEAN (auto controlled)
+
+---
+
+## ⚙️ BACKEND LOGIC
+
+1. AUTO ACTIVATION SYSTEM
+
+When fetching announcements:
+
+IF current_time >= start_time AND current_time <= end_time:
+→ is_active = true
+
+ELSE:
+→ is_active = false
+
+---
+
+2. DO NOT RELY ONLY ON MANUAL STATUS
+
+* Status should be dynamic based on time
+* Optional manual override allowed
+
+---
+
+3. FETCH ONLY ACTIVE ANNOUNCEMENTS
+
+API should return ONLY:
+
+* announcements where current time is within range
+
+---
+
+## 🎨 FRONTEND IMPLEMENTATION
+
+---
+
+🔴 TYPE 1: POPUP ANNOUNCEMENT
+
+* Show as modal popup
+* Center screen
+* Dark overlay background
+
+Content:
+
+* Title
+* Message
+* Close button (X)
+
+RULES:
+
+* Show ONCE per session (use localStorage)
+* Do NOT auto close
+* User must click close
+
+---
+
+🟡 TYPE 2: NOTIFICATION ANNOUNCEMENT
+
+* Show as top banner OR toast
+
+Design:
+
+* Small bar (top or corner)
+* Non-blocking
+
+Behavior:
+
+* Auto hide after 5–10 seconds
+* OR allow manual close
+
+---
+
+## 🧠 UX IMPROVEMENTS
+
+1. MULTIPLE ANNOUNCEMENTS
+
+* Support multiple active announcements
+* Priority:
+
+  popup > notification
+
+---
+
+2. SESSION CONTROL
+
+* Popup should not spam user repeatedly
+* Use:
+
+  localStorage.setItem("seen_announcement_id")
+
+---
+
+3. ADMIN PANEL UI
+
+Add fields:
+
+* Type (Dropdown: popup / notification)
+* Start Date & Time
+* End Date & Time
+
+Show:
+
+* Status:
+  Active / Scheduled / Expired
+
+---
+
+🔐 SECURITY
+
+* Only admin can create/edit announcements
+* Users cannot manipulate visibility
+
+---
+
+## 🧪 TEST CASES
+
+* Announcement shows only within time range ✅
+* Popup appears once per session ✅
+* Notification shows properly ✅
+* Expired announcements disappear automatically ✅
+
+---
+
+## 🎯 FINAL GOAL
+
+A professional announcement system where:
+
+✔ Admin schedules announcements
+✔ System auto controls visibility
+✔ Popup + notification both supported
+✔ Clean UX, no spam
+
+SAAS-LEVEL COMMUNICATION SYSTEM.

@@ -1,0 +1,230 @@
+Act as a senior full-stack engineer and debug a production session management system.
+
+This is NOT a redesign task. You must FIX real bugs in an existing system.
+
+---
+
+## 🔴 CURRENT PROBLEMS (REAL)
+
+1. Same account is used from multiple IPs, but:
+
+   * backend has multiple sessions
+   * UI does NOT show all active sessions correctly
+
+2. Device & Session Info is incorrect:
+
+   * shows wrong counts (e.g. 6/2)
+   * duplicates or phantom sessions appear
+
+3. Heartbeat issue:
+
+   * some sessions show "No heartbeat"
+   * but they are actually active
+
+4. Slot system inconsistency:
+
+   * slot shows 0 live but session exists
+   * mismatch between slot and session
+
+5. Force logout is incomplete:
+
+   * user cannot properly logout specific session
+   * all sessions are not individually controllable
+
+---
+
+## 🎯 REQUIRED BEHAVIOR
+
+### Session visibility:
+
+* If 1 account is used on 2 different IPs
+  → UI MUST show 2 active sessions
+
+### Device count:
+
+* Must count UNIQUE sessions
+* based on:
+  browserSessionId + ipAddress
+
+### Heartbeat:
+
+* Each session must update its own lastSeen
+* No cross-session updates allowed
+
+### Slot sync:
+
+* Slot live count must match real active sessions
+
+---
+
+## 🔧 TASK 1 — ROOT CAUSE ANALYSIS
+
+Explain:
+
+* why multiple sessions exist in backend but not in UI
+* why heartbeat is missing or misassigned
+* why device count is incorrect
+* why slot shows "0 live" when sessions exist
+* where grouping/filtering is wrong
+
+---
+
+## 🔧 TASK 2 — FIX SESSION QUERY
+
+Fix backend query for sessions:
+
+Must return:
+
+* all active sessions
+  WHERE:
+  status = 'active'
+  AND lastSeen < timeout (e.g. 60 sec)
+
+Do NOT merge sessions by userId only.
+
+Group by:
+browserSessionId + ipAddress
+
+---
+
+## 🔧 TASK 3 — FIX HEARTBEAT SYSTEM
+
+Each session must:
+
+* send heartbeat with:
+  sessionId
+  browserSessionId
+  ipAddress
+
+Backend must:
+
+* update ONLY matching session
+* NOT update other sessions
+
+---
+
+## 🔧 TASK 4 — FIX DEVICE & SESSION INFO UI
+
+UI must show:
+
+For each session:
+
+* browser (Chrome, Edge)
+* OS
+* IP address
+* session start time
+* last heartbeat
+* status (active / stale)
+
+Device count must be:
+UNIQUE (browserSessionId + ipAddress)
+
+---
+
+## 🔧 TASK 5 — FIX SLOT COUNT
+
+Slot live count must be:
+COUNT(active sessions for that platform/account)
+
+Not:
+
+* total DB rows
+* not stale sessions
+* not duplicate sessions
+
+---
+
+## 🔧 TASK 6 — FORCE LOGOUT SYSTEM
+
+Add proper session-level logout:
+
+API:
+POST /api/session/force-logout
+
+Payload:
+{
+sessionId
+}
+
+Backend:
+
+* mark session as ended
+* remove from active sessions
+* free slot immediately
+
+Frontend:
+
+* show button per session:
+  "Force Logout"
+
+Also:
+
+* "Force Logout Others" should:
+  logout ALL sessions except current
+
+---
+
+## 🔧 TASK 7 — REAL-TIME UPDATE
+
+After:
+
+* logout
+* tab close
+* heartbeat timeout
+
+UI must update instantly:
+
+* session list
+* slot count
+
+Use:
+
+* polling OR WebSocket
+
+---
+
+## 🔧 TASK 8 — FIX "NO HEARTBEAT" BUG
+
+Ensure:
+
+* every active tab sends heartbeat
+* sessionId is correct
+* no mismatch between frontend sessionId and backend
+
+---
+
+## 🔧 TASK 9 — VALIDATION
+
+Test:
+
+1. Chrome + IP A → session 1
+2. Edge + IP B → session 2
+
+Expected:
+
+* UI shows 2 sessions
+* slots = 2 live
+
+Close Edge:
+→ session 2 removed instantly
+
+Click Force Logout:
+→ selected session removed instantly
+
+---
+
+## 📦 OUTPUT
+
+Return:
+
+1. Root cause explanation
+2. Fixed session query
+3. Heartbeat fix
+4. UI fix
+5. Slot logic fix
+6. Force logout implementation
+7. Code changes
+8. Testing steps
+
+Do NOT give generic advice.
+Give real fixes based on this problem.

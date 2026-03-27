@@ -1,0 +1,123 @@
+Act as a Senior SaaS Full Stack Engineer.
+
+Add DELETE FUNCTIONALITY in ClearOrbit Admin Panel for:
+
+1) Active Sessions Page
+2) Login Attempts Page
+
+--------------------------------------------------
+
+## 🎯 OBJECTIVE
+
+Admin should be able to:
+
+✔ Delete single row
+✔ Delete selected rows (checkbox)
+✔ Delete all records
+
+--------------------------------------------------
+
+## 📄 PAGE 1 — ACTIVE SESSIONS
+
+In table:
+
+### Add:
+
+1. Checkbox column (left side)
+2. "Delete" button in Actions column (per row)
+3. Top controls:
+
+   - "Delete Selected"
+   - "Delete All Sessions"
+
+### Behavior:
+
+- Delete (row):
+    → remove that session from database
+
+- Delete Selected:
+    → delete all checked sessions
+
+- Delete All:
+    → clear entire sessions table
+
+--------------------------------------------------
+
+## 📄 PAGE 2 — LOGIN ATTEMPTS
+
+Same system:
+
+### Add:
+
+1. Checkbox per row
+2. Delete button per row
+3. Top buttons:
+
+   - Delete Selected Logs
+   - Delete All Logs
+
+### Behavior:
+
+- Remove records from login_attempts table
+
+--------------------------------------------------
+
+## ⚙️ BACKEND API
+
+Create endpoints:
+
+- DELETE /admin/session/{id}
+- DELETE /admin/sessions/all
+- DELETE /admin/sessions/bulk
+
+- DELETE /admin/login-log/{id}
+- DELETE /admin/login-logs/all
+- DELETE /admin/login-logs/bulk
+
+--------------------------------------------------
+
+## 🔐 SECURITY
+
+- Only admin can delete
+- Add CSRF protection
+- Validate IDs before delete
+
+--------------------------------------------------
+
+## ⚠️ CONFIRMATION
+
+Before delete:
+
+Show modal:
+
+"Are you sure you want to delete?"
+
+Buttons:
+
+- Yes, Delete
+- Cancel
+
+--------------------------------------------------
+
+## 🎨 UI
+
+- Red delete button
+- Clean modern SaaS style
+- Disable button if nothing selected
+
+--------------------------------------------------
+
+## 🔄 AUTO REFRESH
+
+After delete:
+
+→ Refresh table automatically (AJAX)
+
+--------------------------------------------------
+
+## 🎯 FINAL RESULT
+
+✔ Admin can delete 1 row
+✔ Admin can delete multiple rows
+✔ Admin can delete all data
+✔ Clean UI + secure backend

@@ -1,0 +1,154 @@
+Act as a Senior PHP Backend Engineer and Frontend UX Engineer.
+
+Enhance the ClearOrbit Notification System to be persistent, real-time, and production-grade.
+
+DO NOT rebuild the system. ONLY extend existing functionality.
+
+---
+
+## 🎯 CORE OBJECTIVE
+
+Implement a complete notification system where:
+
+* Admin notifications are saved in database
+* Users receive real-time popup alerts
+* Notifications are stored and visible later in a panel
+
+---
+
+## 🧩 DATABASE REQUIREMENT
+
+Create table: user_notifications
+
+Columns:
+
+* id (INT, AUTO_INCREMENT, PRIMARY KEY)
+* user_id (INT, nullable for broadcast)
+* title (VARCHAR)
+* message (TEXT)
+* type ENUM('info','success','warning')
+* is_read (BOOLEAN DEFAULT 0)
+* created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+
+---
+
+## ⚙️ ADMIN INTEGRATION
+
+When admin creates announcement with type = "notification":
+
+* Insert into user_notifications
+* If broadcast:
+  → insert for ALL users
+* If specific users:
+  → insert only for selected users
+
+---
+
+## 🔔 USER INTERFACE
+
+1. ADD NOTIFICATION BELL ICON (TOP NAVBAR)
+
+* Show unread count badge
+
+---
+
+2. NOTIFICATION DROPDOWN PANEL
+
+On click:
+
+* Fetch latest 20 notifications (AJAX)
+* Sort: unread first
+
+Each item must include:
+
+* title
+* short message preview
+* relative time (e.g. "2 min ago")
+
+---
+
+3. READ SYSTEM
+
+* Unread:
+  → bold + highlighted background
+
+* On click:
+  → mark as read via AJAX
+
+---
+
+4. REAL-TIME POPUP (TOAST)
+
+When new notification is detected:
+
+* Show toast popup (top-right)
+* Smooth animation
+* Auto-hide after 5 seconds
+
+---
+
+5. API ENDPOINTS
+
+Create:
+
+* /api/get_notifications.php
+* /api/mark_notification_read.php
+
+---
+
+6. AUTO REFRESH SYSTEM
+
+* Poll every 15 seconds
+* Update:
+
+  * notification list
+  * unread count
+
+---
+
+7. PERFORMANCE
+
+* Limit: last 20 notifications
+* Use efficient queries (indexed by user_id)
+
+---
+
+8. UI REQUIREMENTS
+
+* Modern SaaS style
+* Clean dropdown panel
+* Smooth hover effects
+* No alert()
+
+---
+
+🔐 SECURITY
+
+* Only logged-in user can access own notifications
+* Validate user_id server-side
+
+---
+
+## 🎯 FINAL RESULT
+
+System must behave like:
+
+* Facebook notifications
+* LinkedIn alerts
+
+Where:
+
+✔ Notifications persist
+✔ Popup + history both work
+✔ Unread tracking works
+✔ Clean UX
+
+---
+
+⚠️ IMPORTANT
+
+* Do not break existing code
+* Keep architecture clean
+* Ensure compatibility with current dashboard
+
+Implement this fully.

@@ -1,0 +1,163 @@
+ROLE: Senior Full-Stack Engineer (SaaS Admin Panel Fix & Enhancement)
+
+TASK:
+Fix and upgrade the "Cookie Vault & Slots" page to support bulk operations, working action buttons, and proper interaction with backend APIs.
+
+---
+
+CURRENT PROBLEMS
+
+1. No selection system:
+
+* Cannot select multiple slots
+
+2. No bulk actions:
+
+* Cannot delete multiple slots
+* Cannot delete all accounts of a platform (e.g., Netflix)
+
+3. Action buttons not working:
+
+* Verify button does nothing
+* Recheck button does nothing
+* Edit button not opening modal properly
+* Delete only works individually (if at all)
+
+---
+
+OBJECTIVE
+
+Upgrade the system to a professional SaaS-level slot management system with:
+
+* bulk selection
+* bulk delete
+* working action buttons
+* proper backend integration
+
+---
+
+IMPLEMENTATION
+
+1. ADD CHECKBOX SELECTION
+
+For each slot card:
+
+* add checkbox with slot ID
+
+Add "Select All" checkbox at top of platform section
+
+---
+
+2. BULK ACTIONS BAR
+
+When any checkbox is selected:
+
+Show action bar with:
+
+* Delete Selected
+* Verify Selected
+* Recheck Selected
+
+---
+
+3. DELETE ALL BY PLATFORM
+
+Add button:
+
+"Delete All Netflix Accounts"
+
+Behavior:
+
+* delete all slots + cookies for that platform
+
+---
+
+4. FIX BUTTON FUNCTIONALITY
+
+Ensure all buttons are connected to backend:
+
+VERIFY:
+
+* API: POST /api/verify-cookie
+* send slot/account ID
+* update status (VALID / INVALID)
+
+RECHECK:
+
+* API: POST /api/recheck-cookie
+* re-run validation
+
+EDIT:
+
+* open modal with correct slot data
+* allow update
+* save via API
+
+DELETE:
+
+* API: POST /api/delete-slot
+* remove slot and linked cookie
+
+---
+
+5. BULK API ENDPOINTS
+
+Create endpoints:
+
+POST /api/delete-multiple-slots
+POST /api/verify-multiple
+POST /api/recheck-multiple
+
+Input:
+{
+ids: [1,2,3]
+}
+
+---
+
+6. UI FEEDBACK
+
+After action:
+
+* show success message
+* auto refresh data
+* update slot status live
+
+---
+
+7. STATUS SYSTEM
+
+Display:
+
+* VALID (green)
+* INVALID (red)
+* UNVERIFIED (gray)
+
+---
+
+8. SAFETY
+
+Before delete:
+
+* confirmation popup:
+  "Are you sure you want to delete selected slots?"
+
+---
+
+FINAL RESULT
+
+* Admin can manage 50+ slots easily
+* No manual repetitive work
+* All buttons functional
+* Bulk operations enabled
+* Clean SaaS UX
+
+---
+
+CONSTRAINTS
+
+* Do not break existing data
+* Extend current system
+* Keep UI clean and fast
+
+---

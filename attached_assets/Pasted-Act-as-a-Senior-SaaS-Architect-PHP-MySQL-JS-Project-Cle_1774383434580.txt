@@ -1,0 +1,182 @@
+Act as a Senior SaaS Architect (PHP + MySQL + JS).
+
+Project: ClearOrbit
+
+I want to restructure my USER + ADMIN system to follow a clean, scalable SaaS architecture.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+1. Admin creates user with MINIMUM fields
+2. User completes FULL profile from dashboard
+3. All data must stay synchronized between:
+
+✔ Admin panel (Users page)
+✔ User dashboard (Profile page)
+
+--------------------------------------
+🧠 ADMIN PANEL LOGIC (IMPORTANT CHANGE)
+--------------------------------------
+
+In "Add User" form:
+
+ONLY allow:
+
+✔ Username (required)
+✔ Password (required)
+✔ Email (required)
+
+REMOVE:
+
+❌ Full Name
+❌ Phone
+❌ Country
+❌ Expiry Date input here (move to subscription system)
+
+--------------------------------------
+📦 DATABASE STRUCTURE (IMPORTANT)
+--------------------------------------
+
+users table:
+
+- id
+- username
+- email (REQUIRED, UNIQUE)
+- password
+- role
+- profile_completed (boolean)
+
+profile data fields:
+
+- full_name
+- phone
+- country
+- city
+- gender
+- profile_image
+
+--------------------------------------
+👤 USER PROFILE SYSTEM
+--------------------------------------
+
+User dashboard (profile.html):
+
+✔ User fills:
+
+- full_name
+- phone
+- country
+- city
+- gender
+- profile image
+
+✔ These are mandatory (except city optional)
+
+--------------------------------------
+🔁 DATA SYNC (VERY IMPORTANT)
+--------------------------------------
+
+SINGLE SOURCE OF TRUTH = users table
+
+When user updates profile:
+
+✔ Update database
+✔ Admin panel MUST reflect changes instantly
+
+Example:
+
+User updates phone → Admin Users table shows updated phone
+
+--------------------------------------
+🔐 VALIDATION RULES
+--------------------------------------
+
+Admin:
+
+✔ email required
+✔ username required
+✔ password required
+
+User:
+
+✔ full_name required
+✔ phone required
+✔ country required
+
+--------------------------------------
+📡 API DESIGN
+--------------------------------------
+
+Create/update:
+
+GET /api/get_user_profile.php  
+POST /api/update_profile.php  
+
+Admin uses SAME data source (no duplicate tables)
+
+--------------------------------------
+📸 PROFILE IMAGE
+--------------------------------------
+
+✔ Upload to /uploads/profile/
+✔ Save path in DB
+✔ Show in BOTH:
+
+- User dashboard
+- Admin users table
+
+--------------------------------------
+🔑 PASSWORD SYSTEM
+--------------------------------------
+
+User can:
+
+✔ change password (with current password)
+
+Admin can:
+
+✔ reset password
+
+--------------------------------------
+⚠️ IMPORTANT RULES
+--------------------------------------
+
+✔ No duplicate data storage
+✔ No mismatch between admin & user
+✔ Always fetch fresh data from DB
+
+--------------------------------------
+🎨 UI BEHAVIOR
+--------------------------------------
+
+Admin Users Table:
+
+✔ Show:
+
+- username
+- email
+- phone
+- country
+- profile image
+- status
+
+User Profile:
+
+✔ Editable fields
+✔ Live update feel
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Admin creates basic user  
+✔ User completes profile  
+✔ Data sync perfectly  
+✔ Clean SaaS structure  
+✔ No confusion / no mismatch  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING LOGIN SYSTEM.
+ONLY RESTRUCTURE USER DATA FLOW PROPERLY.

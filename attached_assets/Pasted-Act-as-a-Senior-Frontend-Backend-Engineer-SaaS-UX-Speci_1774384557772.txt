@@ -1,0 +1,128 @@
+Act as a Senior Frontend + Backend Engineer (SaaS UX Specialist).
+
+Project: ClearOrbit
+
+I want to implement a PROFESSIONAL PHONE NUMBER INPUT system like real SaaS platforms.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Replace simple phone input with:
+
+✔ Country code selector  
+✔ Auto formatting  
+✔ Validation  
+✔ Clean UX  
+
+--------------------------------------
+📱 FRONTEND (VERY IMPORTANT)
+--------------------------------------
+
+Use a proper phone input system:
+
+✔ Country dropdown (flags + codes)
+✔ Auto format numbers based on country
+✔ Placeholder example (e.g. +92 300 1234567)
+
+--------------------------------------
+
+Recommended library:
+
+intl-tel-input (lightweight, widely used)
+
+--------------------------------------
+
+Features:
+
+✔ Auto-detect country (optional)
+✔ Searchable country list
+✔ Format phone on typing
+✔ Show invalid number error
+
+--------------------------------------
+
+--------------------------------------
+⚠️ VALIDATION RULES
+--------------------------------------
+
+✔ Phone must be required
+✔ Must include country code
+✔ Validate length based on country
+✔ Reject invalid numbers
+
+--------------------------------------
+
+--------------------------------------
+💾 DATABASE STORAGE
+--------------------------------------
+
+Store phone in:
+
+✔ INTERNATIONAL FORMAT (E.164)
+
+Example:
+
++923001234567
+
+--------------------------------------
+
+--------------------------------------
+🧠 BACKEND VALIDATION (PHP)
+--------------------------------------
+
+✔ Ensure phone starts with +
+✔ Ensure numeric only after +
+✔ Validate length (8–15 digits)
+
+--------------------------------------
+
+--------------------------------------
+🌐 USER PROFILE FORM
+--------------------------------------
+
+Replace:
+
+<input type="text" name="phone">
+
+WITH:
+
+✔ styled phone input with country selector
+
+--------------------------------------
+
+--------------------------------------
+🎨 UI IMPROVEMENTS
+--------------------------------------
+
+✔ Clean modern input
+✔ Flag icon + country code
+✔ Error message below input
+✔ Success state (green border)
+
+--------------------------------------
+
+--------------------------------------
+📱 RESPONSIVE
+--------------------------------------
+
+✔ Mobile friendly
+✔ Easy tap dropdown
+✔ No overflow issues
+
+--------------------------------------
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Professional phone input  
+✔ Country-aware validation  
+✔ Clean format  
+✔ No random numbers  
+✔ SaaS-level UX  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING FORM.
+ONLY UPGRADE PHONE INPUT SYSTEM.

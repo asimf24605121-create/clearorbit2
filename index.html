@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClearOrbit &mdash; Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/responsive.css"/>
+    <style>
+        *{box-sizing:border-box}
+        body{background:linear-gradient(135deg,#F0EEFF 0%,#E8F0FE 40%,#F5F3FF 100%);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+
+        .glass-card{background:rgba(255,255,255,.78);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.55);border-radius:1.25rem;box-shadow:0 8px 32px rgba(99,102,241,.08),0 1px 4px rgba(0,0,0,.04)}
+
+        .gradient-text{background:linear-gradient(135deg,#6C5CE7,#4F46E5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        .logo-icon{width:3rem;height:3rem;border-radius:1rem;background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(108,92,231,.3)}
+
+        .input-group{position:relative}
+        .input-group .input-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#9CA3AF;pointer-events:none;transition:color .2s}
+        .input-group input:focus ~ .input-icon,.input-group input:focus + .input-icon{color:#6C5CE7}
+
+        .premium-input{width:100%;padding:.75rem 1rem .75rem 2.75rem;border:1px solid rgba(209,213,219,.5);border-radius:.875rem;font-size:.875rem;color:#111827;outline:none;transition:all .25s;background:rgba(255,255,255,.6);backdrop-filter:blur(8px)}
+        .premium-input:focus{border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.12);background:#fff}
+        .premium-input::placeholder{color:#9CA3AF}
+
+        .btn-gradient{background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;border:none;padding:.8125rem 1.5rem;border-radius:.875rem;font-size:.9375rem;font-weight:600;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(108,92,231,.3);width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem}
+        .btn-gradient:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(108,92,231,.4);filter:brightness(1.06)}
+        .btn-gradient:active{transform:translateY(0);box-shadow:0 2px 8px rgba(108,92,231,.2)}
+        .btn-gradient:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:0 2px 8px rgba(108,92,231,.15)}
+
+        .toggle-pwd{position:absolute;right:.875rem;top:50%;transform:translateY(-50%);color:#9CA3AF;cursor:pointer;padding:.25rem;border-radius:.5rem;transition:all .2s;background:none;border:none}
+        .toggle-pwd:hover{color:#6C5CE7;background:rgba(108,92,231,.06)}
+
+        .alert-box{padding:.75rem 1rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;display:none}
+        .alert-error{background:rgba(254,242,242,.9);border:1px solid rgba(252,165,165,.4);color:#991B1B}
+        .alert-success{background:rgba(236,253,245,.9);border:1px solid rgba(167,243,208,.4);color:#065F46}
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .animate-in{animation:fadeInUp .6s ease forwards}
+        .animate-in-d1{animation:fadeInUp .6s ease .1s forwards;opacity:0}
+        .animate-in-d2{animation:fadeInUp .6s ease .2s forwards;opacity:0}
+
+        .divider{display:flex;align-items:center;gap:1rem;color:#9CA3AF;font-size:.75rem}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(209,213,219,.5)}
+
+        .trust-badges{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap}
+        .trust-badge{display:flex;align-items:center;gap:.375rem;font-size:.6875rem;color:#9CA3AF;font-weight:500}
+
+        .forgot-link{background:none;border:none;color:#9CA3AF;font-size:.75rem;font-weight:500;cursor:pointer;padding:0;transition:all .2s;text-decoration:none}
+        .forgot-link:hover{color:#6C5CE7;text-decoration:underline}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;visibility:hidden;transition:all .25s ease}
+        .modal-overlay.active{opacity:1;visibility:visible}
+        .modal-overlay.active .modal-card{transform:scale(1);opacity:1}
+        .modal-card{background:rgba(255,255,255,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.55);border-radius:1.25rem;box-shadow:0 25px 60px rgba(99,102,241,.12),0 4px 16px rgba(0,0,0,.06);width:100%;max-width:420px;transform:scale(.92);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1)}
+        @media(max-width:767px){
+            .modal-card{max-width:100%;border-radius:1rem;margin:0 .5rem}
+            .modal-overlay{padding:.5rem!important}
+        }
+        .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:#9CA3AF;cursor:pointer;padding:.375rem;border-radius:.5rem;transition:all .2s}
+        .modal-close:hover{color:#6C5CE7;background:rgba(108,92,231,.06)}
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8 animate-in">
+            <div class="logo-icon mx-auto mb-5">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-extrabold gradient-text">ClearOrbit</h1>
+            <p class="text-gray-400 text-sm mt-1.5 font-medium">Premium SaaS Access Platform</p>
+        </div>
+
+        <div class="glass-card p-8 animate-in-d1">
+            <h2 class="text-lg font-bold text-gray-900 mb-1">Sign in to your account</h2>
+            <p class="text-xs text-gray-400 mb-6">Enter your credentials to access the dashboard</p>
+
+            <div id="alert" class="alert-box mb-4"></div>
+
+            <form id="loginForm" autocomplete="off" novalidate>
+                <div class="mb-4">
+                    <label class="block text-gray-600 text-xs font-semibold mb-2 uppercase tracking-wider" for="username">Username</label>
+                    <div class="input-group">
+                        <input id="username" type="text" autocomplete="username" placeholder="Enter your username"
+                               class="premium-input" />
+                        <svg class="input-icon w-4 h-4" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-600 text-xs font-semibold mb-2 uppercase tracking-wider" for="password">Password</label>
+                    <div class="input-group" style="position:relative">
+                        <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password"
+                               class="premium-input" style="padding-right:3rem" />
+                        <svg class="input-icon w-4 h-4" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <button type="button" id="togglePwd" class="toggle-pwd">
+                            <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg id="eyeOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                        <span class="text-xs text-gray-500 font-medium">Remember me</span>
+                    </label>
+                    <button type="button" onclick="openForgotModal()" class="forgot-link">Forgot Password?</button>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="contact.html" class="text-xs text-gray-400 hover:text-indigo-600 transition-colors">Need help? Contact Us</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-gradient">
+                    <span id="btnText">Sign In</span>
+                    <svg id="btnSpinner" class="hidden animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="buy.html" class="text-sm font-medium text-gray-400 hover:text-indigo-600 transition-colors">Don't have access? <span class="text-indigo-600 font-semibold">Get Started</span></a>
+            </div>
+        </div>
+
+        <div class="mt-8 animate-in-d2">
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Secure Login
+                </div>
+                <div class="trust-badge">
+                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Instant Access
+                </div>
+                <div class="trust-badge">
+                    <svg class="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    256-bit Encrypted
+                </div>
+            </div>
+            <p class="text-center text-gray-400 text-xs mt-5">&copy; 2026 ClearOrbit. All rights reserved.</p>
+        </div>
+    </div>
+
+    <div id="forgotModal" class="modal-overlay" onclick="if(event.target===this)closeForgotModal()">
+        <div class="modal-card relative">
+            <button onclick="closeForgotModal()" class="modal-close" aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <div id="forgotFormState" class="p-8">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 text-center mb-1">Reset your password</h3>
+                <p class="text-xs text-gray-400 text-center mb-6">Enter your email and we'll send you a reset link</p>
+
+                <div class="mb-5">
+                    <label class="block text-gray-600 text-xs font-semibold mb-2 uppercase tracking-wider">Email Address</label>
+                    <div class="input-group">
+                        <input id="forgotEmail" type="email" placeholder="name@example.com" class="premium-input" />
+                        <svg class="input-icon w-4 h-4" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
+
+                <button type="button" onclick="sendResetLink()" id="resetBtn" class="btn-gradient">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <span id="resetBtnText">Send Reset Link</span>
+                    <svg id="resetSpinner" class="hidden animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="forgotSuccessState" class="p-8 text-center" style="display:none">
+                <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Check your email</h3>
+                <p class="text-sm text-gray-500 mb-6 leading-relaxed">Reset link has been sent to your email.<br/>Link expires in 15 minutes. Check your inbox.</p>
+                <button type="button" onclick="closeForgotModal()" class="btn-gradient">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    Back to Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openForgotModal() {
+        document.getElementById('forgotFormState').style.display = '';
+        document.getElementById('forgotSuccessState').style.display = 'none';
+        document.getElementById('forgotEmail').value = '';
+        document.getElementById('forgotModal').classList.add('active');
+        setTimeout(() => document.getElementById('forgotEmail').focus(), 300);
+    }
+
+    function closeForgotModal() {
+        document.getElementById('forgotModal').classList.remove('active');
+    }
+
+    async function sendResetLink() {
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            const input = document.getElementById('forgotEmail');
+            input.style.borderColor = '#EF4444';
+            input.focus();
+            setTimeout(() => input.style.borderColor = '', 2000);
+            return;
+        }
+        const btn = document.getElementById('resetBtn');
+        btn.disabled = true;
+        document.getElementById('resetBtnText').textContent = 'Sending...';
+        document.getElementById('resetSpinner').classList.remove('hidden');
+        try {
+            const res = await fetch('api/forgot_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (data.debug_reset_url) {
+                console.log('DEV reset URL:', data.debug_reset_url);
+            }
+            if (data.success) {
+                document.getElementById('forgotFormState').style.display = 'none';
+                document.getElementById('forgotSuccessState').style.display = '';
+            } else {
+                showAlert(data.message || 'Failed to send reset email.');
+            }
+        } catch (err) {
+            showAlert('Network error. Please try again.');
+        } finally {
+            btn.disabled = false;
+            document.getElementById('resetBtnText').textContent = 'Send Reset Link';
+            document.getElementById('resetSpinner').classList.add('hidden');
+        }
+    }
+
+    async function getFingerprint() {
+        const c = [navigator.userAgent, navigator.language, screen.width+'x'+screen.height+'x'+screen.colorDepth, new Date().getTimezoneOffset(), navigator.hardwareConcurrency||'', navigator.platform||''].join('|');
+        try {
+            const buf = new TextEncoder().encode(c);
+            const hash = await crypto.subtle.digest('SHA-256', buf);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+        } catch (_) { return btoa(c).slice(0,64); }
+    }
+
+    document.getElementById('togglePwd').addEventListener('click', () => {
+        const pwd = document.getElementById('password');
+        const isText = pwd.type === 'text';
+        pwd.type = isText ? 'password' : 'text';
+        document.getElementById('eyeOpen').classList.toggle('hidden', !isText);
+        document.getElementById('eyeOff').classList.toggle('hidden', isText);
+    });
+
+    function showAlert(msg, isError = true) {
+        const el = document.getElementById('alert');
+        el.textContent = msg;
+        el.style.display = 'block';
+        el.className = isError
+            ? 'alert-box alert-error mb-4'
+            : 'alert-box alert-success mb-4';
+    }
+
+    let loginCsrfToken = '';
+    async function fetchCsrfToken() {
+        try {
+            const res = await fetch('api/csrf_token', { credentials: 'include' });
+            const d = await res.json();
+            if (d.csrf_token) loginCsrfToken = d.csrf_token;
+        } catch(e) {}
+    }
+    fetchCsrfToken();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!username || !password) { showAlert('Please enter your username and password.'); return; }
+
+        submitBtn.disabled = true;
+        document.getElementById('btnText').textContent = 'Signing in...';
+        document.getElementById('btnSpinner').classList.remove('hidden');
+
+        if (!loginCsrfToken) await fetchCsrfToken();
+
+        const device_id = await getFingerprint();
+
+        try {
+            async function attemptLogin() {
+                return fetch('api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': loginCsrfToken },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password, device_id }),
+                });
+            }
+            let res = await attemptLogin();
+            if (res.status === 403) {
+                await fetchCsrfToken();
+                res = await attemptLogin();
+            }
+            const data = await res.json();
+            if (data.success) {
+                if (data.csrf_token) sessionStorage.setItem('csrf_token', data.csrf_token);
+                if (data.admin_level) sessionStorage.setItem('admin_level', data.admin_level);
+                if (data.user_id) sessionStorage.setItem('user_id', String(data.user_id));
+                showAlert('Welcome back, ' + data.username + '!', false);
+                setTimeout(() => { window.location.href = data.role === 'admin' ? 'admin.html' : data.role === 'reseller' ? 'reseller.html' : 'dashboard.html'; }, 600);
+            } else {
+                showAlert(data.message || 'Login failed.');
+                submitBtn.disabled = false;
+                document.getElementById('btnText').textContent = 'Sign In';
+                document.getElementById('btnSpinner').classList.add('hidden');
+            }
+        } catch (err) {
+            showAlert('Network error. Please check your connection.');
+            submitBtn.disabled = false;
+            document.getElementById('btnText').textContent = 'Sign In';
+            document.getElementById('btnSpinner').classList.add('hidden');
+        }
+    });
+    </script>
+<div id="whatsappFloat"></div>
+<script>
+(function(){
+    fetch('api/get_settings').then(r=>r.json()).then(d=>{
+        if(d.success&&d.whatsapp_number){
+            const m=encodeURIComponent(d.whatsapp_message||'');
+            document.getElementById('whatsappFloat').innerHTML='<a href="https://wa.me/'+d.whatsapp_number+(m?'?text='+m:'')+'" target="_blank" rel="noopener" class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110" style="background:#25D366" title="Chat on WhatsApp" data-testid="button-whatsapp-float"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>';
+        }
+    }).catch(()=>{});
+})();
+</script>
+</body>
+</html>

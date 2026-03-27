@@ -1,0 +1,79 @@
+[
+    {
+        "domain": ".coursera.org",
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "IR_14726",
+        "path": "/",
+        "sameSite": null,
+        "secure": true,
+        "session": true,
+        "storeId": null,
+        "value": "1774202553998%7C0%7C1774202553998%7C%7C"
+    },
+    {
+        "domain": ".coursera.org",
+        "expirationDate": 1778174461.764296,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "CAUTH",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "1lsquEgwQioRB0N4SBdJnC_9-ivapYdcm-WD2cl39eO78ZH8xXa8ooX6bWVf8ReSzrG93TI7NlmXMI52NsuXZA.4EXJqYsvCD5INeiJDddPtQ.0A0UDHD7qqVD_Tgrt8h0ief93PyAiV-0sQ_UnmbdMrlN_i4xNFDftOheqoxtHDru6UIQHQ41DPAjXULOjiGBs0yZwtrCNi64B4qPT4kxtjlhztlx3r3qwr6UEv0jgKsVhhfS9Z0-zup53e8de58qzi8GlFP3_5zuuTh2jtMmHaUrPJslTjFbCtxPJu5VwEskxNphHGCE0Z00owyT7Ep3FDmBd9dmGpKZSvOrxRXa2onOOSriKHy-BYns4ITCxYZuf2QHDXD-hKgrge_2AdHSF42lpHvVYShHtAeYVntoOrf5JQRC1FCDhpex-ltJDQj8z-eE7g9ihLb39QSA8Geb0PEjgsj22c4ZcYAcd4B8Ea4_lxVNsDBEhP-xXZXe01mHw-injSeXT5XHR3GM-Z_tpAK_aEmUOIVA2BDXd2VEvMiusGybSCtW0US3ai7OK3idvsIwqbC77n3r2hYcaxJ3_wu0nuhcUEDPfldHTgBPPk0"
+    },
+    {
+        "domain": ".coursera.org",
+        "expirationDate": 1774718444.124899,
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "CSRF3-Token",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "1774718445.ntbR1R5Y7HO302HL"
+    },
+    {
+        "domain": ".coursera.org",
+        "expirationDate": 1781978554,
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "_rdt_uuid",
+        "path": "/",
+        "sameSite": "strict",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "1773854450480.fa69879a-5dce-4f8f-8300-adfa981810bc"
+    },
+    {
+        "domain": ".coursera.org",
+        "expirationDate": 1808762554.462128,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "FPID",
+        "path": "/",
+        "sameSite": null,
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "FPID2.2.SR%2BHvRh5nMjGAXHNlaDxmLgpqmHWQMBMK2xZeaVAnmI%3D.1773854451"
+    },
+    {
+        "domain": ".coursera.org",
+        "expirationDate": 1774237336.685592,
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "FPLC",
+        "path": "/",
+        "sameSite": null,
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "value": "t5uC0nW5poykZiLSQJ6ee7uSRm%2BZCvpenk8sdgCJjjGjm5DVD4GFy6xdvS5LTEAiAgZWtq1iemvwFrUTBSfmLSTJ%2FbnXeqN2KCP8heaMaW77tEAd1cTn9tfXkHxLhQ%3D%3D"
+    }
+]

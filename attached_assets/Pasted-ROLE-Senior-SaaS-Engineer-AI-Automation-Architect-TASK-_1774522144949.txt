@@ -1,0 +1,172 @@
+ROLE: Senior SaaS Engineer + AI Automation Architect
+
+TASK:
+Build an advanced Cookie Intelligence System with:
+
+1. Auto Login Testing
+2. Cookie Health Scoring
+3. Auto Refresh / Expiry Detection
+
+---
+
+PART 1 — AUTO LOGIN TEST (CORE)
+
+Goal:
+Verify if cookie actually logs into platform
+
+---
+
+METHOD 1 (LIGHTWEIGHT - PHP)
+
+* Send HTTP request to platform (Netflix)
+
+Check response:
+
+IF redirected to /browse → VALID
+IF redirected to /login → INVALID
+
+---
+
+METHOD 2 (ADVANCED - HEADLESS)
+
+Use Puppeteer / Playwright:
+
+Steps:
+
+1. Open browser
+2. Inject cookies
+3. Go to:
+
+https://www.netflix.com/browse
+
+4. Detect:
+
+IF page loads content → VALID
+IF login page → INVALID
+
+---
+
+RESULT:
+
+status = VALID / INVALID
+
+---
+
+PART 2 — COOKIE HEALTH SYSTEM
+
+Add score:
+
+health_score (0–100)
+
+---
+
+LOGIC:
+
+100 → fully working
+70 → working but unstable
+40 → partial login
+0 → dead
+
+---
+
+FACTORS:
+
+* login success
+* expiry time
+* cookie completeness
+* recent failures
+
+---
+
+PART 3 — AUTO EXPIRY DETECTION
+
+From cookie:
+
+expiry timestamp → convert to date
+
+---
+
+RULES:
+
+< 3 days → WARNING
+expired → DEAD
+
+---
+
+PART 4 — AUTO REFRESH DETECTION
+
+Track:
+
+last_checked
+
+IF cookie fails multiple times:
+
+→ mark as NEED_REFRESH
+
+---
+
+PART 5 — DATABASE UPDATE
+
+accounts table add:
+
+* status
+* health_score
+* last_checked
+* last_success
+* fail_count
+
+---
+
+PART 6 — UI DISPLAY
+
+Show:
+
+✔ VALID (green)
+⚠ WARNING (orange)
+❌ DEAD (red)
+
+Health bar:
+
+[██████----] 60%
+
+---
+
+PART 7 — AUTO RECHECK SYSTEM
+
+Every 10–30 min:
+
+* recheck cookies
+* update health
+* update status
+
+---
+
+PART 8 — SMART ALERTS
+
+IF cookie DEAD:
+
+→ notify admin
+
+---
+
+PART 9 — PERFORMANCE
+
+* queue system for checks
+* do NOT overload server
+
+---
+
+OUTPUT:
+
+1. Auto login verification
+2. Health scoring system
+3. Expiry awareness
+4. Intelligent cookie monitoring
+
+---
+
+GOAL:
+
+Turn cookie system into self-monitoring AI engine
+
+---

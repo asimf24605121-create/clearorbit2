@@ -1,0 +1,169 @@
+Act as a senior SaaS architect and distributed systems engineer.
+
+The core backend has already been fixed and stabilized.
+
+Now your job is to UPGRADE the system into a **scalable, high-performance, production-grade SaaS architecture**.
+
+DO NOT repeat old fixes. Only focus on advanced improvements.
+
+---
+
+## 1. ADD JOB QUEUE SYSTEM (CRITICAL)
+
+Implement Redis + BullMQ (or equivalent queue system).
+
+Move these operations into background jobs:
+
+* cookie recheck
+* intelligence recalculation
+* bulk import processing
+* auto-clean
+
+Features:
+
+* retry mechanism
+* failure handling
+* job status tracking
+* concurrency control
+
+---
+
+## 2. ADD CACHING LAYER
+
+Use Redis caching for:
+
+* account list (GET /manage_platform_accounts)
+* intelligence dashboard
+* platform stats
+
+Add:
+
+* cache invalidation on update
+* TTL strategy
+
+---
+
+## 3. ADD SLOT LOCKING SYSTEM (ANTI-RACE CONDITION)
+
+Implement:
+
+* atomic slot assignment
+* DB-level locking OR Redis locking
+
+Goal:
+Prevent multiple users taking same slot simultaneously.
+
+---
+
+## 4. IMPROVE INTELLIGENCE SYSTEM (PRO LEVEL)
+
+Upgrade scoring to include:
+
+* time decay (recent activity weighted more)
+* confidence score (based on data volume)
+* anomaly detection (sudden failures)
+* failure streak penalty
+* recovery bonus
+
+Ensure:
+
+* new accounts start with neutral score (not 100)
+* score is stable and realistic
+
+---
+
+## 5. ADD RATE LIMITING
+
+Add middleware:
+
+* per IP
+* per admin
+
+Limit:
+
+* import
+* recheck
+* intelligence
+* delete actions
+
+---
+
+## 6. ADD REAL-TIME SYSTEM (SOCKET.IO)
+
+Implement:
+
+* live slot updates
+* real-time intelligence updates
+* live activity logs
+
+---
+
+## 7. DATABASE OPTIMIZATION
+
+* add indexes:
+
+  * platformId
+  * fingerprint
+  * stabilityStatus
+* optimize queries
+* reduce N+1 problems
+
+---
+
+## 8. API OPTIMIZATION
+
+* add pagination everywhere
+* support filters server-side
+* reduce payload size
+
+---
+
+## 9. FRONTEND ARCHITECTURE UPGRADE
+
+Refactor frontend:
+
+* move from monolithic HTML → modular components
+* separate:
+
+  * AccountCard
+  * IntelligencePanel
+  * ImportPanel
+  * ActivityLog
+
+---
+
+## 10. UX IMPROVEMENTS
+
+Add:
+
+* skeleton loaders
+* optimistic UI updates
+* proper error messages
+* confirmation modals
+* better empty states
+
+---
+
+## 11. SECURITY HARDENING
+
+* sanitize cookie inputs
+* validate all payloads
+* prevent mass assignment
+* secure admin endpoints
+
+---
+
+## 12. FINAL OUTPUT
+
+Provide:
+
+1. Updated architecture diagram
+2. Queue implementation
+3. Redis integration
+4. Improved scoring logic
+5. Updated APIs
+6. Frontend structure
+7. Performance improvements
+8. Scalability explanation (1000+ users)
+
+DO NOT skip any section.

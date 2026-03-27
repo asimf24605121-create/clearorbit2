@@ -1,0 +1,177 @@
+ROLE: Senior Full Stack Engineer
+
+TASK:
+Make all buttons in "Cookie Vault & Slots" fully functional with real backend integration.
+
+---
+
+GOAL:
+Convert UI-only actions into real working system with APIs, database updates, and live UI refresh.
+
+---
+
+TECH STACK:
+
+* Frontend: Vanilla JS / React
+* Backend: Node.js (Express)
+* DB: PostgreSQL or JSON DB
+
+---
+
+FEATURES TO IMPLEMENT:
+
+========================
+
+1. VERIFY BUTTON
+   ========================
+
+API:
+POST /api/account/verify
+
+LOGIC:
+
+* Load headless browser (Puppeteer)
+* Inject cookies
+* Open platform URL
+
+DETECT:
+
+IF "/browse" → status = "working"
+IF "/login" → status = "failed"
+IF "/account" → status = "no_subscription"
+
+UPDATE DB:
+
+* status
+* score (+10 or -20)
+* last_checked
+
+RETURN:
+{ status, message }
+
+---
+
+========================
+2. RECHECK BUTTON
+=================
+
+API:
+POST /api/account/recheck
+
+LOGIC:
+
+* Run verify again
+* Update:
+
+success_count++
+fail_count++
+score recalculated
+
+---
+
+========================
+3. EDIT BUTTON
+==============
+
+API:
+PUT /api/account/update
+
+FIELDS:
+
+* slot_name
+* max_users
+* expiry_date
+* cookies
+
+LOGIC:
+
+* Update DB
+* Re-render UI instantly
+
+---
+
+========================
+4. EXTEND BUTTON
+================
+
+API:
+POST /api/account/extend
+
+INPUT:
+{ id, days }
+
+LOGIC:
+expiry_date += days
+
+---
+
+========================
+5. DELETE BUTTON
+================
+
+API:
+DELETE /api/account/:id
+
+LOGIC:
+
+* Remove from DB
+* Remove from UI
+
+---
+
+========================
+6. BULK DELETE (IMPORTANT)
+==========================
+
+API:
+POST /api/account/delete-all
+
+INPUT:
+{ platform }
+
+LOGIC:
+Delete all slots for platform
+
+---
+
+========================
+7. FRONTEND BEHAVIOR
+====================
+
+* All buttons show loading state
+* After action → auto refresh card
+* Show status badges:
+
+🟢 Working
+🔴 Failed
+🟡 No Subscription
+
+---
+
+========================
+8. ERROR HANDLING
+=================
+
+* Show toast messages
+* Prevent duplicate clicks
+* Retry failed requests
+
+---
+
+========================
+9. SECURITY
+===========
+
+* Validate request IDs
+* Prevent unauthorized actions
+
+---
+
+FINAL RESULT:
+
+✔ All buttons fully functional
+✔ Real backend integration
+✔ Live UI updates
+✔ No fake actions
+
+---

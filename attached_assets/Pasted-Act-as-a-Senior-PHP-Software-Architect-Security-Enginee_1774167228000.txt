@@ -1,0 +1,274 @@
+Act as a Senior PHP Software Architect, Security Engineer, and SaaS UI/UX Designer.
+
+We are building a production-grade SaaS platform named:
+
+"ClearOrbit"
+
+This is a premium "Shared Access Management System" for a Group Buy business model.
+
+========================
+🚀 CORE STACK (STRICT)
+======================
+
+* Backend: Plain PHP 8.0+ (NO frameworks)
+* Database: MySQL
+* Frontend: HTML5 + Tailwind CSS (CDN) + Vanilla JS
+* Hosting: Shared Hosting (Hostinger compatible)
+
+========================
+🎯 GOAL
+=======
+
+Upgrade the existing system into a FULL ADVANCED SaaS with:
+
+* Secure authentication
+* Admin control panel
+* User dashboard
+* Cookie vault system
+* Subscription tracking
+* Device lock system
+* Premium UI (Netflix-style dark mode)
+
+========================
+🔐 SECURITY (MANDATORY)
+=======================
+
+Implement:
+
+* password_hash() + password_verify()
+* PDO prepared statements ONLY
+* CSRF token system
+* XSS protection (escape output)
+* Session security (session_regenerate_id)
+* Device fingerprint locking:
+
+  * hash(user_agent + IP)
+* Basic rate limiting for login
+* Role-based access control
+
+========================
+🧠 DATABASE (EXTENDED)
+======================
+
+Tables:
+
+users:
+
+* id
+* username (UNIQUE)
+* password_hash
+* role ('admin','user')
+* is_active
+* device_id
+* last_login_ip
+* created_at
+
+platforms:
+
+* id
+* name
+* logo_url
+* bg_color_hex
+* is_active
+
+cookie_vault:
+
+* id
+* platform_id
+* cookie_string (ENCRYPTED BASE64)
+* expires_at
+* updated_at
+
+user_subscriptions:
+
+* id
+* user_id
+* platform_id
+* start_date
+* end_date
+* is_active
+
+activity_logs:
+
+* id
+* user_id
+* action
+* ip_address
+* created_at
+
+========================
+✨ NEW FEATURES (IMPORTANT)
+==========================
+
+1. 🔑 USER MANAGEMENT (ADMIN)
+
+* Add user
+* Delete user
+* Activate / deactivate user
+
+2. 📦 PLATFORM MANAGEMENT
+
+* Add new platform
+* Enable / disable platform
+
+3. 🍪 COOKIE VAULT UPGRADE
+
+* Encrypt cookie before saving (base64_encode for now)
+* Decrypt before sending
+
+4. ⏳ SUBSCRIPTION ENGINE
+
+* Admin assigns access (days)
+* Auto-calculate expiry
+* Auto-expire subscriptions
+
+5. 📊 ADMIN ANALYTICS
+
+* Total users
+* Active subscriptions
+* Expiring cookies (48 hours)
+* Recent activity logs
+
+6. 📡 ACTIVITY LOG SYSTEM
+
+* Log:
+
+  * login
+  * logout
+  * subscription assigned
+  * cookie updated
+
+7. 🚫 DEVICE LOCK SYSTEM
+
+* First login → save device_id
+* Next login:
+
+  * match → allow
+  * mismatch → deny
+
+8. 🎨 PREMIUM UI (VERY IMPORTANT)
+
+* Dark mode default
+* Glassmorphism cards
+* Gradient buttons
+* Smooth hover effects
+* Sidebar navigation
+
+9. ⚡ REAL-TIME COUNTDOWN
+
+* JS countdown timer on dashboard
+* Auto update every second
+
+10. 🔌 EXTENSION PREP
+    Add global JS function:
+
+function injectCookie(platformId) {
+console.log("ClearOrbit Extension pending for platform:", platformId);
+}
+
+========================
+🔌 API SYSTEM (/api/)
+=====================
+
+Create these APIs:
+
+auth:
+
+* login.php
+* logout.php
+
+admin:
+
+* add_user.php
+* delete_user.php
+* get_users.php
+* add_platform.php
+* get_platforms.php
+* update_cookie.php
+* add_subscription.php
+* admin_stats.php
+
+user:
+
+* get_dashboard.php
+
+========================
+🎨 FRONTEND PAGES
+=================
+
+1. index.html (Login)
+
+* ClearOrbit branding
+* Glassmorphism UI
+* Fingerprint capture
+* Redirect based on role
+
+2. admin.html
+
+* Sidebar:
+
+  * Overview
+  * Users
+  * Platforms
+  * Grant Access
+  * Cookie Vault
+
+* Sections:
+
+  * Stats cards
+  * Add user form
+  * Add platform form
+  * Assign access
+  * Update cookie
+
+3. dashboard.html
+
+* Welcome user
+* Logout button
+* Platform cards grid
+* Countdown timer
+* Disabled expired cards
+
+========================
+⚡ PERFORMANCE
+=============
+
+* Optimize queries
+* Use indexes
+* Minimize API calls
+* Lazy load UI
+
+========================
+📁 FILE STRUCTURE
+=================
+
+/api/
+/config/
+/includes/
+/assets/
+
+database.sql
+db.php
+index.html
+admin.html
+dashboard.html
+
+========================
+🎯 FINAL INSTRUCTIONS
+=====================
+
+Generate COMPLETE WORKING CODE for:
+
+* database.sql
+* db.php
+* ALL APIs
+* ALL frontend pages
+
+Ensure:
+
+* No pseudo code
+* No missing parts
+* Production-ready
+* Hostinger compatible
+
+If output is too long, I will say: "continue"

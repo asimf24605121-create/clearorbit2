@@ -1,0 +1,133 @@
+ROLE: Senior Full Stack Engineer + System Optimizer
+
+TASK:
+Fix the Overview page completely and implement an IP-based timing system across the platform.
+
+---
+
+PART 1 — OVERVIEW PAGE FIX (CRITICAL)
+
+ISSUE:
+Overview page is not working properly or not showing correct data.
+
+REQUIREMENTS:
+
+1. Fix all data loading issues:
+
+* total users
+* active users
+* available slots
+* used slots
+* working accounts
+* failed accounts
+
+2. Ensure all API calls:
+
+* return correct data
+* handle errors properly
+* update UI in real-time
+
+3. Fix UI bugs:
+
+* empty sections
+* broken charts/cards
+* incorrect numbers
+
+4. Add loading states:
+
+* show "Loading..." before data loads
+
+5. Add fallback:
+
+* if API fails → show message instead of blank
+
+---
+
+PART 2 — IP-BASED TIMING SYSTEM
+
+IMPLEMENT:
+
+1. Detect user IP address on login/session
+
+2. Store:
+
+* user_ip
+* login_time
+* last_active_time
+
+3. Show in UI:
+
+* current session time
+* last activity
+* login location (optional)
+
+4. Track session duration:
+
+Example:
+Session started: 10:00 AM
+Current time: 10:30 AM
+→ Show: "Active for 30 minutes"
+
+5. Auto update every few seconds (frontend timer)
+
+---
+
+PART 3 — SECURITY (IMPORTANT)
+
+* limit 1 active IP per user (optional)
+* if new IP detected → logout old session
+* log suspicious IP changes
+
+---
+
+PART 4 — IMPROVEMENTS (REQUIRED)
+
+1. Add "Live Status Cards":
+
+* 🟢 Active users
+* 🔴 Failed accounts
+* 🟡 Expiring soon
+
+2. Add "Recent Activity":
+
+* user logins
+* slot assignments
+* cookie updates
+
+3. Add "System Health":
+
+* uptime
+* working vs failed ratio
+
+4. Optimize performance:
+
+* reduce API calls
+* cache results if needed
+
+---
+
+PART 5 — FINAL RESULT
+
+Ensure:
+
+✔ Overview page fully working
+✔ Accurate real-time data
+✔ IP-based session tracking active
+✔ Clean UI with no bugs
+✔ Improved admin visibility
+
+---
+
+OUTPUT:
+
+1. What was broken
+2. What was fixed
+3. What improvements were added
+
+---
+
+GOAL:
+
+Make the Overview page a real-time control dashboard with session tracking and full system visibility.
+
+---

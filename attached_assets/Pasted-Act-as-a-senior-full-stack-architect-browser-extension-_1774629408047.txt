@@ -1,0 +1,551 @@
+Act as a senior full-stack architect, browser-extension engineer, session-management expert, and real-time systems engineer.
+
+You are fixing a production shared-account platform that uses:
+
+* Node.js / Express backend
+* dashboard frontend
+* browser extension (background.js + content.js)
+* session + slot allocation
+* WebSocket / Socket.io updates
+* heartbeat + cleanup fallback
+
+This is NOT a generic redesign task.
+You must patch the existing system and solve these exact real-world bugs.
+
+---
+
+# CORE REAL-WORLD BUGS TO FIX
+
+## Bug 1 — Tab close does NOT free slot in real time
+
+Actual flow:
+
+1. User opens Coursera successfully in Browser A
+2. User closes the Coursera tab
+3. User immediately tries to access Coursera from Browser B
+4. System still shows:
+   "All Slots Full"
+
+This is wrong.
+
+Expected:
+
+* When the Coursera tab is closed, the slot must be released immediately or near-real-time
+* Another browser/device/session should be able to use that slot right away
+
+---
+
+## Bug 2 — Logout does NOT revoke platform access
+
+Actual flow:
+
+1. User logs into dashboard
+2. User opens Coursera and platform session is injected
+3. User logs out of the dashboard/account
+4. Coursera tab is still usable
+
+This is wrong.
+
+Expected:
+
+* Dashboard/account logout must immediately revoke platform access
+* Existing open Coursera tab must no longer be usable
+* Session cookies/storage for that platform must be cleared
+* Slot must be released
+* User must not continue using the platform after logout
+
+---
+
+# REQUIRED FINAL BUSINESS RULES
+
+## Rule 1 — Same browser tabs = 1 slot
+
+If the same browser session opens multiple Coursera tabs,
+it must count as only 1 slot.
+
+## Rule 2 — Different browser or different IP = new slot
+
+If user accesses from a different browser and/or different IP,
+it must consume a new slot.
+
+## Rule 3 — Close all Coursera tabs = release slot
+
+If all tracked Coursera tabs for that browser session are closed,
+release the slot immediately.
+
+## Rule 4 — Logout = kill platform access
+
+If the user logs out of dashboard/account:
+
+* terminate related active sessions
+* release slots
+* revoke cookies/storage in platform tabs
+* stop further platform use
+
+## Rule 5 — Heartbeat is fallback only
+
+Heartbeat/cleanup should only be a safety fallback.
+Real-time behavior must be event-driven.
+
+---
+
+# WHAT I WANT YOU TO BUILD
+
+You must implement a COMPLETE event-driven real-time slot/session lifecycle system using:
+
+* extension tab tracking
+* content-script/page bridge
+* backend release/revoke endpoints
+* WebSocket events
+* heartbeat fallback
+* cleanup fallback
+
+---
+
+# TASK 1 — FULL ROOT CAUSE ANALYSIS
+
+Before changing code, explain the exact current failure points in the existing system:
+
+1. Why closing a Coursera tab does not release the slot immediately
+2. Why a new browser still sees "All Slots Full"
+3. Whether the issue is in:
+
+   * extension tab tracking
+   * content.js bridge
+   * dashboard page event handling
+   * backend release_session logic
+   * slot cleanup logic
+   * stale timeout timing
+4. Why logout does not revoke an already-open Coursera tab
+5. Whether current system clears:
+
+   * cookies
+   * localStorage
+   * sessionStorage
+   * extension tracked state
+6. Where the lifecycle is broken:
+
+   * session ends but slot remains
+   * logout happens but platform session remains
+   * UI updates but backend state remains
+   * backend state changes but browser session remains
+
+Be specific and map the actual code flow.
+
+---
+
+# TASK 2 — PLATFORM TAB TRACKING IN EXTENSION
+
+Implement proper tab/session tracking inside the extension.
+
+For every accessed platform tab, track:
+
+* tabId
+* sessionId
+* browserSessionId
+* userId
+* platformId
+* accountId
+* platform name
+* createdAt
+* lastSeen
+* status
+
+Use background.js to maintain an in-memory registry like:
+activePlatformTabs[tabId] = { ... }
+
+You must handle:
+
+* chrome.tabs.onRemoved
+* chrome.tabs.onUpdated
+* tab URL change away from target platform
+* last platform tab for a session closing
+
+Required behavior:
+
+* if the last Coursera tab for a session closes,
+  emit a release event immediately
+
+Important:
+
+* Same browser session with multiple Coursera tabs must not release slot until all related tabs are closed
+* One tab closing should not release the slot if another tracked Coursera tab is still open for the same browserSessionId + platformId + sessionId
+
+---
+
+# TASK 3 — CONTENT SCRIPT / PAGE BRIDGE
+
+Implement a reliable bridge between:
+
+* extension background.js
+* content.js
+* dashboard page
+
+Because the extension may not directly have server auth context,
+build a robust message bridge.
+
+Required event flow:
+
+1. background.js detects platform tab close
+2. background.js sends message to content.js or dashboard page
+3. dashboard page receives event
+4. dashboard page calls backend using authenticated request or sendBeacon
+5. backend releases exact session/slot
+
+Use:
+
+* chrome.tabs.sendMessage
+* content.js window.postMessage
+* window.addEventListener('message')
+* navigator.sendBeacon as fallback
+* fetch fallback if sendBeacon fails
+
+Explain which side owns:
+
+* server URL
+* cookies/auth
+* sessionId
+* browserSessionId
+
+---
+
+# TASK 4 — REAL-TIME SLOT RELEASE ON TAB CLOSE
+
+Implement exact slot release on tab close.
+
+Required behavior:
+
+* closing Coursera tab must release the correct session
+* release must target the exact sessionId and/or slot/accountSession
+* must not depend only on IP
+* must not release other browser sessions accidentally
+
+Backend release endpoint must:
+
+* authenticate ownership if needed
+* find exact active session
+* mark session inactive
+* release/delete associated accountSession/slot
+* sync in-memory store
+* emit WebSocket update
+* return consistent success JSON
+
+You must design:
+
+* primary release path
+* sendBeacon fallback
+* cleanup fallback if release event is missed
+
+---
+
+# TASK 5 — LOGOUT-DRIVEN PLATFORM REVOKE
+
+This is critical.
+
+When the user logs out of dashboard/account,
+I want ALL open Coursera platform access for that user/session to stop working.
+
+Implement a complete revoke flow:
+
+## Backend logout flow
+
+On logout:
+
+* mark related user sessions inactive
+* mark related account/platform sessions inactive
+* release slots
+* emit WebSocket event to the user
+* emit session revoke event targeted to current user/browser if needed
+
+## Frontend / extension revoke flow
+
+When revoke event is received:
+
+* identify all active Coursera tabs for this user/browser session
+* remove relevant cookies for Coursera
+* clear localStorage/sessionStorage if injected
+* clear extension in-memory tracked session
+* optionally reload or close the tab
+* ensure the user cannot keep using Coursera after dashboard logout
+
+Important:
+Do not only log the dashboard out.
+Actually revoke platform access.
+
+---
+
+# TASK 6 — MULTI-TAB, MULTI-BROWSER, MULTI-IP RULES
+
+Implement these exact rules:
+
+### Same browser + same browserSessionId + same platform + same IP
+
+= reuse same slot
+
+### Same browser multiple tabs
+
+= still 1 slot
+
+### Different browser
+
+= new slot
+
+### Different IP
+
+= new slot
+
+### Different browser + different IP
+
+= new slot
+
+### Closing all tabs for one browser session
+
+= release only that slot/session
+
+### Closing one tab while another same-session tab remains open
+
+= do NOT release slot yet
+
+### Logout from dashboard
+
+= revoke all related platform access for that dashboard user/session as designed
+
+Explain exactly how browserSessionId, sessionId, tabId, and platform/account session relate.
+
+---
+
+# TASK 7 — BACKEND HARDENING
+
+Patch the backend allocation/release lifecycle fully.
+
+I want:
+
+1. platform-wide stale cleanup before allocation
+2. retry-once if first allocation says "All Slots Full"
+3. DB-authoritative slot count after cleanup
+4. strict slot-session binding
+5. stale fallback cleanup
+6. real-time event emission
+7. detailed structured logs
+
+Logs should include:
+
+* [slot-alloc]
+* [slot-release]
+* [session-create]
+* [session-revoke]
+* [tab-close]
+* [logout-revoke]
+* [cleanup]
+
+Each log should include:
+
+* userId
+* sessionId
+* browserSessionId
+* platformId
+* accountId
+* tabId if applicable
+* reason
+
+---
+
+# TASK 8 — REAL-TIME UI UPDATES
+
+Dashboard and admin UI must update in real time.
+
+When:
+
+* slot released
+* session ended
+* logout revoke happened
+* cleanup removed stale session
+
+Then:
+
+* current user dashboard should update active sessions
+* platform cards should update availability
+* admin account manager should update live slot counts
+* no manual refresh should be required
+
+Use Socket.io rooms by user and/or admin room as needed.
+
+Events may include:
+
+* slot_released
+* session_ended
+* platform_access_revoked
+* session_list_updated
+* slot_count_updated
+
+---
+
+# TASK 9 — FORCE ACCESS BLOCK AFTER LOGOUT
+
+This is important.
+
+Even if a Coursera page is already open,
+after dashboard logout the user must not continue access.
+
+Implement one or more of these:
+
+* clear cookies
+* clear local/session storage
+* remove injected auth headers/session data
+* reload page
+* redirect to platform login page
+* close tab if appropriate
+
+Design the safest method that works reliably.
+
+Explain limitations:
+
+* what can be guaranteed
+* what requires extension privileges
+* what happens if platform already loaded content in memory
+
+I want the best practical production solution, not theory.
+
+---
+
+# TASK 10 — FILE-BY-FILE PATCH PLAN
+
+Tell me exactly which files to modify, such as:
+
+* background.js
+* content.js
+* dashboard.html / dashboard.js
+* logout route
+* release_session route
+* access_platform route
+* cleanup job in server.js
+* session store
+* admin/account manager rendering
+* WebSocket event handlers
+
+For each file explain:
+
+* current problem
+* exact patch
+* why it fixes the bug
+
+---
+
+# TASK 11 — FULL IMPLEMENTATION CODE
+
+Give practical implementation-level code for:
+
+1. Extension active platform tab registry
+2. Tab close detection
+3. Background → content/page message bridge
+4. Dashboard event listener
+5. sendBeacon release call
+6. release_session exact backend logic
+7. logout revoke backend logic
+8. platform_access_revoked WebSocket event
+9. extension/platform cookie clearing
+10. storage clearing
+11. slot release + DB/store sync
+12. real-time UI update listeners
+
+Do NOT give pseudo-code only.
+Give realistic code suitable for Node.js + browser extension + dashboard frontend.
+
+---
+
+# TASK 12 — VALIDATION SCENARIOS
+
+You must validate these exact cases:
+
+### Case A — Single browser, single tab
+
+Open Coursera
+→ 1 slot used
+
+Close Coursera tab
+→ slot released immediately
+
+### Case B — Same browser, multiple Coursera tabs
+
+Open 3 Coursera tabs in same browser session
+→ still 1 slot
+
+Close 1 tab
+→ slot remains
+
+Close last remaining Coursera tab
+→ slot released
+
+### Case C — Different browser
+
+Browser A opens Coursera
+Browser B opens Coursera
+→ 2 slots used
+
+Close Browser A Coursera tab
+→ Browser A slot released
+→ Browser B slot remains
+
+### Case D — Different IP
+
+IP A access
+then IP B access
+→ new slot
+
+Close IP A Coursera tab
+→ IP A slot released
+→ IP B unaffected
+
+### Case E — Logout revoke
+
+User opens Coursera successfully
+User logs out of dashboard/account
+→ Coursera tab becomes unusable
+→ slot released
+→ dashboard session gone
+→ no continued access
+
+### Case F — Missed close event
+
+If tab close event fails,
+heartbeat timeout + cleanup must still free slot
+
+### Case G — False full prevention
+
+Close platform tab
+Immediately try from another browser
+→ system should not incorrectly show "All Slots Full"
+
+---
+
+# IMPORTANT RULES
+
+* Do not redesign from scratch unless absolutely necessary
+* Patch existing architecture first
+* Prioritize event-driven immediate release
+* Use heartbeat/cleanup only as fallback
+* Different browser / different IP must not be merged into same slot
+* Closing tab must release slot in real time
+* Logout must revoke platform access, not just dashboard session
+* Keep multi-tab same-browser behavior correct
+* Avoid releasing wrong sessions accidentally
+* Be explicit about limitations and edge cases
+
+---
+
+# FINAL OUTPUT FORMAT
+
+Return your answer in this exact order:
+
+1. Root cause analysis
+2. Correct lifecycle design
+3. Extension patch
+4. Content/page bridge patch
+5. Backend release/session patch
+6. Logout revoke patch
+7. WebSocket real-time update patch
+8. File-by-file patch list
+9. Full implementation code
+10. Validation results and expected behavior
+
+Focus on real production fixes, zero ghost slots, real-time slot release, and logout-driven access revoke.

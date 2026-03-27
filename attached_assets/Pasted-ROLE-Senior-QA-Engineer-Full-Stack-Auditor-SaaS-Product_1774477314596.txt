@@ -1,0 +1,202 @@
+ROLE: Senior QA Engineer + Full Stack Auditor + SaaS Product Analyst
+
+TASK:
+Perform a COMPLETE A-to-Z audit of the entire website, including backend, frontend, UI, APIs, database, and real user flows.
+
+---
+
+OBJECTIVE:
+
+* Test ALL features in real conditions
+* Identify what works, what is broken, and what needs improvement
+* Provide a FULL structured report
+
+---
+
+TESTING TYPE:
+
+1. FUNCTIONAL TESTING (LIVE)
+
+Simulate real usage:
+
+ADMIN FLOW:
+
+* Add account (cookie input)
+* Verify / Check button
+* Replace cookie
+* Delete slot
+* Slot creation
+* Slot limits
+* User assignment
+
+USER FLOW:
+
+* Signup / Login
+* Access platform
+* Session creation
+* Slot allocation
+* Dashboard status
+
+---
+
+2. FEATURE VALIDATION
+
+Check each feature:
+
+* Cookie parsing (all formats)
+* Platform detection
+* Slot creation logic
+* Slot capacity enforcement
+* Cookie vault storage
+* Cookie replacement
+* Failover system
+* Auto health system
+* AI scoring system
+* Availability API
+* Dashboard status badges
+
+---
+
+3. BUTTON TESTING
+
+Test ALL buttons:
+
+* Check (verify)
+* Replace Cookie
+* Edit
+* Delete
+* Access Now
+
+Verify:
+
+* API call works
+* correct response
+* UI updates properly
+
+---
+
+4. API TESTING
+
+Test endpoints:
+
+* /api/account_manager.php
+* /api/add_account_unified.php
+* /api/access_platform.php
+* /api/slot_feedback.php
+* /api/get_platform_availability.php
+
+Check:
+
+* correct response
+* error handling
+* invalid input handling
+
+---
+
+5. DATABASE VALIDATION
+
+Verify:
+
+* cookie_vault used correctly
+* no duplicate storage
+* slot → cookie_id relation correct
+* no legacy cookie_data usage
+* data consistency
+
+---
+
+6. UI/UX REVIEW
+
+Check:
+
+* confusion in navigation
+* clarity of flow
+* responsiveness
+* feedback messages
+* loading states
+* error visibility
+
+---
+
+7. PERFORMANCE TEST
+
+* multiple users accessing same platform
+* slot contention
+* response times
+
+---
+
+8. SECURITY CHECK
+
+* CSRF protection
+* input validation
+* session handling
+* rate limiting
+
+---
+
+OUTPUT FORMAT (VERY IMPORTANT)
+
+Create a TEXT REPORT like:
+
+---
+
+FEATURE STATUS REPORT
+
+1. ACCOUNT MANAGER
+
+* Status: Working / Partial / Broken
+* Issues:
+* Improvements:
+
+2. SLOT SYSTEM
+
+* Status:
+* Issues:
+* Improvements:
+
+3. COOKIE SYSTEM
+
+* Status:
+* Issues:
+* Improvements:
+
+4. USER SYSTEM
+
+* Status:
+* Issues:
+* Improvements:
+
+5. BUTTONS
+
+* Status:
+* Issues:
+* Improvements:
+
+6. APIs
+
+* Status:
+* Issues:
+* Improvements:
+
+7. UI/UX
+
+* Status:
+* Issues:
+* Improvements:
+
+---
+
+FINAL SUMMARY:
+
+* Critical Issues (must fix)
+* Medium Issues
+* Minor Improvements
+
+---
+
+GOAL:
+
+Provide a COMPLETE diagnostic report so the system can be upgraded to enterprise SaaS level.
+
+---

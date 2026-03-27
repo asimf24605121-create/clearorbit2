@@ -1,0 +1,237 @@
+ROLE: Principal SaaS Architect + Senior Full Stack Engineer
+
+TASK:
+Audit, fix, and refactor the entire Cookie-Slot system into a clean, scalable, enterprise SaaS architecture.
+
+---
+
+CURRENT ISSUES (MUST FIX)
+
+1. Duplicate systems:
+
+* "Add Account" and "Cookie Vault" both add cookies → confusing and inconsistent
+
+2. Duplicate cookie storage:
+
+* cookies stored in cookie_vault AND platform_accounts.cookie_data
+
+3. Wrong architecture:
+
+* current: 1 slot = 1 cookie (incorrect)
+* correct: 1 cookie → multiple slots
+
+4. No failover system:
+
+* when cookie dies → slots stop working → no recovery
+
+5. Weak verification:
+
+* static checks unreliable
+* server IP verification gets blocked
+
+6. Broken / confusing UI:
+
+* multiple flows for same task
+* admin confusion
+
+7. Buttons incomplete:
+
+* Verify unreliable
+* Edit does not edit cookie
+* Extend meaningless
+* no Replace Cookie feature
+
+---
+
+TARGET ARCHITECTURE (FINAL DESIGN)
+
+CORE PRINCIPLE:
+
+1 COOKIE = 1 ACCOUNT
+MULTIPLE SLOTS USE SAME COOKIE
+
+---
+
+FINAL FLOW:
+
+Paste Cookie
+→ Parse + detect platform
+→ Live verification (real login test)
+→ Store in cookie_vault (single source of truth)
+→ Create multiple slots referencing cookie_id
+→ Assign users to slots
+
+---
+
+REQUIRED FIXES
+
+1. REMOVE DUPLICATION
+
+* delete platform_accounts.cookie_data column
+* all slots must use cookie_id (foreign key to cookie_vault)
+* remove duplicate cookie logic
+
+---
+
+2. MERGE FLOWS
+
+* remove separate "Cookie Vault" and "Add Account"
+* create ONE unified flow:
+
+"Manage Accounts"
+
+---
+
+3. SLOT SYSTEM FIX
+
+* enforce: 1 cookie → multiple slots
+* add profile_index per slot
+* enforce max_slots_per_cookie limit
+
+---
+
+4. VALIDATION SYSTEM
+
+* remove static-only validation
+* make live verification mandatory
+
+Verification must:
+
+* open platform
+* inject cookie
+* detect:
+
+"/browse" → VALID
+"/login" → INVALID
+"/account" → NO_SUBSCRIPTION
+
+---
+
+5. FAILOVER SYSTEM (CRITICAL)
+
+* introduce cookie pool (active + reserve)
+
+IF cookie dies:
+→ auto switch to reserve cookie
+→ all slots recover automatically
+
+IF no reserve:
+→ suspend slots
+→ notify admin
+
+---
+
+6. AUTO HEALTH SYSTEM
+
+* track:
+  success_count
+  fail_count
+  score
+
+* auto classify:
+  STABLE / RISKY / DEAD
+
+---
+
+7. BUTTON FIXES
+
+VERIFY:
+
+* use proxy-based real verification
+* show detailed result
+
+RECHECK:
+
+* merge with verify (single action)
+
+EDIT:
+
+* allow editing cookie string
+* re-run verification
+
+EXTEND:
+
+* REMOVE (expiry should come from cookie)
+
+DELETE:
+
+* add confirmation + impact warning
+
+ADD NEW:
+
+* Replace Cookie button (update vault entry)
+
+---
+
+8. UI/UX CLEANUP
+
+* single page: "Manage Accounts"
+
+Flow:
+
+Paste Cookie
+→ Verify result (show success/fail)
+→ Choose slot count
+→ Create
+
+Display:
+
+* slot usage (3/5)
+* cookie health (green/yellow/red)
+* platform status
+
+---
+
+9. USER DASHBOARD
+
+Show before click:
+
+* Available
+* High Demand
+* Unavailable
+
+---
+
+10. DATABASE CHANGES
+
+cookie_vault:
+
+* add:
+  pool_type (active/reserve)
+  verified_at
+  verify_proof
+
+platform_accounts:
+
+* remove cookie_data
+* add:
+  profile_index
+  cookie_id (required)
+
+platforms:
+
+* add:
+  max_slots_per_cookie
+
+---
+
+FINAL RESULT
+
+System must become:
+
+* clean (no duplication)
+* centralized (vault-based)
+* scalable (multi-slot per cookie)
+* automated (failover + health)
+* reliable (real verification)
+* SaaS-ready
+
+---
+
+GOAL:
+
+Eliminate confusion
+Eliminate manual work
+Build a professional, production-grade SaaS system
+
+---

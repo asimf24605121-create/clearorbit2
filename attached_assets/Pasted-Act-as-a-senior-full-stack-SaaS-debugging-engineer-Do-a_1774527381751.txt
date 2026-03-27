@@ -1,0 +1,113 @@
+Act as a senior full-stack SaaS debugging engineer.
+
+Do a COMPLETE A to Z audit of the entire application (frontend + backend + API + auth + database).
+
+Current issues observed:
+
+1. Admin Management:
+   - "Failed to load admins"
+   - API not returning or frontend not rendering
+
+2. Account Manager:
+   - "Network error"
+   - Slot capacity not loading
+
+3. Platform Intelligence:
+   - Stuck on "Loading platform data..."
+   - Data not rendering
+
+4. General:
+   - Some pages work, some fail
+   - Likely auth/session/cookie issue
+   - Some APIs returning 401 or failing silently
+   - Frontend not handling errors properly
+
+--------------------------------------------------
+
+TASKS:
+
+1. DEBUG ALL API ENDPOINTS
+Check and fix:
+- /api/get_admins.php
+- /api/reseller_dashboard.php
+- /api/get_platforms.php
+- /api/admin_overview.php
+
+Ensure:
+- Always return valid JSON
+- Include { success: true/false }
+- No PHP warnings or HTML output
+
+--------------------------------------------------
+
+2. FIX AUTH & SESSION SYSTEM
+- Ensure session_start() is on all protected APIs
+- Fix cookie issues:
+  SameSite=Lax
+  HttpOnly=true
+- Ensure session persists across requests
+- If session missing → return 401 JSON (not HTML)
+
+--------------------------------------------------
+
+3. FIX CORS / NETWORK ISSUES
+- Add headers:
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Credentials: true
+  Content-Type: application/json
+
+--------------------------------------------------
+
+4. FIX FRONTEND FETCH SYSTEM
+- Replace all fetch() with safeFetch()
+- Handle:
+  - 401 → redirect to login
+  - network error → show "Failed to load"
+  - empty data → show "No data available"
+- REMOVE all silent returns:
+  if (!data.success) return;
+
+--------------------------------------------------
+
+5. FIX LOADING STATES (CRITICAL)
+- Every async function must:
+  - start loader
+  - stop loader in finally
+- No infinite loading allowed
+- Replace stuck loaders with:
+  - error message OR empty state
+
+--------------------------------------------------
+
+6. DEBUG DATABASE
+- Check if:
+  - admins table has data
+  - platforms table has data
+- If empty → insert sample data
+
+--------------------------------------------------
+
+7. ADD DEBUG LOGGING
+- Log all API responses in console
+- Log PHP errors
+- Ensure no hidden failures
+
+--------------------------------------------------
+
+8. UI FAILSAFE
+- If API fails:
+  - show message instead of blank UI
+- No section should stay stuck on loading
+
+--------------------------------------------------
+
+FINAL GOAL:
+
+- Admin list loads correctly
+- Account Manager loads without network error
+- Platform Intelligence loads properly
+- No infinite loading anywhere
+- System behaves like a production SaaS app
+
+Fix EVERYTHING completely.
+Do not leave partial fixes.

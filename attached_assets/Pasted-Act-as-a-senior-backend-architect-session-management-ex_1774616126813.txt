@@ -1,0 +1,341 @@
+Act as a senior backend architect, session-management expert, and real-time systems engineer.
+
+I already have an existing production-style Account Manager system. Use the following system context as the source of truth and do NOT give generic suggestions.
+
+## EXISTING SYSTEM CONTEXT
+
+This system is a shared-access SaaS platform with:
+
+* Backend: Node.js / Express / Prisma / SQLite
+* Frontend: Vanilla JS + Tailwind
+* Chrome Extension: background.js + content.js
+* Real-time updates: Socket.io
+* Intelligence engine: ALIE
+* Slot system: each PlatformAccount row acts as a slot
+* Session access flow:
+  Admin imports cookies → platform detected → CookieVault created → PlatformAccount slots created
+  → user requests access → access_platform assigns slot
+  → extension injects cookies/session into browser
+  → verification runs
+  → slot_feedback updates health/intelligence
+
+The existing audit already identified:
+
+* slot capacity logic
+* active session handling
+* NaN users bug
+* undefined values
+* verification weaknesses
+* access_platform allocation logic
+* max_users based slot capacity
+* AccountSession based active user counting
+
+Important known issues in current system:
+
+* Same user opening multiple tabs can incorrectly consume multiple slots
+* Closing a tab does not always free the slot
+* Users may get “All Slots Full” even when no real user is active
+* Slot tracking is not smart enough for real session identity
+* Current behavior is too tab-based, not session-based
+
+---
+
+## MY REQUIRED BUSINESS LOGIC
+
+I want to redesign the slot system with this exact behavior:
+
+### Rule 1 — Same user, same IP, same browser session = 1 slot only
+
+If 1 real user opens Coursera multiple times in multiple tabs from the same browser/session/IP,
+it must count as only 1 slot.
+
+### Rule 2 — Different user/session = new slot
+
+If another real user accesses the same platform/account from a different session/device/browser,
+then a new slot should be consumed.
+
+### Rule 3 — Tab close should release slot
+
+If the user closes Coursera tab(s), the slot should be automatically released.
+
+### Rule 4 — Inactive user should release slot
+
+If heartbeat stops for a timeout period, the slot should be released automatically.
+
+### Rule 5 — Refresh or reopen in same session should reuse same slot
+
+Refreshing or reopening from the same browser session must not create a new slot.
+
+---
+
+## REAL PROBLEM SCENARIO
+
+Current real bug:
+
+1. I logged into Coursera successfully
+2. I checked and it was working
+3. I closed the Coursera tab
+4. Then I tried again
+5. System showed “All Slots Full”
+
+This is wrong.
+
+The system must treat:
+
+* same real session = same slot
+* dead/closed/inactive session = freed slot
+
+---
+
+## YOUR TASK
+
+Using my existing architecture, redesign and patch the slot/session system properly.
+
+Do NOT propose a full rewrite unless absolutely necessary.
+Prefer upgrading the current architecture.
+
+---
+
+## PART 1 — ANALYZE CURRENT SYSTEM
+
+First, explain how the current system likely works today using the existing architecture:
+
+* access_platform
+* PlatformAccount as slot
+* AccountSession as active usage tracker
+* max_users capacity logic
+* extension/browser flow
+* why the “All Slots Full” bug happens after tab close
+* why same user may consume multiple slots
+* why tab close is not releasing session correctly
+* whether current system is session-based, tab-based, or partially state-based
+
+---
+
+## PART 2 — DESIGN THE CORRECT SOLUTION
+
+Design a production-ready solution that fits this codebase.
+
+### Session Identity
+
+Create a real session identity model using something like:
+
+* browserSessionId (stored in localStorage)
+* platform
+* accountId
+* userId if available
+* IP as supporting metadata
+* user-agent / fingerprint as supporting metadata
+
+Recommend the best session key format.
+
+Important:
+Same browser opening multiple tabs must share the same browserSessionId.
+
+---
+
+## PART 3 — MULTI-TAB SINGLE-SLOT LOGIC
+
+Design logic so that:
+
+* multiple tabs from same browser session do NOT consume multiple slots
+* multiple Coursera tabs still map to one active session record
+* only when a truly new session/browser/device starts, another slot is allocated
+
+Explain:
+
+* how frontend should generate/store session ID
+* how backend should detect existing active session
+* how slot reuse should happen
+
+---
+
+## PART 4 — TAB CLOSE + AUTO RELEASE
+
+Implement a reliable release strategy.
+
+I want you to design BOTH:
+
+1. immediate release attempt on tab/browser close
+2. timeout cleanup fallback
+
+### Frontend requirements
+
+Use:
+
+* beforeunload
+* pagehide
+* visibilitychange if useful
+* sendBeacon if better than fetch for unload
+
+### Backend requirements
+
+* session end endpoint
+* heartbeat endpoint
+* lastSeen timestamp update
+* cleanup job for stale sessions
+
+Explain the exact best practice approach because beforeunload alone is unreliable.
+
+---
+
+## PART 5 — HEARTBEAT DESIGN
+
+Design a heartbeat system for the current codebase.
+
+Requirements:
+
+* heartbeat every 15–30 sec
+* only while platform tab is active/alive
+* update AccountSession.lastSeen
+* mark session inactive after timeout (e.g. 60–90 sec)
+
+Explain:
+
+* heartbeat API contract
+* DB fields needed
+* timeout policy
+* race condition handling
+
+---
+
+## PART 6 — DATABASE / MODEL CHANGES
+
+Based on existing Prisma models, propose exact DB/model changes.
+
+I likely already have AccountSession.
+Tell me:
+
+* what fields to add
+* what fields to change
+* whether I need browserSessionId
+* whether I need tabCount
+* whether I need lastSeen
+* whether I need releasedAt / endedAt
+* whether I need status values like active / stale / ended
+
+Give concrete schema suggestions.
+
+---
+
+## PART 7 — ACCESS_PLATFORM PATCH
+
+Redesign the access_platform logic so it does this:
+
+1. Look for an existing active session for the same browserSessionId + platform/account
+2. If found:
+
+   * reuse same slot
+   * do NOT allocate another slot
+3. If not found:
+
+   * count currently active unique sessions
+   * if below max_users, create a new active session
+   * else return “All Slots Full”
+
+Also explain:
+
+* how to handle stale sessions
+* how to avoid duplicate allocation from rapid multiple clicks/tabs
+* how to use transaction/locking safely
+
+---
+
+## PART 8 — EXACT BUG ROOT CAUSE
+
+Explain likely exact root causes of my issue:
+
+Why after closing Coursera tab, slot still remains full?
+Possible reasons to analyze:
+
+* AccountSession never marked inactive
+* no heartbeat timeout cleanup
+* tab close API not sent
+* backend counts stale sessions as active
+* extension does not notify backend on tab close
+* access_platform only checks DB rows, not real liveliness
+* same user creates duplicate AccountSession entries
+
+I want the root cause analysis tied to this architecture, not generic theory.
+
+---
+
+## PART 9 — IMPLEMENTATION PLAN
+
+Give a practical implementation plan in this exact order:
+
+### Step 1 — frontend/browser changes
+
+### Step 2 — backend API changes
+
+### Step 3 — DB migration
+
+### Step 4 — access_platform patch
+
+### Step 5 — stale session cleanup worker
+
+### Step 6 — UI updates in Account Manager
+
+### Step 7 — testing scenarios
+
+---
+
+## PART 10 — CODE
+
+Give real working code examples for:
+
+* browserSessionId generation and persistence
+* heartbeat sender
+* unload/end-session sender
+* Node.js/Express session start API
+* heartbeat API
+* end session API
+* access_platform updated logic
+* stale-session cleanup job
+* Prisma model update example
+
+Do not give pseudo-code only.
+Give practical implementation-level code.
+
+---
+
+## PART 11 — UI / ADMIN IMPROVEMENTS
+
+Also improve the Account Manager UI so admin can clearly see:
+
+* active unique users
+* active sessions
+* stale sessions
+* free slots
+* slot reused vs new slot allocated
+* last heartbeat time
+* why a slot is marked occupied
+
+Add suggestions so the admin never sees confusing behavior again.
+
+---
+
+## PART 12 — OUTPUT FORMAT
+
+Respond in this structure:
+
+1. Current system behavior analysis
+2. Root cause of the bug
+3. Correct session-based slot design
+4. Database/model changes
+5. API changes
+6. access_platform redesign
+7. Frontend/browser logic
+8. Cleanup worker design
+9. UI/admin improvements
+10. Full implementation code
+11. Final recommended rollout plan
+
+IMPORTANT:
+
+* Do not give generic theory
+* Use my existing architecture as baseline
+* Focus on fixing the real bug
+* Optimize for reliability and production behavior
+* Make sure same real user in multiple tabs counts as one slot only
+* Make sure dead/closed sessions free their slot

@@ -1,0 +1,198 @@
+Act as a Senior PHP SaaS Architect, Security Engineer, and Full Stack Developer.
+
+Build and FIX a complete production-ready system for ClearOrbit using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 CORE OBJECTIVES
+
+1. Fix user dashboard data issues (no random data)
+2. Implement role-based admin system (Super Admin + Manager)
+3. Add device-based login control
+4. Add multi-platform subscriptions
+5. Add user profile system
+6. Add secure password reset system
+7. Implement proper routing between admin and user panels
+
+---
+
+## 👑 PERMANENT SUPER ADMIN
+
+Create a permanent Super Admin:
+
+Email: [asimf24605121@gmail.com](mailto:asimf24605121@gmail.com)
+
+Rules:
+
+* Always role = super_admin
+* Cannot be deleted
+* Cannot be downgraded
+* Always full access
+
+---
+
+## 🔐 ROLE-BASED SYSTEM
+
+Roles:
+
+1. super_admin
+2. manager
+
+---
+
+## 👨‍💼 ADMIN PANELS STRUCTURE
+
+/admin/ → Super Admin Panel
+/manager/ → Manager Panel
+/user/ → User Dashboard
+
+---
+
+## 🔁 LOGIN REDIRECTION
+
+After login:
+
+IF super_admin → /admin/dashboard.php
+IF manager → /manager/dashboard.php
+IF normal user → /user/dashboard.php
+
+---
+
+## 🧭 LOGO CLICK BEHAVIOR (IMPORTANT)
+
+When clicking "ClearOrbit" logo (top-left):
+
+IF admin → go to /admin/dashboard.php
+IF manager → go to /manager/dashboard.php
+IF user → go to /user/dashboard.php
+
+---
+
+## 🚨 USER DASHBOARD DATA FIX (IMPORTANT)
+
+Fix issue: random subscriptions showing
+
+RULE:
+
+* Only show data where:
+  subscriptions.user_id = logged_in_user_id
+
+NEVER show other users data
+
+---
+
+## 👤 USER SYSTEM
+
+User fields:
+
+* name
+* email
+* password
+* phone
+* created_at
+* expiry_date
+* status
+
+---
+
+## 📊 USER DASHBOARD
+
+Show ONLY:
+
+* User own subscriptions
+* Expiry date
+* Remaining days
+
+---
+
+## 🧩 MULTI-PLATFORM SUBSCRIPTIONS
+
+* Admin can assign multiple platforms using checkboxes
+* Save each platform separately in DB
+* Prevent duplicate active subscriptions
+
+---
+
+## 📱 DEVICE LOGIN SYSTEM
+
+* Limit devices (1 or 2 max)
+
+* Save device info:
+
+  * IP
+  * browser
+  * OS
+  * device type (mobile/pc)
+
+* Logout frees device slot
+
+---
+
+## 📊 ADMIN USER VIEW
+
+Show:
+
+* User devices
+* Device type (PC / Mobile)
+* IP
+* Highlight multiple logins in RED
+
+---
+
+## 🔐 PASSWORD RESET SYSTEM
+
+* Use PHPMailer SMTP
+* Send real email
+* Secure token system
+* Update password properly
+
+---
+
+## 🎨 UI LOGIC
+
+* No random data
+* Clean dashboard
+* Show role badge:
+
+  * Super Admin (green)
+  * Manager (blue)
+  * User (gray)
+
+---
+
+## 🚫 SECURITY RULES
+
+* Use prepared statements
+* Validate sessions
+* Block unauthorized access
+* Prevent direct URL access
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate FULL working system:
+
+* login.php
+* admin panel
+* manager panel
+* user dashboard
+* subscription system
+* device system
+* password reset system
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+A complete SaaS system where:
+
+* Data is correct (no random users)
+* Roles are properly separated
+* Admin controls everything
+* Manager limited access
+* Users see only their data
+* Navigation works correctly
+
+PRODUCTION READY. CLEAN CODE. NO BUGS.

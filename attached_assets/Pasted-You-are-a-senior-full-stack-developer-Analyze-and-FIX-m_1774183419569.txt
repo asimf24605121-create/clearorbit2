@@ -1,0 +1,123 @@
+You are a senior full-stack developer. Analyze and FIX my entire project (ClearOrbit SaaS platform). The project is deployed on Replit and will later be hosted on Hostinger (NO Node.js support, only static + PHP/JS allowed).
+
+⚠️ CURRENT ISSUES (Fix ALL properly):
+
+1. ❌ UI TEXT ISSUE:
+
+* "Buy Access" still showing in navbar instead of "Premium Subscription"
+* Heading still says "Get Premium Access" instead of "Get Premium Subscription"
+* Ensure ALL related UI text is updated consistently across all pages
+
+2. ❌ POPUP ISSUE:
+
+* Currently using browser alert:
+  "Order placed successfully! Your order is pending admin approval..."
+* This looks unprofessional
+* Replace with a MODERN CUSTOM MODAL (centered, animated, styled)
+* Should NOT use alert() anymore
+
+3. ❌ COOKIES SYSTEM BROKEN:
+
+* Added Coursera cookies, but when clicking login:
+  → It opens Udemy or wrong platform
+* This means:
+
+  * Platform-cookie mapping is broken
+  * Cookie injection logic is incorrect
+* Fix:
+
+  * Each platform must ONLY use its own cookies
+  * Correct domain matching
+  * Proper cookie parsing from JSON
+
+4. ❌ CSRF TOKEN ERROR:
+
+* "Invalid or missing CSRF token"
+* Happens on login / logout
+* Fix:
+
+  * Remove unnecessary CSRF system (since no backend framework)
+    OR
+  * Properly generate/store token in session/localStorage
+
+5. ❌ PURCHASE FLOW ISSUE:
+
+* Buy page exists but flow incomplete
+* Missing:
+
+  * Plan selection → Confirm → Payment → Pending → Admin Approval → Activate
+* Fix full flow:
+  Step 1: User selects platform
+  Step 2: Select plan (1 week, 1 month, etc)
+  Step 3: Select type (shared/private)
+  Step 4: Click "Buy Now"
+  Step 5: Create order (status = pending)
+  Step 6: Show success modal (NOT alert)
+  Step 7: Admin approves → user gets access
+
+6. ❌ HOSTINGER COMPATIBILITY ISSUE:
+
+* Remove ALL Node.js dependencies
+* Convert to:
+
+  * Pure HTML, CSS, JS
+  * Optional PHP for backend (if needed)
+* No Express / no server routes
+
+7. ❌ EXTENSION ISSUE:
+
+* Extension not syncing properly
+* "No valid cookies found"
+* Fix:
+
+  * Ensure extension reads cookies correctly
+  * Match platform ID with cookies
+  * Show popup ONLY when extension is offline
+
+8. ❌ UI/UX PROBLEMS:
+
+* Design still looks basic
+* Improve:
+
+  * Card hover effects
+  * Smooth transitions
+  * Better spacing
+  * Professional SaaS style
+  * Proper button states (active, disabled, loading)
+
+9. ❌ PLATFORM LOGO ISSUE:
+
+* Some logos broken (like coursera)
+* Fix:
+
+  * Ensure correct logo URL or upload handling
+  * Add fallback image
+
+10. ❌ ADMIN PANEL IMPROVEMENTS:
+
+* Add:
+
+  * Order management (approve/reject)
+  * Better tables UI
+  * Filters (by user, platform, status)
+  * Real-time updates
+
+---
+
+🎯 FINAL REQUIREMENTS:
+
+* Fully working SaaS system (frontend + logic)
+* No Node.js dependency
+* Clean professional UI (like Stripe / Notion style)
+* Proper modular JS structure
+* Fix ALL bugs (not partial)
+
+---
+
+💡 OUTPUT:
+
+* Updated FULL code
+* Clean structure
+* Working purchase flow
+* Fixed cookies system
+* Modern UI

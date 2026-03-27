@@ -1,0 +1,164 @@
+Act as a Senior PHP Backend Engineer and Performance Optimization Specialist.
+
+You are working on ClearOrbit SaaS system built in PHP + MySQL.
+
+DO NOT rebuild the system. ONLY optimize and secure the existing implementation.
+
+---
+
+## 🎯 OBJECTIVE
+
+Optimize the system for:
+
+✔ Stability
+✔ Performance
+✔ Safe multi-user handling
+✔ No slot conflicts
+
+---
+
+## 🧩 1. DATABASE OPTIMIZATION (CRITICAL)
+
+Add indexes to improve performance:
+
+TABLE: account_sessions
+
+* INDEX(account_id)
+* INDEX(user_id)
+* INDEX(status)
+* INDEX(last_active)
+
+TABLE: platform_accounts
+
+* INDEX(platform_id)
+
+---
+
+## 🧩 2. ACTIVE USER COUNT QUERY
+
+Optimize query:
+
+SELECT COUNT(*)
+FROM account_sessions
+WHERE account_id = ?
+AND status = 'active'
+AND last_active > NOW() - INTERVAL 5 MINUTE
+
+---
+
+## 🧩 3. SAFE ACCOUNT ASSIGNMENT (VERY IMPORTANT)
+
+Prevent multiple users getting same slot simultaneously.
+
+Use transaction or locking:
+
+STEP:
+
+1. Start transaction
+2. Select account with available slot
+3. Lock row (FOR UPDATE)
+4. Check active users again
+5. If still available → assign
+6. Commit
+
+---
+
+## 🧩 4. SESSION CREATION
+
+On login:
+
+INSERT INTO account_sessions:
+
+* user_id
+* account_id
+* status = 'active'
+* last_active = NOW()
+
+---
+
+## 🧩 5. SESSION UPDATE
+
+On each request:
+
+UPDATE account_sessions
+SET last_active = NOW()
+WHERE user_id = ?
+
+---
+
+## 🧩 6. AUTO CLEANUP SYSTEM
+
+Run cleanup:
+
+UPDATE account_sessions
+SET status = 'inactive'
+WHERE last_active < NOW() - INTERVAL 10 MINUTE
+
+---
+
+## 🧩 7. PREVENT MULTIPLE SESSIONS PER USER
+
+Before login:
+
+* Check if user already has active session
+* If yes → block or replace
+
+---
+
+## 🧩 8. LOAD PROTECTION
+
+Limit:
+
+* Max users per account = 5
+* Block if exceeded
+
+---
+
+## 🧩 9. API RESPONSE CONSISTENCY
+
+Always return:
+
+{
+"success": true,
+"account_id": X,
+"cookies": [...]
+}
+
+---
+
+## 🧩 10. ERROR HANDLING
+
+Return clear errors:
+
+* "All slots are full"
+* "Session already active"
+
+---
+
+## 🧩 11. PERFORMANCE RULES
+
+* Avoid unnecessary queries
+* Use prepared statements
+* Cache platform accounts if needed
+
+---
+
+## 🧪 TEST CASES
+
+✔ Multiple users login at same time → no conflict
+✔ Slot full → blocked
+✔ Inactive users → auto removed
+✔ System fast under load
+
+---
+
+## 🎯 FINAL GOAL
+
+A HIGH-PERFORMANCE PHP system where:
+
+✔ No slot conflicts
+✔ Fast queries
+✔ Stable sessions
+✔ Scalable for 50+ users
+
+PRODUCTION READY SYSTEM.

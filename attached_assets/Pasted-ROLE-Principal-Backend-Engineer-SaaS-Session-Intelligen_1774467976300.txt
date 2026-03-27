@@ -1,0 +1,185 @@
+ROLE: Principal Backend Engineer (SaaS Session Intelligence System)
+
+TASK:
+Implement a "Real Login Verification + Intelligent Cookie Filtering System" for Netflix accounts using headless browser validation.
+
+---
+
+PROBLEM
+
+Current system accepts cookies that appear valid but are not fully authenticated.
+
+Issues:
+
+* Some cookies allow browsing but not login
+* Users get login page instead of account
+* System stores fake/partial accounts
+
+---
+
+OBJECTIVE
+
+Only accept cookies that provide FULL authenticated login.
+
+Reject:
+
+* expired cookies
+* partial sessions
+* anonymous browsing cookies
+
+---
+
+CORE IMPLEMENTATION
+
+1. HEADLESS VERIFICATION ENGINE
+
+Use Puppeteer (Node.js worker):
+
+Flow:
+
+* launch headless browser
+* open https://www.netflix.com/
+* inject cookies
+* navigate to /browse
+* evaluate page
+
+---
+
+2. LOGIN VALIDATION RULES
+
+IF:
+
+* URL contains /browse
+  AND
+* page contains profile elements:
+
+  * "Continue Watching"
+  * profile avatar
+  * account menu
+
+→ STATUS = VALID
+
+---
+
+IF:
+
+* redirected to /login
+
+→ STATUS = INVALID
+
+---
+
+IF:
+
+* browse opens but no profile UI
+
+→ STATUS = PARTIAL
+
+---
+
+3. COOKIE REQUIREMENTS
+
+Must include:
+
+* NetflixId
+* SecureNetflixId
+
+Otherwise:
+→ reject immediately
+
+---
+
+4. SYSTEM BEHAVIOR
+
+WHEN admin pastes cookie:
+
+Step 1: parse cookie
+Step 2: send to verification engine
+Step 3: receive result
+
+---
+
+5. DECISION LOGIC
+
+IF VALID:
+
+* store account
+* create slots
+* mark status = ACTIVE
+
+IF PARTIAL:
+
+* show warning
+* do NOT create slots
+
+IF INVALID:
+
+* reject completely
+
+---
+
+6. DATABASE FIELDS
+
+Add:
+
+* login_status (VALID / PARTIAL / INVALID)
+* last_checked_at
+* fail_count
+* health_score
+
+---
+
+7. AUTO FAILOVER SYSTEM
+
+When assigning account:
+
+* select only VALID accounts
+* skip INVALID/PARTIAL
+
+IF login fails:
+
+* mark account DEAD
+* retry next account
+
+---
+
+8. BACKGROUND HEALTH CHECK
+
+Run every 10 minutes:
+
+* recheck cookies
+* update status
+* disable expired accounts
+* free slots
+
+---
+
+9. API INTEGRATION
+
+PHP backend should:
+
+* send cookie to Node worker API
+* receive JSON response
+* store result
+
+---
+
+10. FINAL RESULT
+
+System becomes:
+
+* intelligent
+* self-cleaning
+* only real accounts stored
+* no fake sessions
+* no user login errors
+
+---
+
+CONSTRAINTS:
+
+* keep existing system
+* add as validation layer
+* no breaking changes
+
+---

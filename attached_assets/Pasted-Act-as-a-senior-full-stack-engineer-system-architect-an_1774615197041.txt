@@ -1,0 +1,267 @@
+Act as a senior full-stack engineer, system architect, and product auditor.
+
+You are analyzing a real production-level system that manages:
+
+* account cookies
+* slot allocation
+* session injection
+* platform detection
+* account health scoring (IQ system)
+* verification system (VERIFIED / FAILED / UNKNOWN)
+* admin dashboard
+
+The system already includes:
+
+* cookie engine
+* background session injection
+* account import flows (auto_setup, bulk_import)
+* slot capacity system
+* account intelligence engine
+* verification pipeline
+* API routes (accounts.js, access_platform, slot_feedback, etc.)
+
+Your job is to **deeply audit the Account Manager page and its full system behavior**.
+
+---
+
+## 🔍 PART 1 — FULL FUNCTION ANALYSIS
+
+Explain ALL features shown in UI:
+
+### Import System
+
+* Cookie paste input (all formats)
+* platform auto-detection
+* duplicate prevention
+* slots creation logic
+* max users per slot
+* auto setup pipeline
+* session completeness calculation
+* warnings system (missing localStorage / auth headers)
+
+### Auto Setup Result Panel
+
+* platform
+* status
+* slots created
+* max streams
+* login score
+* cookies processed
+* expiry handling
+* verification status (including UNKNOWN)
+* why undefined values appear
+* how completeness % is calculated
+
+### Slot System
+
+* slot creation
+* slot capacity logic
+* user allocation
+* "NaN users" bug explanation
+* undefined streams issue
+* how slots are linked to accounts
+
+### Account Cards
+
+Explain ALL fields:
+
+* Vault / Unverified / VALID / Available
+* cookies count
+* score
+* IQ score
+* success rate
+* expiry
+* progress bar
+* stream usage
+* why values show undefined
+
+### Buttons (VERY IMPORTANT)
+
+Explain each:
+
+* Check
+* Edit
+* Replace
+* Delete
+* Run Intelligence
+* Auto Clean
+* Refresh
+* Recheck All
+
+For EACH button explain:
+
+* frontend function
+* backend API
+* request payload
+* database update
+* UI update
+* possible failure cases
+
+---
+
+## ⚙️ PART 2 — BACKEND SYSTEM ANALYSIS
+
+Based on the system:
+
+Explain how these work internally:
+
+### Cookie Engine
+
+* parsing logic
+* domain inference
+* SameSite handling
+* secure flag logic
+* expiry handling
+
+### Session Injection System
+
+* background.js role
+* cookie injection
+* localStorage/sessionStorage usage
+* authHeaders usage
+* authType system
+* fallback logic
+
+### Verification System
+
+* VERIFIED / FAILED / UNKNOWN logic
+* why UNKNOWN is used
+* current weaknesses
+* how verification should be improved
+
+### Import Flow
+
+* auto_setup pipeline
+* bulk_import pipeline
+* manage add/update flows
+* how session data is stored
+
+### Database Model
+
+Explain fields like:
+
+* cookies
+* storageData
+* authHeaders
+* authType
+* verificationStatus
+* verificationMethod
+
+---
+
+## 🚨 PART 3 — BUG DETECTION (VERY IMPORTANT)
+
+Find and explain ALL issues:
+
+Especially focus on:
+
+* "undefined" values in UI
+* "NaN users" bug
+* incorrect stream counts
+* weak validation
+* missing fields in DB or API
+* broken UI-backend mapping
+* incomplete session injection
+* wrong fallback logic
+* inconsistent naming
+* missing loading states
+* silent failures
+
+Explain EXACTLY:
+
+* why each bug happens
+* where it originates (frontend/backend)
+* how to fix it
+
+---
+
+## 🚀 PART 4 — IMPROVEMENTS (CRITICAL)
+
+Give professional-level improvements:
+
+### UI/UX Improvements
+
+* cleaner layout
+* better labels (remove undefined/NaN)
+* better status indicators
+* better error messages
+* better success feedback
+* improve import UX
+* improve slot visualization
+
+### Backend Improvements
+
+* better validation
+* stronger verification system
+* better session completeness logic
+* fix slot/user calculation logic
+* improve cookie parsing reliability
+* better API structure
+* logging & debugging improvements
+
+### Performance Improvements
+
+* optimize for 1000+ users
+* reduce loading time
+* batch processing
+* caching strategy
+* background jobs optimization
+
+### Security Improvements
+
+* cookie security risks
+* authHeaders protection
+* access control
+* validation hardening
+* audit logs
+
+---
+
+## 📊 PART 5 — PRIORITY FIX PLAN
+
+Give:
+
+### Critical (must fix immediately)
+
+### High Priority
+
+### Medium
+
+### Optional
+
+---
+
+## 📁 PART 6 — FILE-LEVEL ACTION PLAN
+
+Tell me EXACTLY:
+
+* which frontend files to edit first
+* which backend files to fix first
+* which APIs are broken
+* which functions need rewriting
+
+---
+
+## ⚠️ IMPORTANT RULES
+
+* Do NOT give generic answers
+* Do NOT skip any function
+* Do NOT assume — analyze properly
+* If something is broken → clearly say it
+* If something is missing → clearly say it
+* Focus on real production quality
+
+---
+
+## 🎯 FINAL OUTPUT STRUCTURE
+
+1. System Overview
+2. Full Feature Breakdown
+3. Backend Architecture Explanation
+4. Button-by-Button Mapping
+5. Bugs & Root Causes
+6. Improvement Plan
+7. Priority Fix List
+8. File-Level Action Plan
+
+Now analyze the system deeply and give a complete expert-level report.

@@ -1,0 +1,193 @@
+ROLE: Senior Backend Engineer (Session Systems) + Reliability Architect
+
+TASK:
+Upgrade the system into a "Session Persistence & Stability Engine" that maximizes cookie lifetime and reduces logout issues in shared environments.
+
+---
+
+CORE OBJECTIVE
+
+Improve:
+
+* Cookie survival time
+* Shared login stability
+* Session consistency
+
+WITHOUT modifying server-side expiry
+
+---
+
+SESSION PERSISTENCE ENGINE
+
+1. Auto Activity Refresh System
+
+Goal:
+Keep session alive by simulating activity
+
+Implementation:
+
+* Create endpoint: /api/keep_alive.php
+* Trigger every 5–10 minutes (frontend JS)
+
+Behavior:
+
+* Send lightweight request using cookie
+* Example: fetch homepage / account endpoint
+
+---
+
+2. Passive Refresh Mode
+
+If user is idle:
+
+* reduce refresh frequency
+* avoid detection
+
+---
+
+SESSION STORAGE SYSTEM
+
+3. Session Pool
+
+Store cookies in database/file:
+
+Structure:
+{
+id,
+netflix_id,
+secure_netflix_id,
+created_at,
+last_used,
+usage_count,
+status
+}
+
+---
+
+SHARED LOGIN CONTROL
+
+4. Conflict Detection
+
+Detect:
+
+* multiple users using same cookie simultaneously
+
+Logic:
+IF same cookie used by 2 IPs at same time:
+→ mark as "conflict"
+
+---
+
+5. Smart Lock System
+
+When user uses a cookie:
+
+* lock it temporarily
+
+{
+locked_by: user_id
+lock_time: timestamp
+}
+
+Release after inactivity
+
+---
+
+6. Cooldown System
+
+After logout or error:
+
+* mark cookie as "cooldown"
+* block reuse for X minutes
+
+---
+
+SMART ROTATION ENGINE
+
+7. Cookie Rotation
+
+If one cookie fails:
+→ auto switch to next available cookie
+
+---
+
+EXPIRY INTELLIGENCE
+
+8. Expiry Estimator (AI-like)
+
+Estimate expiry using:
+
+* last working time
+* failure frequency
+* usage_count
+
+Output:
+"Estimated remaining life: LOW / MEDIUM / HIGH"
+
+---
+
+9. Health Score
+
+Each cookie gets score:
+
+Start = 100
+
+* logout detected → -30
+* geo mismatch → -20
+* multiple users → -25
+* stable usage → +5
+
+---
+
+UI FEATURES
+
+10. Cookie Dashboard
+
+Display:
+
+* Status (Active / Risky / Dead)
+* Health Score
+* Last Used
+* Users using it
+
+---
+
+11. Smart Indicators
+
+🟢 Healthy
+🟡 Unstable
+🔴 Dead
+
+---
+
+ANTI-DETECTION RULES
+
+12. Avoid aggressive requests:
+
+* no spam refresh
+* random intervals (5–10 min)
+
+13. Respect limits:
+
+* max users per cookie (e.g., 2–3)
+
+---
+
+FINAL GOAL
+
+System should:
+
+* extend usable life of cookies
+* reduce logout frequency
+* manage shared access safely
+* behave like a smart session manager
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* Vanilla JS
+* No Node.js
+
+---

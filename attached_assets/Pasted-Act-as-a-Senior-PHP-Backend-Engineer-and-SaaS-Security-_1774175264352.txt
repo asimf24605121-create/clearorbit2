@@ -1,0 +1,139 @@
+Act as a Senior PHP Backend Engineer and SaaS Security Architect.
+
+We are working on a SaaS platform "ClearOrbit".
+
+========================
+🚨 CURRENT COOKIE SYSTEM ISSUES
+===============================
+
+1. COOKIE INJECTION FAILING
+
+* Error: "No valid cookies found"
+* Even after adding cookies from admin panel
+* Indicates cookie data is not being stored or retrieved correctly
+
+---
+
+2. JSON COOKIE INPUT NOT HANDLED PROPERLY
+
+* Admin pastes full JSON cookie array
+* System does not correctly parse or validate it
+* Invalid or incomplete data may be stored
+
+---
+
+3. COOKIE EXPIRY NOT DETECTED
+
+* expirationDate exists in JSON
+* But system does not calculate expiry properly
+* Expired cookies are still treated as valid OR valid cookies rejected
+
+---
+
+4. COOKIE STORAGE STRUCTURE ISSUE
+
+* cookie_string may not store full JSON correctly
+* Possible data loss or improper encoding
+* Not compatible with extension usage
+
+---
+
+5. API RESPONSE ISSUE (/api/get_cookie.php)
+
+* API may return empty or invalid data
+* Not returning full cookie JSON array
+* Not validating user subscription before returning cookie
+
+---
+
+6. EXTENSION INTEGRATION PROBLEM
+
+* Extension expects structured cookie JSON
+* Backend may not match expected format
+* Result: injection fails
+
+---
+
+7. NO VALIDATION SYSTEM
+
+* No checks for:
+
+  * missing fields (name, value, domain)
+  * invalid JSON
+* Leads to broken cookies
+
+---
+
+8. NO PREVIEW / FEEDBACK IN ADMIN UI
+
+* Admin cannot see:
+
+  * how many cookies added
+  * expiry date
+  * validity status
+
+---
+
+9. NO STATUS SYSTEM
+
+* Cookies not marked as:
+
+  * valid
+  * expired
+* No control for admin
+
+---
+
+10. POSSIBLE SECURITY ISSUE
+
+* Cookies stored in plain format
+* No encoding or protection
+
+---
+
+========================
+🎯 REQUIREMENT
+==============
+
+Fix and redesign the ENTIRE Cookie Vault system so that:
+
+* JSON cookies are fully supported
+* Proper parsing and validation happens
+* Expiry is correctly calculated
+* Only valid cookies are used
+* API returns correct structured JSON
+* Extension compatibility is ensured
+
+========================
+📦 EXPECTED SYSTEM BEHAVIOR
+===========================
+
+* Admin pastes JSON → system validates → stores safely
+* Expiry auto-detected
+* Status shown (Valid / Expired)
+* API returns clean JSON array
+* Extension successfully injects cookies
+
+========================
+⚠️ IMPORTANT
+============
+
+* Do NOT simplify cookie structure
+* Keep full JSON intact
+* Ensure production-level handling
+* Focus on root cause analysis before coding
+
+========================
+🎯 TASK
+=======
+
+First:
+
+* Analyze all issues deeply
+* Identify root causes
+
+Then:
+
+* Provide complete fix implementation
+
+If output is long, I will say "continue"

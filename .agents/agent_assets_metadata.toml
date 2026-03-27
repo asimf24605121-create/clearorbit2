@@ -1,0 +1,26 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_9Dnxmzw6HWXJGvRXnIFL"
+uri = "file://clearorbit-hostinger.zip"
+type = "unspecified"
+title = "ClearOrbit — Hostinger Deployment Package"
+
+[[outputs]]
+id = "AOFH6Z06Xv6dfbDwh50QD"
+uri = "file://.local/account_manager_audit.md"
+type = "text"
+title = "ClearOrbit Account Manager — Full System Audit Report"
+
+[[outputs]]
+id = "8_hnUU8hh3YKIh5gh3BoB"
+uri = "file://.local/cookie_system_audit.md"
+type = "text"
+title = "ClearOrbit Cookie System — Complete Technical Audit"
+
+[[outputs]]
+id = "T1C7qEvImmY3eYDtE7oDA"
+uri = "file://.local/session_failure_analysis.md"
+type = "text"
+title = "Session Failure Root Cause Analysis"

@@ -1,0 +1,142 @@
+Act as a Senior PHP Backend Engineer and Security Specialist.
+
+Build a SIMPLE and SECURE "Forgot Password" system for ClearOrbit using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVE
+
+When user enters email:
+
+* System checks database
+* If email exists → send RESET LINK only
+* User clicks link → can update password
+
+---
+
+## 🗄️ DATABASE STRUCTURE
+
+users table:
+
+* id
+* email
+* password
+
+password_resets table:
+
+* id
+* email
+* token
+* expires_at
+
+---
+
+## 🔁 FLOW STEP-BY-STEP
+
+1. FORGOT PASSWORD PAGE
+
+* User enters email
+
+Backend:
+
+* Check if email exists in users table
+
+IF exists:
+
+* Generate secure token:
+  bin2hex(random_bytes(32))
+
+* Save in password_resets table:
+  email
+  token
+  expires_at (15 minutes)
+
+* Send email with link:
+
+  https://yourdomain.com/reset_password.php?token=XYZ
+
+---
+
+## 📧 EMAIL SYSTEM (IMPORTANT)
+
+* Use PHPMailer SMTP
+* DO NOT use mail()
+
+Email content:
+
+Subject:
+Reset Your Password
+
+Body:
+Click the link below to reset your password: <a href="https://yourdomain.com/reset_password.php?token=XYZ">Reset Password</a>
+
+---
+
+## 🔐 RESET PASSWORD PAGE
+
+When user opens link:
+
+1. Get token from URL
+2. Check in database:
+
+* token exists?
+* not expired?
+
+IF valid:
+
+* Show form:
+
+  * New password
+  * Confirm password
+
+On submit:
+
+* Hash password:
+  password_hash()
+
+* Update users table
+
+* Delete token (one-time use)
+
+---
+
+## 🚫 SECURITY RULES
+
+* Do NOT reveal if email exists
+* Token must expire (15 min)
+* Token usable only once
+* Use prepared statements
+
+---
+
+## 🧪 ERROR HANDLING
+
+* If token invalid:
+  → "Link expired or invalid"
+
+* If email send fails:
+  → show error (no fake success)
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* forgot_password.php (form)
+* send_reset_link.php (logic)
+* reset_password.php (update password)
+* db.php
+* PHPMailer setup
+
+---
+
+## 🎯 FINAL GOAL
+
+* Admin creates user → saved in DB
+* User enters same email
+* Reset link sent to email
+* User clicks link → updates password
+* Password updates successfully
+
+Simple, secure, and working system.

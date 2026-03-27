@@ -1,0 +1,128 @@
+Act as a Senior PHP Full-Stack Developer.
+
+We already have a partially built "Shared Access Management System" using:
+
+* PHP 8 (plain, no frameworks)
+* MySQL
+* HTML + Tailwind CSS + Vanilla JS
+
+Now I need you to FIX and COMPLETE missing functionality in the Admin Panel.
+
+========================
+🚨 CURRENT ISSUES
+=================
+
+1. Platform dropdown is EMPTY
+
+* "Select a platform..." shows but no data is loaded
+* Platforms exist in database but are not fetched
+
+2. Admin cannot ADD new users
+
+* No UI or API exists to create new users
+
+3. Platform selection is not working properly in both:
+
+* "Grant Access"
+* "Cookie Vault"
+
+========================
+✅ TASKS TO FIX
+==============
+
+---
+
+1. CREATE API: get_platforms.php
+
+---
+
+* Fetch all platforms from "platforms" table
+* Return JSON: {status: "success", data: [...]}
+* Include id and name
+
+---
+
+2. UPDATE FRONTEND (admin.html)
+
+---
+
+* Dynamically load platforms into ALL dropdowns:
+
+  * Grant Access section
+  * Cookie Vault section
+
+* Use fetch() to call /api/get_platforms.php
+
+* Populate <select> options dynamically
+
+---
+
+3. CREATE USER MANAGEMENT SYSTEM
+
+---
+
+A. Create API: /api/add_user.php
+
+* Accept: username, password
+* Hash password using password_hash()
+* Insert into users table
+* Default role = 'user'
+
+B. Add UI in admin panel:
+
+* "Add New User" form
+* Inputs:
+
+  * Username
+  * Password
+* Button: "Create User"
+
+C. On submit:
+
+* Send POST request to /api/add_user.php
+* Show success/error message
+
+---
+
+4. FIX PLATFORM SELECT ISSUE
+
+---
+
+* Ensure <select> has correct ID (e.g. id="platformSelect")
+* Ensure JS runs after DOM load
+* Ensure dropdown updates correctly
+
+---
+
+5. ERROR HANDLING
+
+---
+
+* Show console errors if fetch fails
+* Show UI message if no platforms found
+
+---
+
+6. CLEAN CODE RULES
+
+---
+
+* Use PDO prepared statements
+* Return proper JSON responses
+* Keep code modular
+* Do NOT use any framework
+
+========================
+🎯 OUTPUT REQUIRED
+==================
+
+Provide FULL CODE for:
+
+* /api/get_platforms.php
+* /api/add_user.php
+* Updated admin.html (relevant parts)
+* JavaScript for loading dropdown + user creation
+
+Make sure everything works together and is ready for Hostinger deployment.
+
+If output is too long, I will say: "continue"

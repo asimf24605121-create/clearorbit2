@@ -1,0 +1,147 @@
+Got it 🔥 — here is your developer-level FINAL PROMPT (English, clean, direct, no explanation). Paste this to Replit / dev 👇
+
+🚀 CLEARORBIT — USERNAME + ADMIN SYNC + USERS TABLE (FINAL PROMPT)
+
+Act as a Senior SaaS Architect (PHP + MySQL + JavaScript).
+
+Do NOT break existing login system or current functionality. Only extend and improve.
+
+🎯 OBJECTIVE
+
+Enhance the user profile and admin system with:
+
+Username editable by user
+Full real-time sync with admin panel
+Improved admin users table
+Detailed user view system
+👤 1. USER PROFILE — ADD USERNAME FIELD
+❌ CURRENT ISSUE:
+Username cannot be edited from user dashboard
+✅ REQUIREMENT:
+Add editable field in Edit Profile:
+<input type="text" id="username" name="username" required>
+⚠️ VALIDATION RULES:
+Username required
+Must be unique
+No spaces (optional: allow underscore)
+🔁 BEHAVIOR:
+
+When user updates username:
+
+Update in database
+Reflect instantly in admin panel
+Reflect in navbar / session if needed
+🔁 2. REAL-TIME DATA SYNC (CRITICAL)
+RULE:
+Single source of truth = users table
+No duplicate storage
+REQUIRED:
+
+When user updates ANY of these:
+
+username
+full_name
+phone
+email
+
+👉 Admin Users page must show updated data immediately (on reload / fetch)
+
+👨‍💼 3. ADMIN USERS TABLE (UPGRADE)
+🎯 REQUIRED COLUMNS:
+
+Display in table:
+
+Username
+Email
+Phone Number
+Expiry Date
+Status (Active / Expired)
+🧩 TABLE ROW EXAMPLE:
+Username	Email	Phone	Expiry	Status
+🔍 4. VIEW USER (DETAILED PROFILE)
+ADD "View" BUTTON
+
+Each user row must have:
+
+<button>View</button>
+ON CLICK:
+
+Open full user profile (modal or page)
+
+📄 SHOW FULL DATA:
+Username
+Email
+Full Name
+Phone
+Country
+City
+Gender
+Profile Image
+Join Date
+Expiry Date
+Role
+Password (hashed only OR masked like ******)
+⚠️ SECURITY:
+NEVER show plain password
+Only hashed or masked
+🔐 5. PASSWORD SYSTEM (SYNC)
+REQUIREMENT:
+
+When:
+
+User changes password
+Admin resets password
+
+👉 Changes must apply instantly in database
+
+📡 6. API UPDATE (IMPORTANT)
+
+Update:
+
+POST /api/update_profile.php
+MUST HANDLE:
+username update
+full profile update
+phone validation
+uniqueness check (username/email)
+EXAMPLE (PHP LOGIC):
+// check username unique
+$stmt = $conn->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+$stmt->execute([$username, $user_id]);
+⚠️ VALIDATION RULES
+USER:
+username required + unique
+full_name required
+phone valid
+country required
+ADMIN:
+can view all
+can reset password
+can set expiry
+🎨 UI REQUIREMENTS
+User Dashboard:
+Add username field in Edit Profile
+Save button updates everything
+Show success message
+Admin Panel:
+Clean table
+Proper columns
+View button
+Fast load
+🔥 FINAL SYSTEM FLOW
+USER:
+Edits username/profile
+→ Saves
+→ DB updated
+ADMIN:
+Opens users page
+→ Sees updated username instantly
+VIEW BUTTON:
+Shows complete profile
+💎 FINAL RESULT
+Username editable
+Full sync between user & admin
+Clean users table
+Detailed user view
+Secure password handling
+SaaS-level system

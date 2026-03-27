@@ -1,0 +1,312 @@
+Act as a senior full-stack engineer, browser-extension architect, authentication analyst, and cookie-system auditor.
+
+I want you to fully analyze my project’s **entire cookie system** from frontend, backend, browser extension, platform detection, account creation, slot assignment, login flow, and AI/intelligence perspective.
+
+Do not give a short answer. I want a complete technical explanation of how the cookie system works from A to Z.
+
+---
+
+## MAIN GOAL
+
+Explain the full cookie system in detail, including:
+
+1. how cookies enter the system
+2. how they are parsed
+3. how they are detected
+4. how platform identification works
+5. how account slots are created
+6. how cookies are stored
+7. how duplicate cookies are detected
+8. how health/intelligence scoring works
+9. how login verification works
+10. how users finally log in through the system
+11. how cookies are injected or used in the extension/browser flow
+12. what formats are supported
+13. what AI / intelligence / scoring logic exists
+14. what security risks and missing improvements exist
+
+---
+
+## SECTIONS TO ANALYZE
+
+### 1. Cookie Input System
+
+Explain:
+
+* where cookie data is entered
+* which frontend component handles it
+* which backend API receives it
+* what validations are done before submission
+* what happens in single import mode
+* what happens in bulk import mode
+* how slots to create affects the import
+* how max users per slot is used
+
+### 2. Supported Cookie Formats
+
+Explain all supported formats in the system, such as:
+
+* JSON cookie array
+* Netscape cookie format
+* raw cookie string
+* name=value format
+* URL-encoded tokens
+* any platform-specific token patterns
+
+For each format explain:
+
+* how it is recognized
+* how it is parsed
+* which function handles it
+* what output structure is generated
+
+### 3. Cookie Detection System
+
+Explain the full detection system:
+
+* how the system determines cookie format
+* how it determines the target platform
+* what cookie names/tokens are checked
+* whether detection is frontend-only, backend-only, or both
+* what heuristics are used
+* what happens if detection fails
+* what platforms are currently supported
+
+Also explain:
+
+* whether detection is rule-based or AI-based
+* whether there is any scoring/confidence system in detection
+* how platform-specific patterns are matched
+
+### 4. Cookie Engine / Parsing Logic
+
+Inspect the cookie engine and explain:
+
+* all parsing functions
+* normalization logic
+* cleanup logic
+* validation logic
+* expiry extraction logic
+* fingerprint generation
+* duplicate detection
+* how bad/incomplete cookies are handled
+
+### 5. Storage System
+
+Explain how cookies are stored:
+
+* raw storage flow
+* CookieVault usage
+* whether cookies are encrypted or plain
+* how shared cookies relate to multiple slots
+* what DB fields are used
+* how fingerprint is saved
+* how linked slots reference the same cookie
+
+### 6. Duplicate Detection System
+
+Explain:
+
+* how duplicate detection works
+* whether SHA256 fingerprinting is used
+* exactly where duplicate checks happen
+* what happens if the same cookie is pasted again
+* whether duplicate detection applies to:
+
+  * auto setup
+  * bulk import
+  * manual create
+  * replace cookie
+* what weaknesses still exist
+
+### 7. Slot Creation Logic
+
+Explain:
+
+* how one cookie becomes one or more account slots
+* how platform accounts are created
+* how slot naming works
+* how max users are assigned
+* how vault-linked slots are created
+* how platform totals are updated
+* how availability is calculated
+
+### 8. Cookie Health / Intelligence / AI System
+
+Explain the full account intelligence logic:
+
+* what “intelligence score” means
+* how cookie score is calculated
+* how login score is calculated
+* how success rate affects score
+* how recency affects score
+* how expiry affects score
+* how cookie completeness affects score
+* how stability is classified
+* the difference between STABLE / RISKY / DEAD
+* whether the system is really AI or just rule-based logic
+* whether the system learns over time
+* whether anomaly detection exists
+* what is still missing for a true AI system
+
+### 9. Cookie Recheck System
+
+Explain:
+
+* how recheck works
+* recheck single vs recheck all
+* what backend route handles it
+* what data is updated after recheck
+* whether it is a structural check or real platform verification
+* how auto-recheck works in the background
+* how often it runs
+* what fields get updated
+
+### 10. Login Verification System
+
+Explain:
+
+* how login verification works now
+* whether it performs real verification or structural validation
+* what VALID / PARTIAL / INVALID mean
+* how the result affects account health
+* what the limitations are
+* which platforms are truly verifiable and which are not
+
+### 11. User Login Flow
+
+This is very important.
+
+Explain step-by-step:
+
+* how a user gets assigned a slot
+* how the browser extension uses the slot
+* how cookies are injected or applied
+* whether cookies are set via browser APIs, requests, headers, storage, or script injection
+* how the user becomes logged in on the target platform
+* how sessions are tracked
+* how active users are counted
+* how slot release / reassignment works
+* what happens if a cookie is expired or invalid during login
+
+### 12. Cookie Injection / Browser Flow
+
+Explain technically:
+
+* how cookies are transferred from backend to extension/browser
+* which browser APIs are used
+* whether cookies are injected directly into the browser cookie store
+* whether localStorage/sessionStorage/token injection is used for some platforms
+* whether platform-specific login flows exist
+* how the extension knows where and how to inject cookies
+* whether there is any AI-based decision for injection type
+
+Also identify:
+
+* what types of login/session methods are supported:
+
+  * standard cookies
+  * bearer tokens
+  * local storage auth
+  * session storage auth
+  * URL token based auth
+  * custom headers
+  * multi-cookie platform auth
+  * CSRF-dependent login flows
+
+### 13. Platform Detection Coverage
+
+List every platform currently supported or partially supported by detection.
+
+For each platform explain:
+
+* identifying cookies
+* whether import works
+* whether verification works
+* whether injection/login works
+* whether health scoring works correctly
+
+### 14. Security Review
+
+Explain all security concerns:
+
+* raw cookie exposure risk
+* storage security
+* admin misuse risks
+* duplicate import risks
+* expired cookie risks
+* session hijack risks
+* audit logging
+* admin action logging
+* validation weaknesses
+* rate limit weaknesses
+* browser injection risks
+
+### 15. Problems / Missing Features
+
+Identify all weaknesses in the cookie system, such as:
+
+* fake verification
+* weak scoring
+* unsupported cookie formats
+* incomplete platform detection
+* broken injection logic
+* missing per-platform adapters
+* weak login failure tracking
+* no learning-based intelligence
+* no retry flow
+* no fallback authentication path
+
+### 16. Improvement Suggestions
+
+Give detailed improvements for:
+
+* cookie parser
+* platform detector
+* fingerprinting
+* slot creation
+* login verification
+* extension injection logic
+* health scoring
+* user login success rate
+* security
+* observability
+* production reliability
+
+---
+
+## IMPORTANT QUESTIONS TO ANSWER CLEARLY
+
+At the end, answer these directly:
+
+1. Exactly how is the cookie system working right now?
+2. Which cookie detection systems are currently implemented?
+3. Is the system really AI-based, partially AI-based, or only rule-based?
+4. What types of cookies/tokens/session data can this system inject or use?
+5. How does the user actually become logged in on a platform?
+6. Which part is frontend, which part is backend, and which part is extension/browser-side?
+7. What is missing before this becomes a professional production-grade cookie/session system?
+
+---
+
+## OUTPUT FORMAT
+
+Return the answer in this exact order:
+
+1. Cookie System Overview
+2. Full Import Flow
+3. Detection System
+4. Parsing Engine
+5. Storage and Vault Logic
+6. Duplicate Detection
+7. Slot Creation Logic
+8. Intelligence / AI Logic
+9. Recheck and Verification Flow
+10. User Login and Injection Flow
+11. Supported Cookie/Session Types
+12. Security Review
+13. Weaknesses Found
+14. Improvement Plan
+15. Exact Files/Modules To Inspect First
+
+Do not give vague answers. Inspect real code before answering.

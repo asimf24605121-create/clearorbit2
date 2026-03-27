@@ -1,0 +1,166 @@
+ROLE: Senior Backend Engineer (Load Balancing & Session Allocation)
+
+TASK:
+Upgrade the system to support "Automatic Slot Allocation" for multiple cookies.
+
+---
+
+CORE OBJECTIVE
+
+When multiple cookies are pasted:
+
+System should:
+
+* detect each account
+* read MaxStreams
+* create slots automatically
+* assign users dynamically
+
+---
+
+PARSING MULTIPLE ACCOUNTS
+
+1. Detect multiple accounts:
+
+* split input by:
+  • new lines
+  • repeated NetflixId patterns
+
+Each block = 1 account
+
+---
+
+SLOT GENERATION
+
+2. For each account:
+
+Read:
+MaxStreams
+
+Create slots:
+
+Example:
+MaxStreams = 4
+
+Generate:
+slot_1
+slot_2
+slot_3
+slot_4
+
+---
+
+DATA STRUCTURE
+
+3. Store like:
+
+{
+account_id: 1,
+max_streams: 4,
+slots: [
+{ slot_id: 1, status: "free" },
+{ slot_id: 2, status: "free" },
+{ slot_id: 3, status: "free" },
+{ slot_id: 4, status: "free" }
+]
+}
+
+---
+
+AUTO USER ASSIGNMENT
+
+4. When user requests access:
+
+* find first FREE slot
+* assign user
+
+Update:
+
+slot.status = "occupied"
+slot.user_id = X
+
+---
+
+SMART RULES
+
+5. Prevent overload:
+
+IF all slots full:
+→ reject or assign next account
+
+---
+
+6. Fair Distribution:
+
+* rotate between accounts
+* do not overload single account
+
+---
+
+7. Auto Release Slot:
+
+If user inactive (e.g. 15 min):
+→ free slot
+
+---
+
+CONFLICT PREVENTION
+
+8. Do not allow:
+
+* more users than MaxStreams
+* same slot used by multiple users
+
+---
+
+UI FEATURES
+
+9. Show Slot System:
+
+Example:
+
+Account #1 (Premium - 4 Slots)
+🟢 Slot 1 - Free
+🔴 Slot 2 - Occupied
+🟢 Slot 3 - Free
+🔴 Slot 4 - Occupied
+
+---
+
+10. Dashboard:
+
+* total slots
+* used slots
+* free slots
+
+---
+
+ADVANCED FEATURE
+
+11. Priority Assignment:
+
+* give better cookies first
+* based on health score
+
+---
+
+FINAL GOAL
+
+System should behave like:
+
+Paste 10 accounts →
+
+System creates 30+ slots →
+
+Users auto assigned →
+
+No conflict, no overload
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* No Node.js
+
+---

@@ -1,0 +1,201 @@
+ROLE: Senior Full Stack Architect + Performance Engineer
+
+OBJECTIVE:
+Refactor and upgrade the entire system into a high-performance, scalable, clean SaaS architecture with zero lag, optimized loading, and production-level stability.
+
+---
+
+CORE REQUIREMENTS:
+
+1. PERFORMANCE FIRST
+
+* Eliminate all unnecessary API calls
+* Add pagination (users, events, logs)
+* Limit all queries (no SELECT *)
+* Optimize DB queries with indexes
+* Implement caching (short-term memory cache)
+
+---
+
+2. ARCHITECTURE UPGRADE
+
+Convert system into hybrid optimized stack:
+
+Backend:
+
+* Node.js (Express) for APIs and async operations
+* PHP allowed ONLY if required for compatibility (else remove)
+
+Frontend:
+
+* Clean Vanilla JS OR lightweight framework (no heavy unnecessary libs)
+
+Database:
+
+* MySQL (optimized, indexed)
+
+---
+
+3. API OPTIMIZATION
+
+* Merge redundant endpoints
+* Reduce API calls per page
+* Use structured JSON responses
+* Response time target: <300ms
+
+---
+
+4. COOKIE SYSTEM (CORE)
+
+Build universal intelligent parser:
+
+* Support:
+
+  * JSON cookies
+  * key=value cookies
+  * Netscape format
+
+* Auto detect platform using:
+
+  * domain
+  * cookie names
+
+* Validate login status
+
+* Assign health score
+
+* Auto detect expiry
+
+---
+
+5. SLOT SYSTEM (OPTIMIZED)
+
+* Auto assign best available slot
+* Prevent over-allocation
+* Auto release slot on expiry
+* Efficient queries (no loops)
+
+---
+
+6. SUBSCRIPTION SYSTEM
+
+* Auto assign platform
+* Expiry tracking
+* Extend system (+7, +30, custom)
+* Status handling (ACTIVE / EXPIRED / WARNING)
+
+---
+
+7. RESELLER SYSTEM
+
+* Role-based access (admin / reseller / user)
+* Wallet system
+* Deduction on user creation
+* Reseller dashboard (users, profit, stats)
+
+---
+
+8. DASHBOARD OPTIMIZATION
+
+* No full reloads
+* Partial updates only
+* Reduce refresh interval (30 sec)
+* Load only visible data
+* Skeleton loading instead of blocking UI
+
+---
+
+9. EVENT SYSTEM
+
+* Limit events (latest 50)
+* Add filtering
+* Add delete/clear
+* Do NOT load full history
+
+---
+
+10. SECURITY
+
+* Validate all inputs
+* Protect APIs
+* Prevent direct unauthorized access
+* Sanitize cookie input
+
+---
+
+11. WHATSAPP FLOAT BUTTON
+
+* Global floating button (bottom right)
+* Admin-controlled number
+* Dynamic load from backend
+
+---
+
+12. ERROR HANDLING
+
+* Catch all API errors
+* Return clean messages
+* No console spam
+* No infinite loaders
+
+---
+
+13. CLEAN CODE
+
+* Modular structure
+* Separate:
+
+  * routes
+  * controllers
+  * services
+* Remove unused files
+* Remove Node/React leftovers if unused
+
+---
+
+14. HOSTING READY
+
+* Make system compatible with:
+
+  * Hostinger (shared PHP/MySQL)
+  * OR Node VPS
+
+* Add:
+
+  * .htaccess (if PHP)
+  * environment config
+
+---
+
+15. FINAL TESTING
+
+Simulate:
+
+* 50–100 users
+* multiple platforms
+* valid + invalid cookies
+* slot full scenarios
+
+Fix:
+
+* slow pages
+* broken buttons
+* incorrect data
+
+---
+
+FINAL OUTPUT:
+
+* Fully working SaaS system
+* Fast loading (no lag)
+* Clean UI
+* Scalable architecture
+* All features working (cookies, slots, users, reseller, dashboard)
+
+---
+
+GOAL:
+
+Production-ready, high-performance SaaS system with zero unnecessary load and maximum efficiency.
+
+---

@@ -1,0 +1,130 @@
+🚀 CLEARORBIT — LOGOUT ACCESS CONTROL (SECURITY FIX)
+
+Act as a Senior SaaS Architect (PHP + JS).
+
+Do NOT break existing system. Only add secure access control.
+
+🎯 OBJECTIVE
+
+When user logs out:
+
+❌ User must NOT access any platform
+❌ “Access Now” must NOT work
+❌ Direct URL access must be blocked
+
+✔ Only logged-in users can access platforms
+
+🔐 1. SESSION VALIDATION (BACKEND — CRITICAL)
+EVERY PROTECTED API MUST CHECK:
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(["error" => "Unauthorized"]);
+    exit;
+}
+APPLY THIS TO:
+access platform API
+get subscriptions
+get platforms
+any protected endpoint
+🧠 2. PLATFORM ACCESS CONTROL
+BEFORE giving access:
+
+Check:
+
+if (!isset($_SESSION['user_id'])) {
+    die("Access denied");
+}
+ALSO CHECK:
+subscription is active
+expiry_date not passed
+🌐 3. FRONTEND PROTECTION
+On dashboard load:
+fetch('/api/check_session.php')
+.then(res => {
+    if (!res.ok) {
+        window.location.href = "/index.html";
+    }
+});
+CREATE:
+// /api/check_session.php
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    exit;
+}
+
+echo json_encode(["status" => "ok"]);
+🚫 4. BLOCK "ACCESS NOW" BUTTON
+BEFORE CLICK ACTION:
+function handleAccess(platform) {
+
+    fetch('/api/check_session.php')
+    .then(res => {
+        if (!res.ok) {
+            alert("Please login first");
+            window.location.href = "/index.html";
+            return;
+        }
+
+        // continue access
+        openPlatform(platform);
+    });
+}
+🔒 5. LOGOUT SYSTEM FIX
+logout.php:
+session_start();
+session_unset();
+session_destroy();
+
+header("Location: /index.html");
+exit;
+ALSO CLEAR FRONTEND STATE:
+localStorage.clear();
+sessionStorage.clear();
+🚨 6. DIRECT URL BLOCK (IMPORTANT)
+
+If user tries:
+
+/dashboard.html
+
+WITHOUT login:
+
+👉 Redirect to login page
+
+ADD THIS CHECK ON PAGE LOAD:
+fetch('/api/check_session.php')
+.then(res => {
+    if (!res.ok) {
+        window.location.href = "/index.html";
+    }
+});
+🧪 7. TEST CASES (MANDATORY)
+✅ Test 1:
+
+Login → Access works
+
+❌ Test 2:
+
+Logout → Click "Access Now"
+→ Must fail
+
+❌ Test 3:
+
+Logout → Open dashboard URL
+→ Redirect to login
+
+❌ Test 4:
+
+Logout → Call API manually
+→ Unauthorized
+
+💎 FINAL RESULT
+
+✔ Logout = full access blocked
+✔ No unauthorized platform access
+✔ Secure SaaS behavior
+✔ Session-based protection
+✔ Production-level security

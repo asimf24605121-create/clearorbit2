@@ -1,0 +1,191 @@
+Act as a Senior PHP SaaS Engineer and User Experience Architect.
+
+Upgrade ClearOrbit system by adding **User Support + Announcement + Contact System** using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVES
+
+1. User can report login/access issues
+2. Admin can see and manage reports
+3. Admin can send announcements
+4. Users see popup announcements (forced)
+5. Add "Contact to Admin" page
+
+---
+
+## 🧾 1. LOGIN ISSUE REPORT SYSTEM
+
+When user cannot access a platform:
+
+Add button:
+"Report Issue"
+
+Form fields:
+
+* User ID (auto)
+* Platform name (auto)
+* Issue message
+
+On submit:
+
+Save in DB table: support_tickets
+
+Fields:
+
+* id
+* user_id
+* platform_name
+* message
+* status (pending/resolved)
+* created_at
+
+---
+
+## 👨‍💼 ADMIN VIEW (IMPORTANT)
+
+Admin panel page:
+
+support_tickets.php
+
+Show:
+
+* User
+* Platform
+* Issue message
+* Date
+* Status
+
+Actions:
+
+* Mark as resolved
+* Delete ticket
+
+---
+
+## 📢 2. ANNOUNCEMENT SYSTEM
+
+Admin can create announcement:
+
+Fields:
+
+* Title
+* Message
+* status (active/inactive)
+
+Save in DB: announcements table
+
+---
+
+## 🗄️ announcements table
+
+* id
+* title
+* message
+* status
+* created_at
+
+---
+
+## 📲 USER POPUP SYSTEM (IMPORTANT)
+
+When user opens dashboard:
+
+* Check if active announcement exists
+
+IF yes:
+
+* Show FULL popup modal
+* Center screen
+* Cannot auto-close
+
+User MUST click ❌ (close button)
+
+---
+
+## 🎨 POPUP DESIGN
+
+* Dark overlay background
+* White card center
+* Title bold
+* Message readable
+* Close (X) button
+
+---
+
+## 📩 3. CONTACT TO ADMIN PAGE
+
+Create page:
+
+contact.php
+
+Form:
+
+* Name
+* Email
+* Message
+
+On submit:
+
+* Save in DB OR
+* Send email to admin (via SMTP)
+
+---
+
+## 🗄️ contact_messages table
+
+* id
+* name
+* email
+* message
+* created_at
+
+---
+
+## 📊 ADMIN CONTACT VIEW
+
+Page:
+
+contact_messages.php
+
+Show all messages
+
+---
+
+## ⚡ EXTRA FEATURES (PRO LEVEL)
+
+* Notification badge (new tickets count)
+* Mark announcement as read (optional)
+* Search/filter tickets
+
+---
+
+## 🔐 SECURITY
+
+* Use prepared statements
+* Validate inputs
+* Prevent spam (basic rate limit)
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* report_issue.php
+* support_tickets.php
+* create_announcement.php
+* announcement_popup.js
+* contact.php
+* contact_messages.php
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+* User reports issue → admin sees it
+* Admin posts announcement → user sees popup
+* User contacts admin → message saved
+
+Clean, professional, SaaS-level system.

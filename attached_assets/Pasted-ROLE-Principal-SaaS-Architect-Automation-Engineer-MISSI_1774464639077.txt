@@ -1,0 +1,212 @@
+ROLE: Principal SaaS Architect + Automation Engineer
+
+MISSION:
+Transform the current system into a FULLY AUTOMATED SaaS PLATFORM where users only paste cookies and the system handles everything automatically.
+
+---
+
+CORE OBJECTIVE
+
+User input:
+→ Paste cookie
+
+System output:
+→ Fully configured account + slots + platform
+
+NO manual setup required
+
+---
+
+MODULE 1: AUTO PLATFORM ENGINE
+
+1. Detect platform automatically using:
+
+* cookie domain
+* known patterns
+
+Examples:
+.netflix.com → Netflix
+.spotify.com → Spotify
+.openai.com → ChatGPT
+
+---
+
+2. Platform Handling:
+
+IF platform NOT exists:
+→ create automatically
+
+IF exists:
+→ reuse existing
+
+---
+
+MODULE 2: AUTO ACCOUNT DETECTION
+
+3. Detect unique account using:
+
+* NetflixId
+* email (if exists)
+* session token
+
+---
+
+4. Smart Update Logic:
+
+IF same account already exists:
+→ update cookies
+→ refresh expiry
+→ DO NOT duplicate
+
+IF new account:
+→ create new entry
+
+---
+
+MODULE 3: AUTO SLOT SYSTEM
+
+5. Detect MaxStreams:
+
+Example:
+MaxStreams = 4
+
+→ create 4 slots automatically
+
+---
+
+6. Slot Rules:
+
+* each slot = 1 login
+* default max users = 1
+
+---
+
+7. Dynamic Slot Scaling:
+
+If new cookie has higher streams:
+→ increase slots automatically
+
+---
+
+MODULE 4: AUTO USER ALLOCATION
+
+8. When user requests access:
+
+* system finds best available slot
+* assigns automatically
+
+---
+
+9. Load Balancing:
+
+* distribute users across slots evenly
+* avoid overloading one account
+
+---
+
+MODULE 5: COOKIE INTELLIGENCE
+
+10. Validate cookie:
+
+* must contain session token
+* must be decoded
+
+---
+
+11. Auto Refresh:
+
+* update last_used timestamp
+* mark active/inactive
+
+---
+
+MODULE 6: DUPLICATE PREVENTION
+
+12. Use unique keys:
+
+* NetflixId
+* email
+
+IF match:
+→ update instead of insert
+
+---
+
+MODULE 7: CLEAN UI (VERY IMPORTANT)
+
+13. Replace current flow with ONE PAGE:
+
+"Auto Add Account"
+
+---
+
+14. UI Elements:
+
+* textarea: paste cookie
+* button: "Auto Setup"
+
+---
+
+15. After processing show:
+
+Platform: Netflix
+Account: detected
+Slots: 4 created
+Status: Updated / Created
+
+---
+
+MODULE 8: SMART STATUS SYSTEM
+
+16. Show:
+
+🟢 Active
+🟡 Partial
+🔴 Expired
+
+---
+
+MODULE 9: BACKEND STRUCTURE
+
+17. Tables:
+
+platforms
+accounts
+slots
+sessions
+
+---
+
+FINAL USER EXPERIENCE
+
+User:
+Paste cookie →
+
+System:
+
+* detects platform
+* creates/updates account
+* creates slots
+* assigns structure
+
+DONE
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* Vanilla JS frontend
+* No Node.js
+* No manual setup required
+
+---
+
+FINAL GOAL:
+
+A SaaS system where:
+
+Admin does NOTHING manually
+System handles EVERYTHING
+
+---

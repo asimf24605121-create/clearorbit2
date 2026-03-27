@@ -1,0 +1,389 @@
+Act as a senior full-stack architect, session-management engineer, browser-state expert, and real-time systems engineer.
+
+I need you to fix a production bug in my slot/session management system.
+
+This is NOT a generic redesign task.
+You must analyze the existing implementation and patch it correctly.
+
+## REAL ISSUES HAPPENING RIGHT NOW
+
+My system is showing wrong session and slot behavior.
+
+### Current bugs:
+
+1. The same account is being used from multiple browsers, but the system still counts it as the same slot.
+2. Different IP should create a new slot, but it is still reusing the old slot.
+3. Device & Session Info is wrong.
+4. I am using 2 different IPs, but the UI is showing 3 active devices/sessions.
+5. If the user closes Coursera tabs, the slot does not always free instantly in real time.
+6. Different browser sessions are being merged incorrectly.
+7. Session/device counting is inaccurate.
+8. Slot allocation logic is still too loose and is incorrectly deduplicating sessions.
+
+---
+
+## REQUIRED BUSINESS LOGIC
+
+You must implement this exact behavior:
+
+### Rule 1 — Same browser session + same IP = same slot
+
+If the same user opens multiple Coursera tabs in the same browser session and same IP,
+it must count as only 1 slot.
+
+### Rule 2 — Different browser = new slot
+
+If the same user opens the same platform in a different browser,
+it must consume a new slot.
+
+### Rule 3 — Different IP = new slot
+
+If the same user opens from a different IP,
+it must consume a new slot.
+
+### Rule 4 — Different browser + different IP = definitely new slot
+
+This must never reuse the old slot.
+
+### Rule 5 — Tab close should free slot in real time
+
+If the user closes Coursera tabs,
+the slot should be released immediately or as close to real time as possible.
+
+### Rule 6 — Multiple tabs in the same browser should not consume multiple slots
+
+Same browser session, same IP, same platform = 1 slot only.
+
+### Rule 7 — Session/device info must be accurate
+
+If 2 IPs are active, UI must show 2 real active sessions/devices, not 3.
+If 1 browser session is reused across tabs, do not count it as multiple devices.
+
+---
+
+## VERY IMPORTANT CORRECTION
+
+Do NOT deduplicate sessions only by:
+
+* userId
+* platformId
+
+That is wrong.
+
+Do NOT reuse slot just because it is the same user.
+
+Slot reuse must happen ONLY when the following match:
+
+* userId
+* platformId
+* browserSessionId
+* ipAddress
+
+Recommended dedup / reuse key:
+userId + platformId + browserSessionId + ipAddress
+
+If browserSessionId changes:
+→ new slot
+
+If IP changes:
+→ new slot
+
+If browser changes:
+→ new slot
+
+If same browser opens multiple tabs:
+→ same slot
+
+---
+
+## MY EXPECTED REAL-WORLD EXAMPLE
+
+### Expected behavior:
+
+* Chrome + IP A + Coursera = Slot 1
+* Chrome second tab + IP A + Coursera = still Slot 1
+* Edge + IP A + Coursera = Slot 2
+* Edge + IP B + Coursera = Slot 3
+* Close all Coursera tabs in Edge + IP B = Slot 3 released immediately
+* Close all Coursera tabs in Chrome = Slot 1 released immediately
+
+### Wrong behavior happening now:
+
+* Different browser still reuses old slot
+* Different IP still reuses old slot
+* Session count in Device & Session Info is inflated or incorrect
+* Closing tabs does not always free slot in real time
+
+---
+
+## TASK 1 — ROOT CAUSE ANALYSIS
+
+First, inspect the current code and explain exactly why this bug is happening.
+
+I want you to identify:
+
+* where session dedup is happening incorrectly
+* why different browser is not creating a new slot
+* why different IP is not creating a new slot
+* why active device/session count is wrong
+* why 2 IPs may show as 3 sessions
+* why tab close does not always release slot in real time
+* whether stale sessions, duplicate heartbeats, or bad grouping logic are causing it
+
+Be specific.
+Point to the actual backend and frontend logic.
+
+---
+
+## TASK 2 — FIX SESSION IDENTITY LOGIC
+
+Patch the session identity model properly.
+
+I want a clear distinction between:
+
+* same tab group in same browser
+* different browser
+* different IP
+* stale old session
+* active real session
+
+Design a correct session identity using:
+
+* browserSessionId
+* ipAddress
+* userId
+* platformId
+* optional userAgent / device fingerprint
+
+Explain what should be stored in DB and what should be used for matching.
+
+---
+
+## TASK 3 — FIX SLOT ALLOCATION LOGIC
+
+Rewrite or patch slot allocation so it works like this:
+
+1. On access request:
+
+   * look for existing ACTIVE session with same:
+     userId + platformId + browserSessionId + ipAddress
+   * if found:
+     reuse same slot
+
+2. If not found:
+
+   * create a new session
+   * allocate a new slot
+
+3. If slots are exhausted:
+
+   * return all slots full
+
+4. Before counting active slots:
+
+   * remove or ignore stale sessions
+
+5. Use transaction / locking to avoid race conditions
+
+---
+
+## TASK 4 — FIX DEVICE & SESSION INFO
+
+Patch the Device & Session Info section so it shows accurate real-time values.
+
+It must correctly show:
+
+* number of active real sessions
+* session per browser
+* session per IP
+* current browser session
+* last heartbeat
+* stale vs active session
+* started time
+* real device/session count
+
+It must NOT:
+
+* overcount tabs as devices
+* show stale sessions as active
+* merge different IPs into one session
+* split one browser session into multiple fake devices unless truly different
+
+Also explain why the system currently shows 3 when I am only using 2 IPs.
+
+---
+
+## TASK 5 — REAL-TIME SLOT RELEASE
+
+I want near real-time release when Coursera tabs are closed.
+
+Implement the best production approach using:
+
+* pagehide
+* beforeunload
+* visibilitychange
+* sendBeacon
+* extension tab-close detection if available
+* heartbeat timeout fallback
+
+Required behavior:
+
+* if all Coursera tabs for a browser session are closed, release that slot immediately
+* if immediate release fails, fallback timeout should release it automatically
+* stale session cleanup should still exist
+
+Also ensure:
+
+* same browser with multiple tabs does NOT release the slot until all relevant tabs are closed
+* different browser sessions release independently
+
+---
+
+## TASK 6 — MULTI-TAB SAME-BROWSER LOGIC
+
+Implement correct tab grouping.
+
+Same browser session may have multiple Coursera tabs.
+That should still be only 1 slot.
+
+You may use:
+
+* localStorage browserSessionId
+* tab counter per platform
+* active tab registry
+* extension tracking if needed
+
+But the final behavior must be:
+
+* same browser + same IP + same platform = 1 slot
+* all tabs closed = release slot
+
+---
+
+## TASK 7 — ADMIN UI FIXES
+
+Update admin/account manager UI so I can see clearly:
+
+* total slots
+* active slots
+* free slots
+* sessions grouped by browserSessionId
+* sessions grouped by IP
+* real active device count
+* stale sessions
+* released sessions
+* why a slot is occupied
+* which slot belongs to which browser/IP
+
+Also fix all misleading labels so I can debug session behavior visually.
+
+---
+
+## TASK 8 — EXACT FILE-BY-FILE PATCH PLAN
+
+Tell me exactly which files need changes, such as:
+
+* backend route file for access_platform
+* heartbeat/release session endpoints
+* session cleanup worker
+* dashboard frontend JS
+* extension background.js
+* extension content.js
+* admin account manager page
+* Prisma schema / DB migration
+
+For each file, tell me:
+
+* what is wrong
+* what to change
+* why it fixes the issue
+
+---
+
+## TASK 9 — IMPLEMENTATION CODE
+
+Give real implementation-level code for:
+
+* browserSessionId generation
+* dedup key generation
+* session start / reuse logic
+* slot allocation logic
+* heartbeat
+* release session
+* stale cleanup job
+* tab counting logic
+* real-time release logic
+* accurate device/session aggregation query
+
+Do not give only pseudo-code.
+Give practical working code.
+
+---
+
+## TASK 10 — VALIDATION SCENARIOS
+
+After patching, validate these exact cases:
+
+### Case A
+
+Chrome + IP1 + 5 Coursera tabs
+Expected: 1 slot
+
+### Case B
+
+Chrome + IP1 and Edge + IP1
+Expected: 2 slots
+
+### Case C
+
+Chrome + IP1 and Edge + IP2
+Expected: 2 slots minimum, separate sessions
+
+### Case D
+
+Chrome + IP1 + close all Coursera tabs
+Expected: slot released in real time
+
+### Case E
+
+Edge + IP2 still open while Chrome closes
+Expected: Edge slot remains active, Chrome slot released
+
+### Case F
+
+2 IPs active
+Expected: UI should not show 3 fake active sessions
+
+---
+
+## IMPORTANT RULES
+
+* Do not redesign from scratch unless necessary
+* Patch the existing architecture first
+* Do not deduplicate by userId alone
+* Do not deduplicate by userId + platformId alone
+* Different IP must always be treated as a new slot
+* Different browser must always be treated as a new slot
+* Same browser multiple tabs must stay one slot
+* Closed tabs must free slots in real time or near real time
+* Explain root cause before code changes
+* Focus on accuracy, not generic advice
+
+---
+
+## FINAL OUTPUT FORMAT
+
+Return your answer in this exact order:
+
+1. Root cause analysis
+2. Correct session/slot policy
+3. Backend logic patch
+4. Frontend/browser patch
+5. Extension patch
+6. Device & Session Info fix
+7. Admin UI improvements
+8. File-by-file patch list
+9. Full code changes
+10. Validation results / expected outcomes
+
+Now inspect the current implementation and fix these exact issues.

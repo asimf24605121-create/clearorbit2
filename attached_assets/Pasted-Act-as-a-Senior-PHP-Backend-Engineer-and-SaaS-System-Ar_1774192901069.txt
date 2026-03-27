@@ -1,0 +1,144 @@
+Act as a Senior PHP Backend Engineer and SaaS System Architect.
+
+Upgrade the ClearOrbit system to include a **complete User Management System** using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVE
+
+Build a professional user system where:
+
+* Admin can create users with full details
+* System tracks join date and expiry date
+* Admin dashboard shows complete user info
+
+---
+
+## 👤 USER CREATION (ADMIN PANEL)
+
+When admin adds a user, include fields:
+
+* Name
+* Email (unique)
+* Password (hashed using password_hash)
+* Phone number
+
+---
+
+## 🗄️ DATABASE STRUCTURE
+
+users table:
+
+* id
+* name
+* email (unique)
+* password
+* phone
+* created_at (join date)
+* expiry_date
+* status (active / expired)
+
+---
+
+## ⚙️ BACKEND LOGIC
+
+1. On user creation:
+
+* Automatically set:
+  created_at = current timestamp
+
+* expiry_date:
+  (optional)
+
+  * can be empty OR
+  * set based on subscription later
+
+---
+
+## 📊 ADMIN DASHBOARD (IMPORTANT)
+
+Show table:
+
+Columns:
+
+* User Name
+* Email
+* Phone Number
+* Join Date
+* Expiry Date
+* Status
+
+---
+
+## 🧠 STATUS LOGIC
+
+IF current date > expiry_date:
+→ status = expired
+
+ELSE:
+→ status = active
+
+Show:
+
+* Active → Green badge
+* Expired → Red badge
+
+---
+
+## 📅 DATE FORMAT
+
+* Format clean:
+  Example:
+  22 Mar 2026
+
+---
+
+## ⚡ EXTRA FEATURES (PRO LEVEL)
+
+1. Search user by:
+
+   * email
+   * name
+
+2. Sort by:
+
+   * newest users
+   * expiry date
+
+3. Highlight:
+
+   * Expiring soon (within 3 days → orange)
+
+---
+
+## 🔐 SECURITY
+
+* Validate all inputs
+* Prevent duplicate email
+* Use prepared statements
+* Hash passwords
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* add_user.php
+* users_list.php
+* backend insert logic
+* database schema
+* UI table design
+
+---
+
+## 🎯 FINAL GOAL
+
+Admin can:
+
+* Add user with email, password, phone
+* System saves join date automatically
+* Dashboard shows full user details
+* Expiry and status clearly visible
+
+Clean, professional, production-ready system.

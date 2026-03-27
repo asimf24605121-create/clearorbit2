@@ -1,0 +1,109 @@
+Act as a Senior PHP Backend Engineer + SaaS Security Specialist.
+
+I have a SaaS project ClearOrbit with an admin panel.
+
+I want to implement a strict ROLE-BASED ACCESS CONTROL system.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Create a "manager" role with LIMITED permissions.
+
+Manager should ONLY:
+
+✔ Add new users  
+✔ Delete users  
+
+Manager should NOT be able to:
+
+❌ Access subscriptions  
+❌ Access cookie vault  
+❌ Access account slots  
+❌ Access platforms  
+❌ Access payments  
+❌ Access admin management  
+❌ Access logs  
+❌ Access announcements  
+
+--------------------------------------
+🧠 DATABASE
+--------------------------------------
+
+Ensure users table has a role column:
+
+role ENUM('admin','manager','user')
+
+--------------------------------------
+🔐 BACKEND SECURITY (VERY IMPORTANT)
+--------------------------------------
+
+In EVERY admin API (PHP files):
+
+Add role check:
+
+if ($_SESSION['role'] !== 'admin') {
+    // allow manager only for specific endpoints
+}
+
+For manager:
+
+Allow ONLY:
+
+- create_user.php  
+- delete_user.php  
+
+Block ALL other APIs:
+
+return:
+{
+  "error": "Access denied"
+}
+
+--------------------------------------
+🌐 FRONTEND (ADMIN PANEL)
+--------------------------------------
+
+When role = manager:
+
+✔ Show only "Users" page  
+
+Hide completely:
+
+❌ Subscriptions  
+❌ Cookie Vault  
+❌ Platforms  
+❌ Payments  
+❌ Logs  
+❌ Admin Management  
+
+Sidebar should dynamically render based on role.
+
+--------------------------------------
+🧩 UI RESTRICTIONS
+--------------------------------------
+
+✔ Manager dashboard minimal  
+✔ Only user table + add/delete buttons  
+
+--------------------------------------
+🔒 EXTRA SECURITY
+--------------------------------------
+
+Even if manager tries to manually open URL:
+
+➡ Backend must block access
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Manager can only manage users  
+✔ No access to sensitive data  
+✔ Secure SaaS structure  
+✔ Clean role separation  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING ADMIN LOGIC.
+ONLY ADD ROLE CHECKS AND UI RESTRICTION.

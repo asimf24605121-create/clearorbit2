@@ -1,0 +1,367 @@
+Act as a Senior SaaS Product Architect, Frontend Engineer, UX Strategist, and Conversion Optimization Expert.
+
+We are building a production-grade SaaS platform called:
+
+"ClearOrbit"
+
+========================
+🎯 MASTER OBJECTIVE
+===================
+
+Transform the existing system into a HIGH-END, PREMIUM, CONVERSION-OPTIMIZED SaaS product.
+
+This is NOT a basic dashboard.
+
+This must feel like:
+
+* Stripe
+* Notion
+* Linear
+* Vercel Dashboard
+
+Clean. Fast. Professional. Business-ready.
+
+========================
+⚠️ ENVIRONMENT CONSTRAINT
+=========================
+
+* Must run on Hostinger shared hosting
+* Use ONLY:
+
+  * HTML5
+  * Tailwind CSS (CDN)
+  * Vanilla JavaScript
+* NO frameworks
+* NO Node.js
+* NO backend JS
+
+========================
+🎨 DESIGN SYSTEM (STRICT)
+=========================
+
+Theme: WHITE / LIGHT ONLY
+
+Colors:
+
+* Background: #F9FAFB
+* Card: #FFFFFF
+* Border: #E5E7EB
+* Primary: #4F46E5
+* Success: #10B981
+* Danger: #EF4444
+* Warning: #F59E0B
+* Text: #111827
+* Subtext: #6B7280
+
+Typography:
+
+* Headings: font-semibold
+* Body: text-sm / text-base
+* Use proper spacing
+
+UI Rules:
+
+* Rounded-xl everywhere
+* Shadow-sm only (no heavy shadow)
+* Clean spacing (p-6, gap-6)
+* NO gradients
+* NO blur
+* NO glass effects
+
+========================
+🧠 USER DASHBOARD (ULTRA UPGRADE)
+=================================
+
+1. HEADER BAR
+
+* Left: Logo
+* Center: Breadcrumb (Dashboard)
+* Right:
+
+  * Username
+  * Status dot (online)
+  * Logout button
+
+2. HERO SECTION
+
+* Welcome message:
+  "Welcome back, [username]"
+
+* Subtext:
+  "Manage your subscriptions and access platforms instantly"
+
+* CTA:
+  "Download Extension"
+
+* Extension status badge:
+
+  * Connected (green)
+  * Not connected (red)
+
+3. ANALYTICS CARDS
+
+* Total Platforms
+* Active
+* Expiring Soon
+* Expired
+
+Add:
+
+* small icons
+* hover effect
+
+4. SEARCH + FILTER BAR
+
+* Search platforms
+* Filter dropdown:
+
+  * All
+  * Active
+  * Expired
+
+========================
+🔥 PLATFORM CARDS (NEXT LEVEL)
+==============================
+
+Each card must include:
+
+* Large logo (left)
+
+* Platform name (bold)
+
+* Status badge
+
+* Expiry date
+
+* Countdown timer:
+
+  * Days
+  * Hours
+  * Minutes
+
+* Progress bar (time used vs remaining)
+
+* Button:
+  "Access Now"
+
+Card behavior:
+
+* Hover:
+  slight lift effect
+* Expired:
+
+  * dim card
+  * disable button
+
+========================
+🔐 MULTI-LOGIN SYSTEM (ADVANCED)
+================================
+
+On clicking platform:
+
+Open MODAL:
+
+* Title: Platform Name
+
+Show 4 login slots:
+
+Each slot includes:
+
+* Label: Slot 1, Slot 2, Slot 3, Slot 4
+
+* Status:
+
+  * Valid → green
+  * Expired → red
+
+* Button:
+  "Login"
+
+* Disabled if expired
+
+========================
+📲 EXTENSION UX (PRO)
+=====================
+
+* If extension not detected:
+  show floating alert:
+  "Extension not connected"
+
+* Button:
+  "Install Extension"
+
+* When connected:
+  show:
+  "Extension connected"
+
+* When login clicked:
+  show loading spinner
+
+========================
+🚫 SECURITY UX (IMPORTANT)
+==========================
+
+* Show warning:
+  "Do not change account settings"
+
+* Disable:
+
+  * billing links
+  * logout inside platform
+  * account settings links
+
+========================
+💰 BUY ACCESS PAGE (CONVERSION OPTIMIZED)
+=========================================
+
+Create page: buy.html
+
+========================
+PLATFORM LIST
+=============
+
+* Grid layout
+* Each card:
+
+  * Logo
+  * Name
+  * Button: "View Plans"
+
+========================
+PLAN MODAL
+==========
+
+When clicked:
+
+1. Duration:
+
+* 1 Week
+* 1 Month
+* 6 Months
+* 1 Year
+
+2. Account Type:
+
+* Private
+* Shared
+
+3. Price display:
+   (dynamic)
+
+4. Badge:
+
+* "Best Value" on yearly
+
+========================
+📲 WHATSAPP INTEGRATION
+=======================
+
+On click:
+
+Open WhatsApp:
+
+Message:
+
+"Hello, I want to buy [Platform]
+Username: [username]
+Plan: [duration]
+Type: [private/shared]
+Price: [price]"
+
+========================
+🧠 ADMIN CONFIG EXPECTATION
+===========================
+
+Frontend must support:
+
+* Dynamic pricing
+* WhatsApp numbers per platform
+* Separate numbers:
+
+  * private
+  * shared
+
+========================
+🧩 ADMIN PANEL (UI UPGRADE)
+===========================
+
+Sections:
+
+1. Dashboard
+2. Users
+3. Platforms
+4. Subscriptions
+5. Cookie Vault
+6. Activity Logs
+
+========================
+PLATFORM MANAGEMENT
+===================
+
+* Add platform
+* Upload logo
+* Brand color
+* Delete / Disable
+
+========================
+COOKIE VAULT (ADVANCED)
+=======================
+
+* Paste JSON cookies
+* Show:
+
+  * total cookies
+  * expiry
+  * status
+
+========================
+✨ UX ENHANCEMENTS
+=================
+
+* Toast notifications
+* Loading states
+* Skeleton loaders
+* Smooth transitions
+* Hover effects
+
+========================
+📱 RESPONSIVENESS
+=================
+
+* Mobile friendly
+* Sidebar collapses
+* Cards stack
+
+========================
+⚡ PERFORMANCE
+=============
+
+* Minimize DOM updates
+* Lazy load cards
+* Optimize rendering
+
+========================
+📦 OUTPUT REQUIRED
+==================
+
+Provide FULL code:
+
+* dashboard.html
+* admin.html
+* buy.html
+* JS logic
+
+========================
+🎯 FINAL RESULT
+===============
+
+This must feel like a REAL SaaS PRODUCT.
+
+Clean.
+Fast.
+Professional.
+Sellable.
+
+========================
+END
+===

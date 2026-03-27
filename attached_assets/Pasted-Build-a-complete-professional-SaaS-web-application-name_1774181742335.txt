@@ -1,0 +1,278 @@
+Build a complete professional SaaS web application named **ClearOrbit** (Premium Shared Account Access Platform) with modern UI, full admin panel, user dashboard, purchase system, cookie-based login system, and Chrome extension integration.
+
+⚠️ IMPORTANT:
+
+* This project must work on **Hostinger shared hosting (NO Node.js)**
+* Use only: HTML, CSS, JavaScript, PHP (optional), and MySQL (or JSON storage if needed)
+* No backend frameworks like Express or Node.js
+* Keep everything production-ready, secure, and scalable
+
+---
+
+## 🎨 UI / DESIGN REQUIREMENTS
+
+* Use a **clean white professional theme** (not dark, no transparency)
+* Use soft shadows, rounded cards, modern SaaS look
+* Colors:
+
+  * Primary: #4F46E5 (indigo)
+  * Success: #22C55E (green)
+  * Warning: #F59E0B (orange)
+  * Danger: #EF4444 (red)
+* Fully responsive (mobile + desktop)
+
+---
+
+## 🔐 AUTH SYSTEM
+
+* Admin login + User login
+* Session-based auth (PHP sessions or browser storage)
+* Fix CSRF issues properly
+* Secure login/logout
+* Auto logout on invalid session
+
+---
+
+## 👨‍💼 ADMIN PANEL FEATURES
+
+1. Dashboard:
+
+   * Total users
+   * Active subscriptions
+   * Total platforms
+   * Expiring soon
+   * Recent activity logs
+
+2. Users Management:
+
+   * Create user
+   * Disable user
+   * Reset device
+   * Delete user
+   * Track IP + device lock
+
+3. Platforms:
+
+   * Add platform name
+   * Upload logo (image upload support)
+   * Set brand color
+   * Enable / Disable / Delete platform
+
+4. Cookie Vault:
+
+   * Add cookies via JSON
+   * Example format:
+     [
+     { "domain": ".coursera.org", "name": "CAUTH", "value": "xyz" }
+     ]
+   * Auto detect expiry from JSON
+   * Assign cookies to slots (Slot 1, Slot 2, etc.)
+   * Show status: Valid / Expired
+
+5. Subscriptions:
+
+   * Assign platform to user
+   * Duration (days)
+   * Auto expiry calculation
+   * Show remaining days
+   * Extend (+7 days button)
+
+6. Pricing System:
+
+   * Set pricing per platform:
+
+     * 1 week (shared/private)
+     * 1 month
+     * 6 months
+     * 1 year
+
+7. WhatsApp Config:
+
+   * Set WhatsApp number per platform
+   * Separate:
+
+     * Shared number
+     * Private number
+
+8. Payments System:
+
+   * Show user purchase requests
+   * Approve / Reject
+   * On approve → auto create subscription
+
+9. Activity Logs:
+
+   * Track all actions:
+
+     * login
+     * logout
+     * purchase
+     * cookie update
+     * platform add
+
+---
+
+## 👤 USER DASHBOARD
+
+1. Header:
+
+   * Welcome user
+   * Status: Extension Connected / Not Connected
+
+2. Stats Cards:
+
+   * Total platforms
+   * Active
+   * Expiring
+   * Expired
+
+3. Platform Cards:
+
+   * Bigger size (modern card)
+   * Logo + name
+   * Expiry date
+   * Countdown timer (days / hours / minutes)
+   * Progress bar
+
+4. Buttons:
+
+   * If active → “Access Now”
+   * If not purchased → “Buy Now”
+
+---
+
+## 🛒 PURCHASE SYSTEM (VERY IMPORTANT)
+
+Create a full purchase page:
+
+When user clicks a platform:
+
+Show:
+
+* Platform name + logo
+
+* Plan selection:
+
+  * 1 Week
+  * 1 Month
+  * 6 Months
+  * 1 Year
+
+* Account type:
+
+  * Shared
+  * Private
+
+* Price auto updates based on admin pricing
+
+Buttons:
+
+* Buy Now
+* WhatsApp Order
+
+---
+
+## 📲 WHATSAPP AUTO MESSAGE
+
+On click:
+
+Generate message:
+
+Hello, I want to buy:
+
+Platform: Coursera
+Plan: 1 Month
+Type: Shared
+Username: Asim
+Price: Rs. 500
+
+Redirect to WhatsApp link with this message
+
+---
+
+## 🍪 COOKIE SYSTEM (CORE LOGIC)
+
+* Store cookies per platform
+* Each platform has separate cookie storage
+* Must support JSON cookies
+* Validate domain before saving
+
+---
+
+## 🌐 EXTENSION LOGIC (IMPORTANT)
+
+When user clicks “Access Now”:
+
+1. Clear old cookies for that domain
+2. Inject only that platform cookies
+3. Open correct website
+
+Example:
+
+if platform == "coursera":
+clear cookies for coursera.org
+inject coursera cookies
+open coursera.org
+
+⚠️ Ensure:
+
+* No cross-platform cookie mixing
+* No wrong site opening (fix Udemy issue)
+
+---
+
+## 🚫 SECURITY / RESTRICTIONS
+
+1. Show warning:
+   "Do not change account settings, password, or billing. This is a shared account."
+
+2. Extension behavior:
+
+* Detect logout click → prevent logout OR re-inject cookies
+* Auto refresh if session breaks
+* Block access to:
+
+  * account settings
+  * billing
+  * delete account
+
+3. Device lock:
+
+* 1 user = 1 device
+
+---
+
+## 🔔 EXTRA FEATURES
+
+* Popup in extension until connected
+* Auto refresh dashboard after login/logout
+* Expiry alerts
+* Smooth animations
+* Search + filter platforms
+* Clean sidebar navigation
+
+---
+
+## 📦 FINAL OUTPUT
+
+Generate:
+
+* All frontend pages (admin + user + purchase)
+* Backend logic (PHP or JS)
+* Database structure
+* Extension structure (manifest + script)
+* Clean modular code
+* Fully working system
+
+---
+
+## 🎯 GOAL
+
+Create a **production-ready SaaS platform** where:
+
+* Admin controls everything
+* Users can purchase access
+* Cookies login works perfectly
+* UI looks like a premium website
+
+Make it clean, powerful, and professional.

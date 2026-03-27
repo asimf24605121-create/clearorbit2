@@ -1,0 +1,317 @@
+Act as a senior full-stack engineer, browser-extension engineer, and authentication systems debugger.
+
+I need you to make exact code-level fixes in my current codebase.
+
+Do NOT give a high-level explanation first.
+Do NOT redesign the whole system.
+Do NOT give pseudocode only.
+
+Your job is to:
+
+1. inspect the real code
+2. identify exact files/functions to edit
+3. apply the fixes directly
+4. show the final code changes clearly
+
+The current issue is:
+
+* imported session data is accepted by the admin dashboard
+* slot assignment works
+* extension says it is injecting cookies
+* but the user does not get a real authenticated session on platforms like Coursera
+* backend currently returns only cookie data, not full session data
+* verification is too optimistic / false-positive prone
+* some cookie metadata handling is wrong
+
+Important: use the current codebase exactly as it exists and patch it safely.
+
+---
+
+## FIXES TO IMPLEMENT
+
+### FIX 1 — Repair backend ↔ extension data contract
+
+Find the backend route that returns platform access/session assignment data (for example `/api/access_platform` or equivalent).
+
+The response must include ALL fields the extension/content script actually expects.
+
+Update the backend response to return:
+
+```json
+{
+  "success": true,
+  "platform_id": 123,
+  "platform_name": "Coursera",
+  "domain": ".coursera.org",
+  "redirect_url": "https://www.coursera.org/",
+  "cookie_string": "<raw cookie string>",
+  "cookies": [],
+  "count": 0,
+  "account_id": 1,
+  "slot_name": "Coursera Login 1",
+  "profile_index": 0,
+  "format": "plain",
+  "localStorage": {},
+  "sessionStorage": {},
+  "authHeaders": {},
+  "authType": "cookie_plus_token"
+}
+```
+
+Requirements:
+
+* if cookies are stored as raw string, still return `cookie_string`
+* if structured cookies exist, also return `cookies`
+* if storage data is missing, return empty objects instead of undefined
+* keep backward compatibility where possible
+
+Also patch the content script / extension code so it reads the actual returned fields correctly and does not assume wrong property names.
+
+---
+
+### FIX 2 — Add session storage support to database model
+
+Inspect current Prisma schema / DB model for account/session storage.
+
+Add support for:
+
+* `storageData` (JSON string or text)
+* `authHeaders` (JSON string or text)
+* `authType` (`cookie`, `cookie_plus_token`, `full_session`)
+
+Example target model fields:
+
+* storageData String?
+* authHeaders String?
+* authType String?
+
+Then:
+
+* run the schema migration/update
+* patch all create/update/import flows so these fields are stored
+* patch all read/access flows so these fields are returned to the extension
+
+If there is already a similar field, reuse it instead of creating duplicates.
+
+---
+
+### FIX 3 — Respect original cookie expiry
+
+Find where cookies are injected in the extension/background script.
+
+Right now the system appears to force a short expiry.
+Remove any hardcoded 1-hour expiration logic.
+
+New rule:
+
+* if imported cookie has a valid original expirationDate in the future, use it
+* if no expirationDate exists, treat it as session cookie where possible
+* only use a fallback expiration if Chrome API requires it and no expiry exists
+
+Do NOT overwrite valid original expiry with a fake short expiry.
+
+---
+
+### FIX 4 — Fix SameSite handling for imported raw cookies
+
+Find:
+
+* raw cookie parser
+* cookie normalization logic
+* SameSite mapping logic
+
+Patch it so:
+
+* `None` / `no_restriction` are preserved correctly
+* secure auth cookies are not downgraded to `Lax`
+* raw auth cookies imported from plain `name=value` format do not default to broken values
+
+New behavior:
+
+* preserve explicit SameSite when provided
+* if format gives no SameSite and this is an auth/session cookie, prefer a safe strategy compatible with modern auth flows
+* do not silently force unknown values to lax if that breaks session delivery
+
+Also make sure `secure` is consistent with `SameSite=None`.
+
+---
+
+### FIX 5 — Expand/fix domain inference
+
+Inspect current domain inference function for raw cookie imports.
+
+It currently only supports a few platforms.
+Extend it to support all platforms already recognized by the detector, especially:
+
+* Coursera
+* Canva
+* Udemy
+* Disney+
+* Skillshare
+* ChatGPT
+* Amazon
+* Hulu
+* HBO Max
+* Crunchyroll
+
+Implementation requirements:
+
+* derive platform from existing platform detection registry if possible
+* do not hardcode only 3–4 platforms
+* if a cookie key maps to a known platform, return the correct cookie domain
+* do not allow empty domain to produce invalid cookie-set URLs
+
+Add safe fallback handling:
+
+* if domain still cannot be inferred, mark import as incomplete and return a structured warning instead of pretending success
+
+---
+
+### FIX 6 — Replace optimistic verification with real verification flow
+
+Find current verification logic in extension/background/content/backend.
+
+Patch it with this flow:
+
+1. Wait until tab load is actually complete
+2. Detect redirect to login page / logout page / auth wall
+3. If adapter has verification API endpoint, try API verification first
+4. If no API verification exists, use DOM fallback
+5. If result is inconclusive, mark as `UNKNOWN`, not success
+6. Never auto-assume success just because fail indicators are missing
+
+Add explicit statuses:
+
+* VERIFIED
+* FAILED
+* UNKNOWN
+
+Also store whether verification is:
+
+* confirmed_api
+* confirmed_dom
+* inconclusive
+
+---
+
+### FIX 7 — Gate slot assignment on verification status
+
+Currently imported accounts appear assignable too early.
+
+Patch the system so only verified accounts are assignable.
+
+Add/import states:
+
+* IMPORTED
+* VERIFYING
+* VERIFIED
+* FAILED
+* EXPIRED
+
+Rules:
+
+* IMPORTED: saved but not assignable
+* VERIFYING: background verification running
+* VERIFIED: assignable
+* FAILED: blocked
+* EXPIRED: blocked
+
+Update UI and backend logic accordingly.
+
+---
+
+### FIX 8 — Import/storage payload upgrade
+
+Patch import flow so it can accept not only cookies but also storage/auth payloads.
+
+Support payload like:
+
+```json
+{
+  "cookies": "...",
+  "localStorage": {
+    "persist:root": "...",
+    "jwtToken": "..."
+  },
+  "sessionStorage": {},
+  "authHeaders": {
+    "Authorization": "Bearer ..."
+  },
+  "authType": "cookie_plus_token"
+}
+```
+
+Requirements:
+
+* keep old cookie-only imports working
+* detect whether payload is cookie-only or full-session
+* store all available fields
+* show missing required session components in result UI
+
+---
+
+### FIX 9 — Improve result panel / import response
+
+Patch auto-setup result so it reports session completeness honestly.
+
+Add response fields like:
+
+* verification_status
+* verification_method
+* session_completeness_score
+* missing_requirements
+* import_warnings
+
+Example:
+
+```json
+{
+  "verification_status": "UNKNOWN",
+  "verification_method": "none",
+  "session_completeness_score": 62,
+  "missing_requirements": ["localStorage.persist:root", "authHeaders.Authorization"],
+  "import_warnings": ["Cookies imported but full session data is incomplete for Coursera"]
+}
+```
+
+Update frontend panel to render these fields cleanly.
+
+---
+
+### FIX 10 — Show exact edited files and diffs
+
+At the end, output:
+
+1. Files changed
+2. Why each file was changed
+3. Final code snippets for each critical fix
+4. Any migration commands run
+5. Any manual steps still needed
+
+---
+
+## IMPORTANT IMPLEMENTATION RULES
+
+* Use the current codebase structure
+* Reuse existing adapter system if present
+* Reuse existing platform detection constants if present
+* Do not create duplicate logic if a registry already exists
+* Do not silently break existing platforms
+* Maintain backward compatibility for old cookie-only imports
+* Prefer exact code edits over broad rewrites
+* If you find a route/function name differs, patch the real one in this codebase instead of assuming names
+
+---
+
+## WHAT I WANT IN THE FINAL RESPONSE
+
+Return in this order:
+
+1. Exact root cause mapping to actual files/functions
+2. Exact files changed
+3. Final patched code for each key file
+4. Migration/schema changes
+5. Verification of expected new flow
+6. Remaining limitations
+
+Now inspect the codebase and apply these code-level fixes directly.

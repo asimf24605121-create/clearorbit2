@@ -1,0 +1,240 @@
+Act as a senior full-stack architect and SaaS system engineer.
+
+You have already analyzed my Account Manager system. Now your job is to TRANSFORM it into a **production-ready, scalable, secure system**.
+
+DO NOT explain again — now FIX and IMPROVE everything.
+
+---
+
+## 🚨 CRITICAL TASK
+
+Fix all broken logic, missing backend actions, fake implementations, and undefined values.
+
+---
+
+## 1. FIX ALL BROKEN BACKEND ACTIONS
+
+Implement these missing actions in `/api/manage_platform_accounts`:
+
+* create (alias of add)
+* replace_cookie (update vault + cascade to all linked slots)
+* extend (add expiry days)
+* extend_multiple (bulk extend)
+* reset_stats (reset success/fail + score)
+* get_settings (return system settings)
+* update_settings (save system settings)
+
+Also fix:
+
+* update handler → must support is_active, expires_at
+* fix action mismatch: frontend sends "create", backend expects "add"
+
+---
+
+## 2. FIX AUTO SETUP RESPONSE (VERY IMPORTANT)
+
+Update `/api/add_account_unified` response to ALWAYS return:
+
+{
+platform_name,
+slots_created,
+max_streams,
+account_status: "CREATED",
+login_verified: false,
+login_score,
+login_label: "Pending",
+expiry_source: "cookie" | "default" | "none",
+expiry_days_remaining,
+fingerprint,
+platform_created: boolean,
+cookie_count
+}
+
+Fix all "undefined" issues in UI.
+
+---
+
+## 3. ADD COOKIE FINGERPRINT SYSTEM (ANTI-DUPLICATE)
+
+Implement:
+
+* Generate SHA256 hash of cookie data
+* Store in DB (fingerprint field)
+* Before inserting:
+  → check if fingerprint already exists
+  → if exists → reject or warn user
+
+---
+
+## 4. FIX ACCOUNT INTELLIGENCE SYSTEM (MAKE IT REAL)
+
+Current system is weak — replace with:
+
+Score calculation:
+
+* success rate (40%)
+* recency (20%)
+* cookie completeness (15%)
+* expiry remaining (15%)
+* login verification (10%)
+
+Add:
+
+* decay over time
+* new accounts should NOT start at 100
+* minimum baseline score
+
+Fix:
+
+* stability values must be:
+  STABLE / RISKY / DEAD (uppercase)
+
+---
+
+## 5. IMPLEMENT REAL LOGIN VERIFICATION
+
+Replace fake `/api/verify_login`:
+
+* Validate cookie structure
+* simulate request (light check)
+* detect expired session
+* return:
+  VALID / PARTIAL / INVALID
+
+DO NOT mark everything as healthy.
+
+---
+
+## 6. FIX AUTO CLEAN LOGIC
+
+Current:
+
+* only removes sessions ❌
+
+Fix:
+
+* mark account as inactive
+* update status to DEAD or RISKY
+* prevent new assignments
+
+---
+
+## 7. DEFAULT EXPIRY SYSTEM
+
+Implement:
+
+* SystemSettings table
+* store default_expiry_days
+
+Logic:
+
+* if cookie has expiry → use it
+* if not → use default expiry
+* calculate expiry_days_remaining
+
+---
+
+## 8. FIX SLOT CAPACITY & NaN ISSUES
+
+Ensure backend ALWAYS returns:
+
+* active_users
+* max_users
+* success_count
+* fail_count
+
+No undefined values allowed.
+
+---
+
+## 9. ADD PAGINATION + SCALABILITY
+
+Modify:
+GET /api/manage_platform_accounts
+
+Add:
+
+* pagination (page, limit)
+* filtering by platform
+* sorting
+
+Goal:
+Handle 1000+ accounts smoothly.
+
+---
+
+## 10. MOVE AUTO-RECHECK TO SERVER
+
+Instead of frontend setInterval:
+
+* implement background job (Node.js)
+* run every 15 minutes
+* recheck cookies
+* update DB
+
+---
+
+## 11. ADD AUDIT LOG SYSTEM
+
+Create:
+AdminAuditLog table
+
+Track:
+
+* who deleted slot
+* who replaced cookie
+* who edited slot
+* timestamps
+
+---
+
+## 12. FRONTEND IMPROVEMENTS
+
+Fix UI issues:
+
+* remove "undefined" everywhere
+* fix "NaN users"
+* add loading states
+* add error states
+* disable buttons while loading
+* show proper success/error messages
+* validate input fields
+* improve labels (no technical confusion)
+
+---
+
+## 13. PERFORMANCE OPTIMIZATION
+
+* reduce full reloads
+* use partial updates
+* avoid fetching ALL accounts for edit modal
+* optimize API responses
+
+---
+
+## 14. SECURITY IMPROVEMENTS
+
+* validate all inputs
+* sanitize cookie data
+* add rate limiting on:
+
+  * intelligence
+  * recheck
+  * import
+* restrict admin actions
+
+---
+
+## 15. FINAL OUTPUT
+
+Give:
+
+1. Updated backend code (modular & clean)
+2. Updated API structure
+3. DB schema improvements
+4. Updated frontend fixes
+5. List of all changes made
+6. What is now production-ready
+7. What still needs improvement
+
+DO NOT skip anything. Fix everything completely.

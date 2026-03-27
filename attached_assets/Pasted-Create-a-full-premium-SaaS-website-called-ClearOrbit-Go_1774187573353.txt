@@ -1,0 +1,139 @@
+Create a full premium SaaS website called "ClearOrbit".
+
+Goal:
+Design a modern, high-end, professional SaaS platform UI with smooth UX, clean layout, and premium feel similar to Stripe, Linear, and Notion.
+
+-----------------------------------
+
+🌐 GLOBAL DESIGN SYSTEM:
+- Font: Inter or Poppins
+- Style: Minimal, modern, clean
+- Colors:
+  - Primary: #6C5CE7 (purple)
+  - Gradient: purple → blue
+  - Background: soft light gray (#F8FAFC)
+- Use glassmorphism (blur, soft shadows, rounded corners 16px–20px)
+- Smooth animations (fade, hover scale, transitions)
+
+-----------------------------------
+
+🔐 AUTH PAGES:
+
+1. LOGIN PAGE:
+- Centered glassmorphism card
+- Logo + app name (ClearOrbit)
+- Inputs:
+  - Username (with icon)
+  - Password (with show/hide toggle)
+- Remember me checkbox
+- "Forgot Password?" link
+- Gradient "Sign In" button with hover animation
+- Error message + loading spinner
+
+2. FORGOT PASSWORD:
+- Email input
+- Button: "Send Reset Link"
+- Success message UI
+
+3. RESET PASSWORD:
+- New password + confirm password
+- Button: "Reset Password"
+
+-----------------------------------
+
+🏠 HOME / SUBSCRIPTION PAGE:
+
+- Header:
+  - Logo (left)
+  - Navigation (Pricing, Features, Login)
+  - CTA button: "Get Started"
+
+- Hero Section:
+  - Title: "Get Premium Subscription"
+  - Subtitle: short SaaS tagline
+  - Search bar with icon
+
+- Subscription Cards Grid:
+  - Platforms: Canva, ChatGPT, Coursera, Disney+, Netflix, Spotify
+  - Each card:
+    - Logo
+    - Name
+    - Small description
+    - "View Plans" button (gradient)
+    - Hover effect (lift + shadow + glow)
+
+- Add badges:
+  - "Popular"
+  - "Best Value"
+
+-----------------------------------
+
+💳 PRICING MODAL / PAGE:
+- When clicking "View Plans":
+  - Show plans:
+    - Basic
+    - Standard
+    - Premium
+  - Each plan:
+    - Price
+    - Features list
+    - Highlight best plan
+    - "Buy Now" button
+
+-----------------------------------
+
+✨ EXTRA SECTIONS:
+
+- Features section:
+  - Secure Access
+  - Instant Activation
+  - 24/7 Support
+
+- Testimonials (optional)
+
+- Footer:
+  - Links
+  - Copyright
+  - Social icons
+
+-----------------------------------
+
+🎯 UX IMPROVEMENTS:
+- Add loading states
+- Add toast notifications
+- Add smooth transitions
+- Add hover animations on all buttons
+- Add responsive design (mobile + desktop)
+
+-----------------------------------
+
+🔒 SECURITY UI:
+- Show lock icons
+- Show trust badges
+
+-----------------------------------
+
+⚡ OPTIONAL (ADVANCED):
+- Dark mode toggle
+- Google login button
+- Dashboard after login
+- Payment success page
+
+-----------------------------------
+
+🎨 BUTTON STYLE:
+- Gradient (purple → blue)
+- Rounded (12px)
+- Hover:
+  - Scale: 1.05
+  - Glow shadow
+
+-----------------------------------
+
+📱 RESPONSIVE:
+- Mobile friendly layout
+- Grid → stack on small screens
+
+-----------------------------------
+
+Make everything visually stunning, premium, and top-class SaaS UI.

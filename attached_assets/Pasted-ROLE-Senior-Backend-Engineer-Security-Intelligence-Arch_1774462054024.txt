@@ -1,0 +1,198 @@
+ROLE: Senior Backend Engineer + Security Intelligence Architect
+
+TASK:
+Upgrade the existing AI Parser into a "Session Risk Intelligence System" that evaluates cookie usability, detects geo mismatch, and assigns a risk score.
+
+---
+
+CORE OBJECTIVE
+
+When user pastes session/cookie data:
+
+System should:
+
+1. Detect account country
+2. Detect user IP country
+3. Compare both
+4. Calculate risk score
+5. Show if cookie is usable or risky
+
+---
+
+GEO DETECTION SYSTEM
+
+1. Account Country Detection:
+
+Extract from parsed data:
+
+* country field (e.g., "India 🇮🇳")
+
+Normalize:
+
+* remove emoji
+* convert to lowercase
+
+---
+
+2. User IP Country Detection:
+
+Use a free API:
+
+* https://ipapi.co/json/
+
+Fetch:
+
+* country_name
+* country_code
+
+Store as:
+user_country
+
+---
+
+RISK ENGINE
+
+3. Risk Scoring Logic:
+
+Initialize score = 0
+
+Rules:
+
+IF no NetflixId:
+score = 100 (invalid)
+
+IF NetflixId exists:
+score += 20
+
+IF SecureNetflixId exists:
+score -= 10
+
+IF account_country != user_country:
+score += 40
+
+IF cookie length < expected:
+score += 20
+
+IF token missing or broken:
+score += 30
+
+---
+
+4. Risk Levels:
+
+0–30   → LOW (✅ Working)
+31–60  → MEDIUM (⚠️ Unstable)
+61–100 → HIGH (❌ Likely Not Working)
+
+---
+
+COOKIE VALIDITY CHECK
+
+5. Validation Rules:
+
+* must contain NetflixId
+* must be URL-decoded
+* must not be empty
+
+Return:
+valid = true / false
+
+---
+
+SMART OUTPUT
+
+6. Add new output block:
+
+{
+"geo": {
+"account_country": "india",
+"user_country": "pakistan",
+"match": false
+},
+"cookie_status": "valid",
+"risk_score": 75,
+"risk_level": "HIGH",
+"message": "Geo mismatch detected"
+}
+
+---
+
+UI FEATURES
+
+7. Add "Risk Dashboard Card":
+
+Display:
+
+Account Country: India 🇮🇳
+Your IP: Pakistan 🇵🇰
+
+Risk Score: 75
+Risk Level: HIGH ❌
+
+---
+
+8. Add Indicators:
+
+* ✅ Cookie Valid
+* ⚠️ Geo Mismatch
+* ❌ Missing Token
+
+---
+
+9. Add Colors:
+
+LOW → Green
+MEDIUM → Yellow
+HIGH → Red
+
+---
+
+10. Smart Messages:
+
+LOW:
+"Cookie should work normally"
+
+MEDIUM:
+"May require same region IP"
+
+HIGH:
+"High chance of failure"
+
+---
+
+ERROR HANDLING
+
+11. If IP API fails:
+    Fallback:
+    user_country = "unknown"
+
+---
+
+SECURITY
+
+12. Do NOT expose raw cookies publicly
+
+---
+
+FINAL GOAL
+
+System should behave like:
+
+Paste data →
+System analyzes →
+Shows:
+
+* Is cookie valid?
+* Will it work?
+* What is risk?
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* Vanilla JS frontend
+* No Node.js
+* No Python
+
+---

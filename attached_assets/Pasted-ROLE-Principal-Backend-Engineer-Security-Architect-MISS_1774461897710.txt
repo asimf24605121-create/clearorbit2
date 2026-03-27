@@ -1,0 +1,263 @@
+ROLE: Principal Backend Engineer + Security Architect
+
+MISSION:
+Design and implement a production-grade "Universal Session Intelligence Engine" using PHP (no Node.js, no Python) that can automatically detect, normalize, decode, and transform ANY structured or semi-structured session/cookie data into usable formats including JSON and Netscape cookies.
+
+This system must behave like an AI parser — no hardcoded keys, no fixed schema, fully dynamic.
+
+---
+
+CORE OBJECTIVE
+
+Build a system that can ingest ANY of the following formats and extract structured data automatically:
+
+1. Pipe-delimited:
+   Key = Value | Key = Value
+
+2. Colon-delimited (with emojis):
+   🌍 Country: Brazil 🇧🇷
+
+3. Mixed formats:
+   Cookie: NetflixId=...
+   URL: https://...nftoken=...
+
+4. Raw cookie strings:
+   NetflixId=...; SecureNetflixId=...
+
+5. Hybrid messy real-world dumps (multi-line + inconsistent spacing)
+
+---
+
+SYSTEM ARCHITECTURE
+
+Frontend:
+
+* Vanilla JS (no frameworks)
+* Clean SaaS-style UI
+
+Backend:
+
+* PHP (modular, secure)
+* REST-style APIs
+
+File Structure:
+
+* /lib/UniversalParser.php
+* /lib/CookieEngine.php
+* /api/parse.php
+* /api/generate_cookie.php
+* /public/parser.html
+
+---
+
+UNIVERSAL PARSING ENGINE
+
+1. Multi-Pattern Tokenizer (MANDATORY)
+
+Use advanced regex to extract ALL key-value pairs dynamically:
+
+Pattern:
+([^=:\n|;]+)\s*[=:]\s*([^|;\n]+)
+
+Support:
+
+* = and :
+* delimiters: | ; newline
+
+2. Line-based fallback parser
+   If regex fails, fallback to line-by-line parsing
+
+3. Header Detection
+   Detect first segment like:
+   7005506031:Manish@1
+   Store as:
+   account_credentials
+
+---
+
+DATA NORMALIZATION
+
+4. Key Cleaning:
+
+* Remove emojis from keys
+* Remove special characters
+* Convert to snake_case
+
+Example:
+"📅 Next Billing Date" → next_billing_date
+
+5. Value Cleaning:
+
+* Trim whitespace
+* Preserve emojis in values
+
+6. Type Inference:
+
+* "true"/"false" → boolean
+* numbers → integer
+* everything else → string
+
+---
+
+UNIVERSAL DECODING ENGINE
+
+7. Apply urldecode() to ALL values
+
+Must decode:
+%3D → =
+%26 → &
+%2B → +
+
+This is critical for cookie usability
+
+---
+
+COOKIE INTELLIGENCE LAYER
+
+8. Auto-detect cookies:
+   Detect any key containing:
+
+* id
+* token
+* cookie
+* session
+
+9. Special handling:
+
+* NetflixId
+* SecureNetflixId
+
+10. Cookie Extraction:
+    If "Cookie:" field exists:
+    Extract full cookie string
+
+11. Direct Login URL:
+
+* Detect nftoken parameter
+* Extract token
+
+---
+
+NETSCAPE COOKIE ENGINE
+
+12. Generate valid Netscape format
+
+Format (7 columns, TAB separated):
+domain   TRUE   /   TRUE   expiry   name   value
+
+Rules:
+
+* Domain: .netflix.com
+* Expiry: current_time + 1 year
+* Values must be URL-decoded
+
+13. Output:
+
+* Raw preview (<pre> with preserved tabs)
+* Downloadable .txt file
+
+---
+
+UI / UX REQUIREMENTS
+
+14. Interface must include:
+
+* Large textarea input
+* "Parse Data" button
+
+15. Output tabs:
+
+* Table View (Key | Raw | Decoded)
+* JSON View (formatted)
+* Cookie View (Netscape)
+
+16. Features:
+
+* Search/filter keys
+* Copy JSON button
+* Copy cookies button
+* Download cookie file
+* Stats (total fields detected)
+
+---
+
+ERROR HANDLING
+
+17. If no cookies detected:
+    Show:
+    "⚠️ Cookie Token Missing - Check your Source"
+
+18. Must NEVER crash on malformed input
+
+---
+
+SECURITY
+
+19. Sanitize all inputs:
+
+* prevent XSS
+* escape HTML output
+
+20. Mask sensitive data (optional):
+
+* phone numbers
+* emails
+
+---
+
+TEST CASES (MANDATORY)
+
+Must fully support:
+
+CASE 1:
+Pipe format
+
+CASE 2:
+Emoji multiline format
+
+CASE 3:
+Mixed cookie + URL
+
+CASE 4:
+Raw cookie string
+
+---
+
+EXPECTED BEHAVIOR
+
+* Fully dynamic parsing
+* No hardcoded keys
+* Works with unknown formats
+* Automatically adapts to new structures
+
+---
+
+GOAL
+
+This system should feel like an AI-powered parser:
+
+* Input anything → structured output
+* Input anything → working cookie
+
+---
+
+CONSTRAINTS
+
+* PHP ONLY
+* No Node.js
+* No Python
+* No external heavy frameworks
+
+---
+
+FINAL RESULT:
+
+A fully working web app that:
+
+* detects everything automatically
+* extracts all fields
+* decodes cookies
+* generates working Netscape cookie files
+* supports ALL real-world messy formats
+
+---

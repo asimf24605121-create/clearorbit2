@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "ClearOrbit",
+  "version": "2.6.0",
+  "description": "Secure cookie injection for ClearOrbit SaaS — one-click login to shared platforms with anti-bypass protections.",
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs",
+    "alarms",
+    "webNavigation",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.netflix.com/*",
+        "https://*.spotify.com/*",
+        "https://*.disneyplus.com/*",
+        "https://*.openai.com/*",
+        "https://*.canva.com/*",
+        "https://*.udemy.com/*",
+        "https://*.coursera.org/*",
+        "https://*.skillshare.com/*",
+        "https://*.grammarly.com/*"
+      ],
+      "js": ["platformGuard.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

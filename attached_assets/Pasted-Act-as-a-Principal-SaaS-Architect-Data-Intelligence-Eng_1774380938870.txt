@@ -1,0 +1,220 @@
+Act as a Principal SaaS Architect + Data Intelligence Engineer + Elite UI/UX Designer.
+
+Project: ClearOrbit
+
+Your mission is to transform the OVERVIEW page into a HIGH-INTELLIGENCE CONTROL CENTER — not just a dashboard.
+
+This should feel like a combination of:
+Stripe + Datadog + Vercel + Admin SaaS Analytics
+
+--------------------------------------
+🧠 CORE PHILOSOPHY
+--------------------------------------
+
+This dashboard must not only SHOW data —
+it must HELP the admin TAKE DECISIONS instantly.
+
+--------------------------------------
+🎯 LEVEL 1 — SMART GLOBAL STATUS BAR (TOP)
+--------------------------------------
+
+Create a sticky top bar:
+
+✔ System Status: Healthy / Warning / Critical  
+✔ Total Active Sessions  
+✔ Total Errors (last 1 hour)  
+✔ Real-time clock  
+✔ Live indicator (● LIVE)
+
+Add color logic:
+
+- Green → healthy  
+- Yellow → warning  
+- Red → critical  
+
+--------------------------------------
+⚡ LEVEL 2 — INTELLIGENT KPI GRID
+--------------------------------------
+
+Each card must THINK, not just show numbers.
+
+Cards:
+
+- Total Users  
+- Active Users  
+- Live Sessions  
+- Slot Utilization %  
+- Subscription Growth  
+- Expiry Risk Score  
+- Platform Load  
+
+Each card includes:
+
+✔ Animated value  
+✔ Trend vs last 24h  
+✔ Smart hint:
+
+Example:
+"⚠ High load on Netflix slots"
+"✔ System stable"
+
+--------------------------------------
+📡 LEVEL 3 — LIVE EVENT STREAM (REAL-TIME)
+--------------------------------------
+
+Build a system activity feed:
+
+✔ Real-time logs:
+
+- user login  
+- slot assigned  
+- slot released  
+- failed login  
+- expired subscription  
+
+✔ Must auto-update every 5 sec  
+✔ Scrollable + smooth  
+
+--------------------------------------
+📦 LEVEL 4 — PLATFORM LOAD ENGINE
+--------------------------------------
+
+For each platform:
+
+✔ Show:
+
+- total slots  
+- active slots  
+- usage %  
+- pressure level  
+
+✔ Add AI-style labels:
+
+- "Overloaded"  
+- "Stable"  
+- "Idle"  
+
+✔ Add suggestion:
+
+"Consider adding 2 more slots"
+
+--------------------------------------
+🧬 LEVEL 5 — SLOT INTELLIGENCE SYSTEM
+--------------------------------------
+
+Show smart slot analytics:
+
+✔ Slot health score (0–100)  
+✔ Success rate  
+✔ Failure count  
+✔ Last used  
+
+✔ Highlight:
+
+- Best slot  
+- Worst slot  
+
+--------------------------------------
+⏳ LEVEL 6 — PREDICTIVE ALERT SYSTEM
+--------------------------------------
+
+This is IMPORTANT:
+
+✔ Predict upcoming problems:
+
+- slots getting full  
+- subscriptions expiring  
+- inactive users  
+
+✔ Show:
+
+"🚨 3 subscriptions expiring in 24h"
+"⚠ Netflix slots will be full soon"
+
+--------------------------------------
+📊 LEVEL 7 — MICRO ANALYTICS (LIGHTWEIGHT)
+--------------------------------------
+
+✔ Mini charts (no heavy libs):
+
+- sessions over time  
+- usage trends  
+- platform comparison  
+
+✔ Smooth animated charts  
+
+--------------------------------------
+🧭 LEVEL 8 — QUICK ACTION COMMAND CENTER
+--------------------------------------
+
+Floating control panel:
+
+✔ Add User  
+✔ Add Subscription  
+✔ Add Slot  
+✔ Broadcast Message  
+
+✔ Must be always accessible  
+
+--------------------------------------
+📱 LEVEL 9 — RESPONSIVE PERFECTION
+--------------------------------------
+
+Mobile:
+
+✔ swipeable cards  
+✔ stacked layout  
+✔ touch optimized  
+
+Tablet:
+
+✔ 2-column grid  
+
+Desktop:
+
+✔ full grid system  
+
+--------------------------------------
+🎨 LEVEL 10 — VISUAL PERFECTION
+--------------------------------------
+
+✔ Glassmorphism  
+✔ Gradient UI  
+✔ Soft shadows  
+✔ Smooth animations  
+✔ Hover depth  
+
+--------------------------------------
+🧠 LEVEL 11 — UX INTELLIGENCE
+--------------------------------------
+
+✔ Skeleton loading  
+✔ No blank screens  
+✔ Instant feedback  
+✔ Smooth transitions  
+
+--------------------------------------
+🔐 RULES
+--------------------------------------
+
+✔ NO hardcoded data  
+✔ Use real backend data  
+✔ DO NOT break existing system  
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Feels like enterprise SaaS  
+✔ Admin understands system instantly  
+✔ Predicts problems before they happen  
+✔ Looks premium and modern  
+✔ Fully responsive  
+✔ Extremely smooth  
+
+--------------------------------------
+
+This is not just a redesign —
+this is a SYSTEM UPGRADE.
+
+Make it elite.

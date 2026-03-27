@@ -1,0 +1,377 @@
+ROLE: Principal Software Architect + Senior Backend Engineer + SaaS Product Designer
+
+MISSION:
+Completely audit, refactor, and upgrade the entire Cookie–Slot system into a clean, scalable, intelligent, enterprise-grade SaaS platform.
+
+Do NOT patch — REBUILD LOGIC CLEANLY while preserving existing data.
+
+---
+
+CRITICAL PROBLEMS (MUST FIX ALL)
+
+1. DUPLICATE SYSTEMS
+
+* "Add Account" and "Cookie Vault" both perform same function
+* Leads to inconsistent data and admin confusion
+
+2. DUPLICATE STORAGE
+
+* cookies stored in:
+
+  * cookie_vault (correct)
+  * platform_accounts.cookie_data (legacy, wrong)
+
+3. BROKEN ARCHITECTURE
+
+* current: 1 slot = 1 cookie ❌
+* correct: 1 cookie = multiple slots ✅
+
+4. NO FAILOVER SYSTEM
+
+* cookie dies → all slots dead → no recovery
+
+5. WEAK VALIDATION
+
+* static checks unreliable
+* server IP blocked by platforms
+
+6. UI CONFUSION
+
+* multiple entry points for same task
+* unclear admin workflow
+
+7. BUTTON FAILURES
+
+* verify unreliable
+* edit incomplete
+* extend meaningless
+* no replace-cookie feature
+
+---
+
+TARGET SYSTEM (FINAL ARCHITECTURE)
+
+CORE PRINCIPLE:
+
+1 COOKIE = 1 ACCOUNT
+MULTIPLE SLOTS = USERS USING SAME ACCOUNT
+
+---
+
+UNIFIED FLOW (ONLY FLOW ALLOWED)
+
+Paste Cookie
+→ Smart Parse (auto detect format)
+→ Platform Detection
+→ Live Login Verification (MANDATORY)
+→ Score Calculation
+→ Store in cookie_vault (ONLY source of truth)
+→ Ask admin: number of slots (or auto-detect)
+→ Create slots referencing cookie_id
+→ Slots become ACTIVE
+
+---
+
+REMOVE COMPLETELY
+
+* platform_accounts.cookie_data column
+* duplicate cookie handling logic
+* separate Cookie Vault UI
+* separate Add Account UI
+
+---
+
+CREATE SINGLE PAGE
+
+"ACCOUNT MANAGER"
+
+---
+
+ACCOUNT MANAGER FLOW
+
+1. Paste Cookie
+2. System auto:
+
+   * parse
+   * detect platform
+   * verify login
+3. Show result:
+
+* VALID (green)
+* INVALID (red)
+* NO SUBSCRIPTION (yellow)
+
+4. Admin selects:
+
+* number of slots
+* optional label
+
+5. Click CREATE
+
+---
+
+SLOT SYSTEM (STRICT RULES)
+
+* Each slot MUST reference cookie_id
+* NO slot can exist without cookie_vault entry
+
+Add:
+
+profile_index (1..N)
+max_slots_per_cookie (platform-level limit)
+
+Enforce:
+
+IF slots >= limit → BLOCK creation
+
+---
+
+VALIDATION SYSTEM (CRITICAL)
+
+REMOVE static-only validation
+
+IMPLEMENT:
+
+HEADLESS / CURL + PROXY VALIDATION
+
+Steps:
+
+1. Inject cookie
+2. Load platform URL
+
+DETECT:
+
+"/browse" → VALID
+"/login" → INVALID
+"/account" → NO SUBSCRIPTION
+
+Also check:
+
+* profile visible
+* content loaded
+
+Store:
+
+* verification_status
+* verified_at
+* verify_proof (JSON)
+
+---
+
+AI SCORING SYSTEM
+
+score =
+
++50 login success
++20 profiles visible
++30 playback possible
++10 recent success
+
+-100 login fail
+-50 no subscription
+-30 expiry near
+-20 unstable
+
+---
+
+STATUS ENGINE
+
+Based on score:
+
+80+ → STABLE
+50–79 → RISKY
+<50 → DEAD
+
+---
+
+FAILOVER SYSTEM (MANDATORY)
+
+Add cookie_pool:
+
+cookie_vault:
+
+* pool_type = active / reserve
+
+LOGIC:
+
+IF active cookie becomes DEAD:
+→ find reserve cookie
+→ promote to active
+→ update all slots automatically
+
+IF no reserve:
+→ mark slots SUSPENDED
+→ notify admin
+→ show status to users
+
+---
+
+AUTO HEALTH SYSTEM
+
+Run every 10–15 minutes:
+
+* recheck cookies
+* update scores
+* mark DEAD/RISKY/STABLE
+* disable bad slots
+
+---
+
+USER ASSIGNMENT SYSTEM
+
+When user requests access:
+
+1. find slots:
+
+   * is_active = true
+   * cookie_status != DEAD
+   * capacity available
+
+2. sort by:
+
+(score DESC, fail_count ASC)
+
+3. assign best slot
+
+---
+
+OVERLOAD PROTECTION
+
+* enforce max_users per slot
+* enforce max_slots_per_cookie
+
+NO OVERBOOKING ALLOWED
+
+---
+
+BUTTON SYSTEM (FULLY FUNCTIONAL)
+
+VERIFY:
+
+* run live verification via proxy
+* update DB + UI
+
+RECHECK:
+
+* same as verify (merge both)
+
+EDIT:
+
+* allow updating cookie string
+* re-run verification
+
+DELETE:
+
+* remove slot
+* warn if users attached
+
+REMOVE:
+
+* EXTEND button completely
+
+ADD:
+
+* "Replace Cookie" button
+  → update vault entry
+  → all slots auto update
+
+---
+
+UI/UX (CLEAN SAAS)
+
+Single dashboard:
+
+Account Manager
+
+Each account shows:
+
+* platform
+* health status (🟢 🟡 🔴)
+* slot usage (3/5)
+* score
+* last verified
+
+Each slot shows:
+
+* assigned users
+* status
+* profile index
+
+---
+
+USER DASHBOARD
+
+Before click show:
+
+* Available
+* High Demand
+* Temporarily Unavailable
+
+---
+
+DATABASE CHANGES
+
+cookie_vault:
+
+* id
+* platform_id
+* cookie_data
+* fingerprint
+* pool_type
+* verification_status
+* score
+* verified_at
+* verify_proof
+
+platform_accounts:
+
+* id
+* cookie_id (required FK)
+* profile_index
+* max_users
+* is_active
+
+platforms:
+
+* max_slots_per_cookie
+
+REMOVE:
+
+platform_accounts.cookie_data
+
+---
+
+SECURITY
+
+* CSRF protection
+* rate limiting
+* input validation
+* session protection
+
+---
+
+FINAL RESULT
+
+System MUST be:
+
+* single flow (no confusion)
+* centralized (vault only)
+* scalable (1 cookie → many slots)
+* automated (failover + health)
+* intelligent (AI scoring)
+* reliable (real login verification)
+* SaaS production ready
+
+---
+
+GOAL:
+
+ZERO confusion
+ZERO duplication
+ZERO manual fixing
+
+FULL automation
+FULL control
+ENTERPRISE SaaS QUALITY
+
+---

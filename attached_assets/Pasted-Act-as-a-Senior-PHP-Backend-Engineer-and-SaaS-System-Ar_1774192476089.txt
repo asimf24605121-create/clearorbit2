@@ -1,0 +1,141 @@
+Act as a Senior PHP Backend Engineer and SaaS System Architect.
+
+Upgrade the ClearOrbit Admin Panel to support **Multi-Platform Subscription Assignment** using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVE
+
+Allow admin to assign **MULTIPLE platforms to a single user at once** using a checkbox system (like bulk selection).
+
+---
+
+## 🧩 UI REQUIREMENTS (IMPORTANT)
+
+Replace single dropdown (platform select) with:
+
+✔ Multi-select checkbox system
+
+Example:
+
+[ ] Coursera
+[ ] Netflix
+[ ] Spotify
+[ ] Disney+
+[ ] ChatGPT
+
+Admin can select:
+
+* One platform
+* OR multiple platforms at same time
+
+---
+
+## ⚙️ FORM BEHAVIOR
+
+Form fields:
+
+* User (dropdown)
+* Platforms (checkbox list)
+* Duration (days)
+
+On submit:
+
+→ Assign ALL selected platforms to that user
+
+---
+
+## 🧠 BACKEND LOGIC
+
+1. Receive array of platforms:
+
+Example:
+platforms[] = ["Netflix", "Spotify", "Coursera"]
+
+2. Loop through each platform:
+
+FOR EACH platform:
+
+* Insert new subscription record
+
+---
+
+## 🗄️ DATABASE STRUCTURE
+
+subscriptions table:
+
+* id
+* user_id
+* platform_name
+* start_date
+* end_date
+* status (active/expired)
+
+---
+
+## 📊 ADMIN TABLE DISPLAY
+
+Show:
+
+* User
+* Platform
+* Start date
+* Expiry date
+* Remaining days
+
+Each platform should be a separate row (NOT combined)
+
+---
+
+## ⚡ EXTRA FEATURES (PRO LEVEL)
+
+1. Prevent duplicate subscription:
+
+   * If user already has active platform → skip OR extend
+
+2. Bulk assign confirmation:
+
+   * Show message:
+     "5 platforms assigned successfully"
+
+3. Add "Select All" checkbox
+
+---
+
+## 🎨 UX IMPROVEMENTS
+
+* Clean checkbox grid layout
+* Highlight selected platforms
+* Smooth hover effect
+
+---
+
+## 🔒 SECURITY
+
+* Validate input
+* Use prepared statements
+* Prevent empty submission
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* subscriptions.php (UI + form)
+* assign_subscriptions.php (backend logic)
+* database schema
+* checkbox UI styling
+
+---
+
+## 🎯 FINAL GOAL
+
+Admin can:
+
+* Select ONE or MULTIPLE platforms
+* Assign them in one click
+* System saves correctly
+* UI looks clean and professional
+
+NO dropdown. USE checkbox multi-select system.

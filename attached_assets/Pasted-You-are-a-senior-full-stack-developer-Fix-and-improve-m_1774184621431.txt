@@ -1,0 +1,124 @@
+You are a senior full-stack developer. Fix and improve my cookie system so that it behaves like a clean replacement system (no duplicate or conflicting cookies).
+
+---
+
+🎯 REQUIREMENT:
+
+When a user clicks "Access Now" for any platform:
+
+1. BEFORE injecting new cookies:
+
+   * Delete ALL existing cookies of that platform (same domain)
+   * Ensure no old session remains
+
+2. THEN:
+
+   * Inject fresh cookies from database (JSON)
+
+---
+
+📌 DETAILED LOGIC:
+
+For each platform:
+
+* Identify platform domain (example):
+
+  * Coursera → .coursera.org
+  * Netflix → .netflix.com
+  * Spotify → .spotify.com
+
+---
+
+🧠 STEP FLOW:
+
+1. Call API:
+   GET /api/get_cookie?platform_id=X
+
+2. Response:
+   {
+   "domain": ".coursera.org",
+   "cookies": [...]
+   }
+
+3. Extension must:
+
+   STEP A: DELETE OLD COOKIES
+
+   * Get all cookies for that domain
+   * Remove each one
+
+   STEP B: ADD NEW COOKIES
+
+   * Loop through JSON cookies
+   * Inject them properly
+
+---
+
+🔧 IMPLEMENTATION (Chrome Extension):
+
+Use:
+
+chrome.cookies.getAll({ domain: domain })
+
+Then:
+
+chrome.cookies.remove({
+url: "https://" + domain.replace(".", ""),
+name: cookie.name
+})
+
+Then:
+
+chrome.cookies.set({
+url: "https://" + domain.replace(".", ""),
+name: cookie.name,
+value: cookie.value,
+domain: cookie.domain,
+path: cookie.path,
+secure: cookie.secure,
+httpOnly: cookie.httpOnly,
+expirationDate: cookie.expirationDate
+})
+
+---
+
+⚠️ IMPORTANT RULES:
+
+* DO NOT merge cookies
+* DO NOT keep old cookies
+* ALWAYS full replace
+* Handle errors if cookies empty
+* Only inject cookies for correct domain
+
+---
+
+🎨 UI REQUIREMENTS:
+
+* Show loading state while injecting
+* Show success message after injection
+* Show error if no cookies found
+
+---
+
+🎯 EXPECTED RESULT:
+
+* Clicking "Access Now" → old session cleared
+* New cookies injected cleanly
+* Correct platform opens (no mismatch)
+* No login conflict
+
+---
+
+💡 BONUS:
+
+* Add console logs for debugging:
+
+  * "Deleting old cookies..."
+  * "Injecting new cookies..."
+  * "Done"
+
+---
+
+🚀 FINAL GOAL:
+
+Make cookie system clean, stable, and production-level

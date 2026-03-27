@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <title>ClearOrbit &mdash; Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/responsive.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/css/intlTelInput.css"/>
+    <style>
+        *{box-sizing:border-box}
+        body{background:linear-gradient(135deg,#F0EEFF 0%,#E8F0FE 40%,#F5F3FF 100%);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+        .glass-header{background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.5)}
+        .card{background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.6);border-radius:1.25rem;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+        .gradient-text{background:linear-gradient(135deg,#4F46E5,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .badge{display:inline-flex;align-items:center;padding:.25rem .75rem;border-radius:999px;font-size:.6875rem;font-weight:600;letter-spacing:.02em}
+        .badge-green{background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.12)}
+        .badge-red{background:rgba(220,38,38,.06);color:#DC2626;border:1px solid rgba(220,38,38,.1)}
+        .badge-yellow{background:rgba(217,119,6,.06);color:#D97706;border:1px solid rgba(217,119,6,.1)}
+        .badge-orange{background:rgba(194,65,12,.06);color:#C2410C;border:1px solid rgba(194,65,12,.1)}
+        .btn{padding:.5rem 1rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;transition:all .2s ease;cursor:pointer;display:inline-flex;align-items:center;gap:.375rem}
+        .btn-primary{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;box-shadow:0 2px 8px rgba(79,70,229,.25)}.btn-primary:hover{box-shadow:0 4px 16px rgba(79,70,229,.35);transform:translateY(-1px)}.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .btn-secondary{background:rgba(255,255,255,.8);color:#374151;border:1px solid rgba(209,213,219,.6);backdrop-filter:blur(8px)}.btn-secondary:hover{background:#fff;border-color:#C7D2FE;color:#4F46E5}
+        .btn-sm{padding:.375rem .75rem;font-size:.75rem}
+        .back-btn{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;color:#6B7280;background:rgba(255,255,255,.7);border:1px solid rgba(229,231,235,.8);transition:all .2s ease;backdrop-filter:blur(8px)}
+        .back-btn:hover{color:#4F46E5;background:#fff;border-color:#C7D2FE;transform:translateX(-2px)}
+        .info-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 0;border-bottom:1px solid rgba(243,244,246,.8)}
+        .info-row:last-child{border-bottom:none}
+        .info-label{font-size:.8125rem;font-weight:500;color:#6B7280}
+        .info-value{font-size:.875rem;font-weight:500;color:#111827;text-align:right}
+        .sub-item{display:flex;align-items:center;gap:.875rem;padding:.875rem;border:1px solid rgba(229,231,235,.5);border-radius:.875rem;transition:all .2s}
+        .sub-item:hover{border-color:rgba(99,102,241,.2);background:rgba(238,242,255,.3)}
+        .form-input{width:100%;padding:.625rem .875rem;border:1px solid rgba(209,213,219,.6);border-radius:.75rem;font-size:.8125rem;background:rgba(255,255,255,.9);transition:all .2s;outline:none;font-family:inherit}
+        .form-input:focus{border-color:#818CF8;box-shadow:0 0 0 3px rgba(129,140,248,.12)}
+        .form-input:disabled{background:#F3F4F6;color:#9CA3AF;cursor:not-allowed}
+        .form-label{display:block;font-size:.75rem;font-weight:600;color:#374151;margin-bottom:.375rem;text-transform:uppercase;letter-spacing:.03em}
+        .form-label .required{color:#DC2626;margin-left:2px}
+        .form-select{appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right .5rem center;background-repeat:no-repeat;background-size:1.25rem;padding-right:2.25rem}
+        .avatar-upload{position:relative;width:100px;height:100px;cursor:pointer}
+        .avatar-upload img,.avatar-upload .avatar-placeholder{width:100%;height:100%;border-radius:1.25rem;object-fit:cover}
+        .avatar-placeholder{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-size:2.5rem;font-weight:700}
+        .avatar-upload .overlay{position:absolute;inset:0;border-radius:1.25rem;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+        .avatar-upload:hover .overlay{opacity:1}
+        .toast-container{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+        .toast{pointer-events:auto;padding:.75rem 1rem;border-radius:.875rem;font-size:.8125rem;font-weight:500;display:flex;align-items:center;gap:.5rem;animation:slideIn .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.12);backdrop-filter:blur(12px)}
+        .toast-success{background:rgba(255,255,255,.95);border:1px solid #A7F3D0;color:#065F46}
+        .toast-error{background:rgba(255,255,255,.95);border:1px solid #FECACA;color:#991B1B}
+        .tab-btn{padding:.5rem 1rem;font-size:.8125rem;font-weight:500;color:#6B7280;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+        .tab-btn.active{color:#4F46E5;border-bottom-color:#4F46E5}
+        .tab-btn:hover:not(.active){color:#374151}
+        .profile-gate-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.3);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center}
+        .profile-gate-card{background:#fff;border-radius:1.25rem;padding:2rem;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .animate-in{animation:fadeInUp .5s ease forwards}
+        .animate-in-d1{animation:fadeInUp .5s ease .1s forwards;opacity:0}
+        .animate-in-d2{animation:fadeInUp .5s ease .2s forwards;opacity:0}
+        .animate-in-d3{animation:fadeInUp .5s ease .3s forwards;opacity:0}
+        .iti{width:100%}
+        .iti__input{width:100% !important}
+        .iti__country-list{border-radius:.75rem;box-shadow:0 8px 30px rgba(0,0,0,.12);border:1px solid rgba(209,213,219,.6);max-height:220px}
+        .iti__country{padding:.5rem .75rem}
+        .iti__country:hover{background:#EEF2FF}
+        .iti__selected-flag{border-radius:.75rem 0 0 .75rem;padding-left:.75rem}
+        .iti--separate-dial-code .iti__selected-flag{background:rgba(243,244,246,.6)}
+        .iti__flag-container{pointer-events:auto}
+        .phone-error{display:none;color:#DC2626;font-size:.6875rem;margin-top:.25rem;font-weight:500}
+        .phone-error.visible{display:block}
+        @media(max-width:767px){
+            .info-row{flex-direction:column;gap:.25rem;align-items:flex-start}
+            .info-value{text-align:left}
+            .sub-item{flex-wrap:wrap;gap:.625rem}
+            .card{border-radius:1rem}
+            .form-grid{grid-template-columns:1fr !important}
+        }
+    </style>
+</head>
+<body>
+<div id="toastContainer" class="toast-container"></div>
+
+<div id="profileGate" class="profile-gate-overlay hidden">
+    <div class="profile-gate-card">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
+        <p class="text-gray-500 text-sm mb-4">Please fill in your profile information to access the platform. Required fields are marked with <span class="text-red-500">*</span></p>
+        <button onclick="document.getElementById('profileGate').classList.add('hidden');switchTab('edit')" class="btn btn-primary" data-testid="btn-complete-profile">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            Fill Profile Now
+        </button>
+    </div>
+</div>
+
+<div class="min-h-screen">
+    <header class="glass-header sticky top-0 z-30">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="dashboard.html" class="back-btn" data-testid="link-dashboard">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Dashboard
+                </a>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <span class="font-bold text-gray-900">ClearOrbit</span>
+                </div>
+                <button onclick="logout()" class="btn btn-secondary btn-sm" data-testid="btn-logout">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div class="mb-8 animate-in">
+            <h1 class="text-2xl font-extrabold text-gray-900">My Profile</h1>
+            <p class="text-gray-500 text-sm mt-1">Manage your account details, photo, and security</p>
+        </div>
+
+        <div class="card mb-6 animate-in-d1">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="avatar-upload" onclick="document.getElementById('imageInput').click()" data-testid="avatar-upload">
+                        <div id="profileAvatarContainer">
+                            <div id="profileAvatarPlaceholder" class="avatar-placeholder">?</div>
+                            <img id="profileAvatarImg" src="" alt="Profile" style="display:none" class="avatar-upload"/>
+                        </div>
+                        <div class="overlay">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadImage(this)" data-testid="input-profile-image"/>
+                    </div>
+                    <div class="flex-1">
+                        <h2 id="profileDisplayName" class="text-xl font-bold text-gray-900" data-testid="text-display-name">Loading...</h2>
+                        <p id="profileUsername" class="text-sm text-gray-400" data-testid="text-username">@username</p>
+                        <span id="profileStatusBadge" class="badge badge-green mt-1" data-testid="status-badge">Active</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 ml-1">Click photo to change</p>
+            </div>
+        </div>
+
+        <div class="card mb-6 animate-in-d2">
+            <div class="border-b border-gray-100/80 px-6 flex gap-1">
+                <button class="tab-btn active" onclick="switchTab('view')" id="tabView" data-testid="tab-view">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    View
+                </button>
+                <button class="tab-btn" onclick="switchTab('edit')" id="tabEdit" data-testid="tab-edit">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    Edit Profile
+                </button>
+                <button class="tab-btn" onclick="switchTab('password')" id="tabPassword" data-testid="tab-password">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Password
+                </button>
+            </div>
+
+            <div id="panelView" class="p-6">
+                <div class="bg-gray-50 rounded-xl px-5 py-1">
+                    <div class="info-row">
+                        <span class="info-label">Username</span>
+                        <span class="info-value" id="viewUsername" data-testid="text-view-username">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" id="viewName" data-testid="text-name">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" id="viewEmail" data-testid="text-email">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value" id="viewPhone" data-testid="text-phone">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Country</span>
+                        <span class="info-value" id="viewCountry" data-testid="text-country">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">City</span>
+                        <span class="info-value" id="viewCity" data-testid="text-city">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value" id="viewGender" data-testid="text-gender">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Join Date</span>
+                        <span class="info-value" id="viewJoinDate" data-testid="text-join-date">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Expiry</span>
+                        <span class="info-value" id="viewExpiry" data-testid="text-expiry">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Login IP</span>
+                        <span class="info-value" id="viewIP" data-testid="text-ip">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panelEdit" class="p-6 hidden">
+                <form id="editForm" onsubmit="saveProfile(event)">
+                    <div class="grid gap-4 form-grid" style="grid-template-columns: 1fr 1fr">
+                        <div>
+                            <label class="form-label">Username <span class="required">*</span></label>
+                            <input type="text" id="editUsername" class="form-input" required minlength="3" maxlength="50" pattern="^[a-zA-Z0-9_]+$" placeholder="e.g. john_doe" data-testid="input-username"/>
+                            <p class="text-xs text-gray-400 mt-1">Letters, numbers, underscores only. No spaces.</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Full Name <span class="required">*</span></label>
+                            <input type="text" id="editName" class="form-input" required maxlength="100" placeholder="Your full name" data-testid="input-name"/>
+                        </div>
+                        <div>
+                            <label class="form-label">Email</label>
+                            <input type="email" id="editEmail" class="form-input" placeholder="your@email.com" data-testid="input-email"/>
+                        </div>
+                        <div>
+                            <label class="form-label">Phone <span class="required">*</span></label>
+                            <input type="tel" id="editPhone" class="form-input" required data-testid="input-phone"/>
+                            <p id="phoneError" class="phone-error">Invalid phone number for selected country</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Country <span class="required">*</span></label>
+                            <input type="text" id="editCountry" class="form-input" required maxlength="100" placeholder="Your country" data-testid="input-country"/>
+                        </div>
+                        <div>
+                            <label class="form-label">City</label>
+                            <input type="text" id="editCity" class="form-input" maxlength="100" placeholder="Your city" data-testid="input-city"/>
+                        </div>
+                        <div>
+                            <label class="form-label">Gender</label>
+                            <select id="editGender" class="form-input form-select" data-testid="select-gender">
+                                <option value="">— Select —</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200/50">
+                        <p class="text-xs text-amber-700 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            Account expiry, role, and platform access can only be changed by an administrator.
+                        </p>
+                    </div>
+
+                    <div class="mt-5 flex justify-end gap-3">
+                        <button type="button" onclick="switchTab('view')" class="btn btn-secondary" data-testid="btn-cancel-edit">Cancel</button>
+                        <button type="submit" id="btnSaveProfile" class="btn btn-primary" data-testid="btn-save-profile">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="panelPassword" class="p-6 hidden">
+                <form id="passwordForm" onsubmit="changePassword(event)">
+                    <div class="space-y-4 max-w-sm">
+                        <div>
+                            <label class="form-label">Current Password <span class="required">*</span></label>
+                            <input type="password" id="pwCurrent" class="form-input" required minlength="1" placeholder="Enter current password" data-testid="input-current-password"/>
+                        </div>
+                        <div>
+                            <label class="form-label">New Password <span class="required">*</span></label>
+                            <input type="password" id="pwNew" class="form-input" required minlength="6" placeholder="At least 6 characters" data-testid="input-new-password"/>
+                        </div>
+                        <div>
+                            <label class="form-label">Confirm New Password <span class="required">*</span></label>
+                            <input type="password" id="pwConfirm" class="form-input" required minlength="6" placeholder="Re-enter new password" data-testid="input-confirm-password"/>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <button type="button" onclick="switchTab('view')" class="btn btn-secondary" data-testid="btn-cancel-password">Cancel</button>
+                        <button type="submit" id="btnChangePassword" class="btn btn-primary" data-testid="btn-change-password">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card animate-in-d3">
+            <div class="px-6 py-4 border-b border-gray-100/80">
+                <h3 class="font-semibold text-gray-900 text-sm">Active Subscriptions</h3>
+            </div>
+            <div class="p-6" id="subsContainer" data-testid="subs-container">
+                <p class="text-sm text-gray-400 text-center py-4">Loading subscriptions...</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
+<script src="js/safe-fetch.js"></script>
+<script>
+let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
+let PROFILE_DATA = null;
+let itiInstance = null;
+
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s ?? '';
+    return d.innerHTML;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function showAlert(msg, isError = false) {
+    const container = document.getElementById('toastContainer');
+    const icon = isError
+        ? '<svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+        : '<svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+    toast.innerHTML = `${icon}<span>${escHtml(msg)}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideOut .3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+function csrfHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN };
+}
+
+function switchTab(tab) {
+    const validTabs = ['view', 'edit', 'password'];
+    if (!validTabs.includes(tab)) tab = 'view';
+
+    validTabs.forEach(t => {
+        document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab);
+        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+    });
+
+    history.replaceState(null, '', '#' + tab);
+
+    if (tab === 'edit' && PROFILE_DATA) {
+        document.getElementById('editUsername').value = PROFILE_DATA.username || '';
+        document.getElementById('editName').value = PROFILE_DATA.name || '';
+        document.getElementById('editEmail').value = PROFILE_DATA.email || '';
+        document.getElementById('editCountry').value = PROFILE_DATA.country || '';
+        document.getElementById('editCity').value = PROFILE_DATA.city || '';
+        document.getElementById('editGender').value = PROFILE_DATA.gender || '';
+        setPhoneValue(PROFILE_DATA.phone || '');
+        document.getElementById('phoneError').classList.remove('visible');
+    }
+
+    if (tab === 'password') {
+        document.getElementById('pwCurrent').value = '';
+        document.getElementById('pwNew').value = '';
+        document.getElementById('pwConfirm').value = '';
+    }
+}
+
+function getTabFromHash() {
+    const hash = window.location.hash.replace('#', '');
+    return ['view', 'edit', 'password'].includes(hash) ? hash : null;
+}
+
+window.addEventListener('hashchange', function() {
+    const tab = getTabFromHash();
+    if (tab) switchTab(tab);
+});
+
+function capitalizeFirst(s) {
+    if (!s) return '—';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function populateView(p) {
+    document.getElementById('viewUsername').textContent = '@' + (p.username || '—');
+    document.getElementById('viewName').textContent = p.name || '—';
+    document.getElementById('viewEmail').textContent = p.email || '—';
+    document.getElementById('viewPhone').textContent = p.phone || '—';
+    document.getElementById('viewCountry').textContent = p.country || '—';
+    document.getElementById('viewCity').textContent = p.city || '—';
+    document.getElementById('viewGender').textContent = capitalizeFirst(p.gender);
+    document.getElementById('viewJoinDate').textContent = formatDate(p.created_at);
+    document.getElementById('viewExpiry').textContent = formatDate(p.expiry_date);
+    document.getElementById('viewIP').textContent = p.last_login_ip || '—';
+}
+
+function initPhoneInput() {
+    const input = document.getElementById('editPhone');
+    if (itiInstance) { itiInstance.destroy(); }
+    itiInstance = window.intlTelInput(input, {
+        initialCountry: "auto",
+        separateDialCode: true,
+        preferredCountries: ["pk", "us", "gb", "sa", "ae", "in"],
+        geoIpLookup: function(callback) {
+            fetch("https://ipapi.co/json/")
+                .then(r => r.json())
+                .then(d => callback(d.country_code || "us"))
+                .catch(() => callback("us"));
+        },
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/utils.js"
+    });
+    input.addEventListener('blur', validatePhoneInput);
+    input.addEventListener('input', function() {
+        document.getElementById('phoneError').classList.remove('visible');
+        input.style.borderColor = '';
+    });
+}
+
+function setPhoneValue(phone) {
+    if (!itiInstance) return;
+    if (phone && phone.startsWith('+')) {
+        itiInstance.setNumber(phone);
+    } else if (phone) {
+        const input = document.getElementById('editPhone');
+        input.value = phone;
+    }
+}
+
+function validatePhoneInput() {
+    if (!itiInstance) return true;
+    const input = document.getElementById('editPhone');
+    const errEl = document.getElementById('phoneError');
+    const val = input.value.trim();
+
+    if (!val) {
+        errEl.textContent = 'Phone number is required';
+        errEl.classList.add('visible');
+        input.style.borderColor = '#DC2626';
+        return false;
+    }
+
+    if (!itiInstance.isValidNumber()) {
+        const errorMap = {
+            0: "Invalid phone number",
+            1: "Invalid country code",
+            2: "Phone number is too short",
+            3: "Phone number is too long",
+            4: "Invalid phone number",
+        };
+        const errCode = itiInstance.getValidationError();
+        errEl.textContent = errorMap[errCode] || "Invalid phone number for selected country";
+        errEl.classList.add('visible');
+        input.style.borderColor = '#DC2626';
+        return false;
+    }
+
+    errEl.classList.remove('visible');
+    input.style.borderColor = '';
+    return true;
+}
+
+function updateAvatar(p) {
+    const placeholder = document.getElementById('profileAvatarPlaceholder');
+    const img = document.getElementById('profileAvatarImg');
+    const displayName = p.name || p.username;
+    const initial = (displayName[0] || '?').toUpperCase();
+
+    if (p.profile_image) {
+        img.src = p.profile_image + '?t=' + Date.now();
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+        img.onerror = function() {
+            img.style.display = 'none';
+            placeholder.style.display = 'flex';
+            placeholder.textContent = initial;
+        };
+    } else {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+        placeholder.textContent = initial;
+    }
+}
+
+async function loadProfile() {
+    try {
+        const res = await fetch('api/get_user_profile', { credentials: 'include' });
+        if (res.status === 401) { window.location.href = 'index.html'; return; }
+        const data = await res.json();
+        if (!data.success) { showAlert(data.message, true); return; }
+
+        if (data.csrf_token) {
+            CSRF_TOKEN = data.csrf_token;
+            sessionStorage.setItem('csrf_token', CSRF_TOKEN);
+        }
+
+        const p = data.profile;
+        PROFILE_DATA = p;
+
+        const displayName = p.name || p.username;
+        document.getElementById('profileDisplayName').textContent = displayName;
+        document.getElementById('profileUsername').textContent = '@' + p.username;
+
+        updateAvatar(p);
+
+        const badge = document.getElementById('profileStatusBadge');
+        const statusMap = {
+            active: ['Active', 'badge-green'],
+            inactive: ['Inactive', 'badge-red'],
+            expired: ['Expired', 'badge-red'],
+            expiring_soon: ['Expiring Soon', 'badge-orange'],
+        };
+        const [label, cls] = statusMap[p.account_status] || ['Active', 'badge-green'];
+        badge.textContent = label;
+        badge.className = 'badge ' + cls + ' mt-1';
+
+        populateView(p);
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('complete') === '1' && !p.profile_completed) {
+            document.getElementById('profileGate').classList.remove('hidden');
+        }
+
+        const subs = data.subscriptions || [];
+        const container = document.getElementById('subsContainer');
+        if (!subs.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">No active subscriptions</p>';
+            return;
+        }
+
+        const now = new Date();
+        container.innerHTML = '<div class="space-y-3">' + subs.map(s => {
+            const end = new Date(s.end_date + 'T23:59:59');
+            const diffDays = Math.max(0, Math.ceil((end - now) / 86400000));
+            let remainBadge;
+            if (diffDays <= 0) remainBadge = '<span class="badge badge-red">Expired</span>';
+            else if (diffDays <= 3) remainBadge = `<span class="badge badge-orange">${diffDays}d left</span>`;
+            else if (diffDays <= 7) remainBadge = `<span class="badge badge-yellow">${diffDays}d left</span>`;
+            else remainBadge = `<span class="badge badge-green">${diffDays}d left</span>`;
+
+            const logo = s.logo_url
+                ? `<img src="${escHtml(s.logo_url)}" alt="${escHtml(s.platform_name)}" class="w-10 h-10 rounded-lg object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="display:none;background:${escHtml(s.bg_color_hex || '#4F46E5')}">${escHtml((s.platform_name||'?')[0].toUpperCase())}</div>`
+                : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="background:${escHtml(s.bg_color_hex || '#4F46E5')}">${escHtml((s.platform_name||'?')[0].toUpperCase())}</div>`;
+
+            return `
+            <div class="sub-item">
+                ${logo}
+                <div class="flex-1">
+                    <p class="font-medium text-sm text-gray-900">${escHtml(s.platform_name)}</p>
+                    <p class="text-xs text-gray-400">${formatDate(s.start_date)} — ${formatDate(s.end_date)}</p>
+                </div>
+                ${remainBadge}
+            </div>`;
+        }).join('') + '</div>';
+    } catch (e) {
+        console.error('loadProfile error', e);
+        document.getElementById('profileDisplayName').textContent = 'Unable to load';
+        showAlert('Failed to load profile.', true);
+    }
+}
+
+async function saveProfile(e) {
+    e.preventDefault();
+
+    if (!validatePhoneInput()) {
+        showAlert('Please enter a valid phone number.', true);
+        return;
+    }
+
+    const btn = document.getElementById('btnSaveProfile');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Saving...';
+
+    const usernameVal = document.getElementById('editUsername').value.trim();
+    if (!/^[a-zA-Z0-9_]{3,50}$/.test(usernameVal)) {
+        showAlert('Username must be 3-50 characters: letters, numbers, underscores only.', true);
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save Changes';
+        return;
+    }
+
+    const phoneNumber = itiInstance ? itiInstance.getNumber() : document.getElementById('editPhone').value.trim();
+
+    const body = {
+        username: usernameVal,
+        name: document.getElementById('editName').value.trim(),
+        email: document.getElementById('editEmail').value.trim(),
+        phone: phoneNumber,
+        country: document.getElementById('editCountry').value.trim(),
+        city: document.getElementById('editCity').value.trim(),
+        gender: document.getElementById('editGender').value,
+    };
+
+    try {
+        const res = await fetch('api/update_profile', {
+            method: 'POST',
+            headers: csrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Profile updated successfully!');
+            await loadProfile();
+            switchTab('view');
+        } else {
+            showAlert(data.message || 'Update failed.', true);
+        }
+    } catch (err) {
+        showAlert('Network error. Please try again.', true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save Changes';
+    }
+}
+
+async function uploadImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    if (file.size > 2 * 1024 * 1024) {
+        showAlert('Image must be under 2MB.', true);
+        input.value = '';
+        return;
+    }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+        showAlert('Only JPG, PNG, and WebP images are allowed.', true);
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = document.getElementById('profileAvatarImg');
+        const placeholder = document.getElementById('profileAvatarPlaceholder');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('profile_image', file);
+    formData.append('csrf_token', CSRF_TOKEN);
+
+    try {
+        const res = await fetch('api/upload_profile_image', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': CSRF_TOKEN },
+            credentials: 'include',
+            body: formData,
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Profile photo updated!');
+            if (data.image_path) {
+                PROFILE_DATA.profile_image = data.image_path;
+            }
+        } else {
+            showAlert(data.message || 'Upload failed.', true);
+            updateAvatar(PROFILE_DATA);
+        }
+    } catch (err) {
+        showAlert('Upload failed. Please try again.', true);
+        updateAvatar(PROFILE_DATA);
+    }
+    input.value = '';
+}
+
+async function changePassword(e) {
+    e.preventDefault();
+    const current = document.getElementById('pwCurrent').value;
+    const newPw = document.getElementById('pwNew').value;
+    const confirm = document.getElementById('pwConfirm').value;
+
+    if (newPw !== confirm) {
+        showAlert('New passwords do not match.', true);
+        return;
+    }
+
+    if (newPw.length < 6) {
+        showAlert('New password must be at least 6 characters.', true);
+        return;
+    }
+
+    const btn = document.getElementById('btnChangePassword');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Changing...';
+
+    try {
+        const res = await fetch('api/change_password', {
+            method: 'POST',
+            headers: csrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify({
+                current_password: current,
+                new_password: newPw,
+                confirm_password: confirm,
+            }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Password changed successfully!');
+            switchTab('view');
+        } else {
+            showAlert(data.message || 'Password change failed.', true);
+        }
+    } catch (err) {
+        showAlert('Network error. Please try again.', true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Change Password';
+    }
+}
+
+async function logout() {
+    try {
+        await fetch('api/logout', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({}) });
+    } catch (_) {}
+    window.postMessage({ type: "CLEARORBIT_LOGOUT" }, "*");
+    localStorage.setItem("clearorbit_logout", Date.now().toString());
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+}
+
+window.addEventListener("storage", function(e) {
+    if (e.key === "clearorbit_logout") {
+        location.reload();
+    }
+});
+
+initPhoneInput();
+
+fetch('api/check_session', { credentials: 'include' }).then(res => {
+    if (!res.ok) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
+    return res.json();
+}).then(data => {
+    if (!data) return;
+    if (data.csrf_token) { CSRF_TOKEN = data.csrf_token; sessionStorage.setItem('csrf_token', CSRF_TOKEN); }
+    loadProfile().then(() => {
+        const hashTab = getTabFromHash();
+        if (hashTab) switchTab(hashTab);
+    });
+}).catch(() => { sessionStorage.clear(); window.location.href = 'index.html'; });
+</script>
+<script src="js/whatsapp-float.js"></script>
+</body>
+</html>

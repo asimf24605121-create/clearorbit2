@@ -1,0 +1,233 @@
+Act as a Senior SaaS Architect, PHP Backend Engineer, and Chrome Extension Integration Specialist.
+
+You are working on an existing SaaS project called **ClearOrbit**.
+
+DO NOT rebuild anything. ONLY extend and upgrade the current system.
+
+---
+
+## 🎯 CORE OBJECTIVE
+
+Build a **Multi-Account Slot System** for shared cookie-based platform access.
+
+The system must:
+
+✔ Support multiple accounts (cookies) per platform
+✔ Limit users per account (e.g. max 5 users per account)
+✔ Automatically assign users to available accounts
+✔ Track active users per account in real-time
+✔ Prevent overload and session break
+
+---
+
+## 🧠 FULL SYSTEM SCENARIO
+
+Example:
+
+Platform: Coursera
+
+Admin adds 3 accounts (3 cookie sets)
+
+Account 1 → max 5 users
+Account 2 → max 5 users
+Account 3 → max 5 users
+
+Total capacity = 15 users
+
+---
+
+User Flow:
+
+1. User clicks "Access Platform"
+
+2. Backend checks:
+
+Account 1 → 5/5 (full)
+Account 2 → 3/5 (available)
+Account 3 → 5/5 (full)
+
+3. System assigns Account 2
+
+4. API returns cookies of Account 2
+
+5. Extension injects cookies
+
+6. User gets logged in
+
+---
+
+If ALL accounts are full:
+
+→ Block login
+
+Message:
+"All slots are currently in use. Please try again later."
+
+---
+
+## 🧩 DATABASE STRUCTURE
+
+1. TABLE: platform_accounts
+
+* id
+* platform_id
+* cookie_data
+* max_users (default 5)
+* created_at
+
+---
+
+2. TABLE: account_sessions
+
+* id
+* account_id
+* user_id
+* status (active/inactive)
+* device_type (pc/mobile)
+* last_active (timestamp)
+
+---
+
+## ⚙️ BACKEND LOGIC
+
+1. AUTO ACCOUNT ASSIGNMENT
+
+When user clicks access:
+
+* Fetch all accounts for platform
+* Loop accounts:
+
+IF active_users < max_users:
+→ select this account
+→ break loop
+
+* If none available → block access
+
+---
+
+2. ACTIVE USER COUNT
+
+Count users where:
+
+status = active
+AND last_active within last 5 minutes
+
+---
+
+3. SESSION CREATION
+
+On login:
+
+* Insert into account_sessions:
+  user_id
+  account_id
+  status = active
+  last_active = now()
+
+---
+
+4. SESSION UPDATE
+
+On every request:
+
+* Update last_active = now()
+
+---
+
+5. AUTO SESSION CLEANUP
+
+If last_active older than 5–10 minutes:
+
+→ mark session inactive
+
+---
+
+6. USER LIMIT RULES
+
+* 1 user = 1 active session per platform
+* Prevent duplicate sessions
+
+---
+
+## 🔗 API RESPONSE (IMPORTANT)
+
+Return:
+
+{
+"success": true,
+"account_id": X,
+"cookies": [...]
+}
+
+---
+
+## 🧩 EXTENSION ROLE
+
+* DO NOT change extension logic significantly
+
+Extension only:
+
+✔ receives cookies
+✔ injects cookies
+✔ handles UI blocking
+
+NO session control in extension
+
+---
+
+## 🎨 ADMIN DASHBOARD
+
+For each platform show:
+
+* Total accounts
+
+* Each account:
+
+  Account 1 → 5/5 (Full)
+  Account 2 → 3/5 (Available)
+
+* Show:
+
+  ✔ Active users
+  ✔ Available slots
+
+---
+
+## 👤 USER DASHBOARD
+
+* Only ONE button:
+
+✔ "Access Platform"
+
+NO multiple login buttons
+
+---
+
+## 🔐 SECURITY RULES
+
+* Block access if no slots available
+* Validate session before assigning
+* Prevent overuse
+
+---
+
+## 🧪 TEST CASES
+
+✔ Add multiple accounts → slots created
+✔ Users login → auto assigned
+✔ Account full → next account used
+✔ All full → blocked
+✔ Sessions expire → slots free
+
+---
+
+## 🎯 FINAL GOAL
+
+A fully automated system where:
+
+✔ Admin only adds cookies
+✔ System handles user distribution
+✔ Sessions stay stable
+✔ No manual login button management
+
+SCALABLE. STABLE. PRODUCTION-READY.

@@ -1,0 +1,214 @@
+ROLE: Senior AI Systems Engineer + Backend Architect
+
+TASK:
+Upgrade the existing Universal Parser into an "AI-Detected Smart Parsing Engine" that can intelligently classify, prioritize, and understand session/cookie data instead of only extracting key-value pairs.
+
+---
+
+CORE OBJECTIVE
+
+Transform the parser from:
+"Regex-based extractor"
+
+Into:
+"Context-aware intelligent parser"
+
+---
+
+AI DETECTION LAYER (IMPORTANT)
+
+1. Field Classification Engine
+
+After parsing key-value pairs, classify each field into categories:
+
+* identity → name, email, phone
+* account → plan, country, memberSince
+* billing → price, payment method, card
+* session → NetflixId, SecureNetflixId, tokens
+* metadata → source, labels
+* unknown → anything else
+
+Store result like:
+{
+key: "country",
+value: "Brazil 🇧🇷",
+category: "account"
+}
+
+---
+
+2. Smart Priority Detection
+
+Assign importance score:
+
+HIGH:
+
+* cookies (NetflixId, SecureNetflixId)
+* tokens
+* login URLs
+
+MEDIUM:
+
+* plan, country, email
+
+LOW:
+
+* labels, source, icons
+
+Sort output by priority automatically
+
+---
+
+3. Context Understanding
+
+Detect patterns:
+
+IF value contains:
+
+* "NetflixId=" → mark as COOKIE
+* "nftoken=" → mark as LOGIN_TOKEN
+* "@" → mark as EMAIL
+* "+" and numbers → PHONE
+
+---
+
+4. Intelligent Key Mapping
+
+Even if key is unknown:
+
+Example:
+"📺 Streams" → map to max_streams
+"🎥 Quality" → map to video_quality
+
+Use fuzzy matching rules:
+
+* streams → max_streams
+* quality → video_quality
+* plan → subscription_plan
+
+---
+
+5. Noise Removal
+
+Ignore useless lines:
+
+* decorative text
+* empty values
+* separators
+
+---
+
+COOKIE AI ENGINE
+
+6. Cookie Detection Boost
+
+Even if no key exists:
+
+Example:
+"NetflixId=abc123..."
+
+System should detect:
+→ this is a cookie automatically
+
+---
+
+7. Multi-Cookie Extraction
+
+Support:
+
+* NetflixId
+* SecureNetflixId
+* any other future cookie
+
+---
+
+8. Auto Domain Detection
+
+If URL exists:
+https://netflix.com/...
+
+→ domain = .netflix.com
+
+---
+
+SMART OUTPUT
+
+9. Structured JSON with intelligence
+
+{
+"account": {...},
+"billing": {...},
+"session": {...},
+"priority": [...],
+"raw": {...}
+}
+
+---
+
+UI UPGRADE
+
+10. Add AI Features:
+
+* "AI Summary Card":
+  Shows:
+  • Account Name
+  • Country
+  • Plan
+  • Cookie Status (Valid / Missing)
+
+* "Detected Cookies Panel"
+
+* "Risk Indicator":
+  Shows if cookie missing or incomplete
+
+---
+
+11. Smart Buttons:
+
+* "Extract Cookies Only"
+* "Generate Login"
+* "Copy Clean Data"
+
+---
+
+ERROR HANDLING
+
+12. If cookies missing:
+    Show:
+    "⚠️ AI Detection: No valid session token found"
+
+---
+
+GOAL
+
+System should behave like:
+
+User pastes ANY messy data →
+
+System:
+
+* understands it
+* organizes it
+* highlights important parts
+* extracts working cookies automatically
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* Vanilla JS frontend
+* No external AI APIs (simulate AI using logic + heuristics)
+
+---
+
+FINAL RESULT:
+
+A system that FEELS like AI:
+
+* detects patterns
+* understands context
+* auto-organizes data
+* works on unknown formats
+
+---

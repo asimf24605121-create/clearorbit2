@@ -1,0 +1,259 @@
+Act as a senior backend architect, real-time systems engineer, and session management expert.
+
+You are working on a production-level system that manages shared platform accounts (like Coursera, Netflix, Spotify) using a **slot-based access system**.
+
+Currently, the system has a major flaw:
+
+❌ Slots are not being released when a user closes the tab
+❌ Same user opening multiple tabs consumes multiple slots (WRONG)
+❌ System shows "All Slots Full" even when no real user is active
+❌ Slot tracking is not based on real active sessions
+
+---
+
+## 🎯 GOAL
+
+Redesign the slot system to behave like a **real session-based smart slot system**, not tab-based.
+
+---
+
+## ✅ REQUIRED BEHAVIOR
+
+### 1. Single User = Single Slot
+
+* If the same user (same browser/session/IP) opens multiple tabs of Coursera
+  → It must count as **ONLY 1 slot**
+
+### 2. New User = New Slot
+
+* If a different user (different session/IP/device) accesses
+  → Allocate a **new slot**
+
+### 3. Tab Close = Slot Release
+
+* If the user closes the tab
+  → Slot must be **freed automatically**
+
+### 4. Inactive Session = Auto Release
+
+* If user becomes inactive (no heartbeat for X seconds, e.g., 60s)
+  → Slot must be **released automatically**
+
+### 5. Page Refresh / Same Session
+
+* Refresh or reopening in same browser
+  → Should **reuse same slot**, not create new one
+
+---
+
+## ⚠️ CURRENT PROBLEM TO FIX
+
+User flow:
+
+1. User logs into Coursera → slot allocated ✅
+2. User closes tab ❌ (slot not released)
+3. User tries again → gets "All Slots Full" ❌
+
+This must be FIXED.
+
+---
+
+## 🧠 DESIGN A COMPLETE SOLUTION
+
+You must redesign both:
+
+* frontend session tracking
+* backend slot allocation system
+
+---
+
+## 🔧 PART 1 — SESSION IDENTIFICATION
+
+Define a strong session identity system:
+
+Each active session must be uniquely identified using:
+
+* sessionId (generated on frontend, UUID)
+* platform (Coursera, Netflix, etc.)
+* accountId
+* IP address
+* user-agent / browser fingerprint (optional)
+
+Final key:
+sessionKey = platform + accountId + sessionId
+
+---
+
+## 🔄 PART 2 — HEARTBEAT SYSTEM (CRITICAL)
+
+Implement a real-time heartbeat system:
+
+Frontend:
+
+* Send heartbeat every 15–30 seconds
+* API: POST /api/session/heartbeat
+* Payload:
+  {
+  sessionId,
+  platform,
+  accountId
+  }
+
+Backend:
+
+* Update lastSeen timestamp for session
+* Store in DB or memory (Redis preferred)
+
+---
+
+## ⛔ PART 3 — SLOT ALLOCATION LOGIC
+
+When user requests access:
+
+1. Check if session already exists
+   → reuse slot (DO NOT create new)
+
+2. Count active sessions:
+
+   * active = lastSeen < 60 sec
+
+3. If active sessions < maxSlots:
+   → allow access
+   → assign slot
+
+4. Else:
+   → return "All Slots Full"
+
+---
+
+## 🧹 PART 4 — AUTO SLOT RELEASE
+
+Implement automatic cleanup:
+
+* Run background job every 30 sec
+* Find sessions where:
+  lastSeen > 60–90 sec
+* Mark them inactive
+* Free their slot
+
+---
+
+## ❌ PART 5 — TAB CLOSE DETECTION
+
+Frontend:
+
+* Use:
+  window.addEventListener("beforeunload")
+
+* Call:
+  POST /api/session/end
+
+Backend:
+
+* Immediately release slot
+
+---
+
+## 🧠 PART 6 — MULTI-TAB HANDLING
+
+IMPORTANT:
+
+If same browser opens multiple tabs:
+
+* All tabs share same sessionId (store in localStorage)
+* So:
+  multiple tabs → same session → 1 slot
+
+---
+
+## 🗄️ PART 7 — DATABASE DESIGN
+
+Design/update schema:
+
+Table: active_sessions
+
+Fields:
+
+* id
+* sessionId
+* platform
+* accountId
+* ip
+* userAgent
+* lastSeen
+* status (active/inactive)
+* createdAt
+
+---
+
+## 🔌 PART 8 — API DESIGN
+
+Create these APIs:
+
+1. POST /api/session/start
+2. POST /api/session/heartbeat
+3. POST /api/session/end
+4. GET /api/session/active-count
+
+---
+
+## 🚨 PART 9 — FIX EXISTING BUGS
+
+You must fix:
+
+* slots not releasing
+* undefined slot values
+* NaN users count
+* incorrect slot counting
+* multiple slots per same user
+* stale sessions
+
+---
+
+## 🚀 PART 10 — PERFORMANCE & SCALE
+
+System must support:
+
+* 1000+ users
+* minimal latency
+* real-time updates
+
+Use:
+
+* Redis (for active sessions)
+* background worker for cleanup
+
+---
+
+## 🎨 PART 11 — UI IMPROVEMENTS
+
+Fix UI issues:
+
+* Remove "NaN users"
+* Remove "undefined"
+* Show:
+
+  * Active users
+  * Available slots
+  * Session status
+* Show real-time updates
+
+---
+
+## 📦 FINAL OUTPUT
+
+Give:
+
+1. Full architecture design
+2. Backend implementation (Node.js / Express preferred)
+3. Frontend logic (React or vanilla JS)
+4. Database schema
+5. API code examples
+6. Session handling code
+7. Slot allocation logic (exact code)
+8. Cleanup job implementation
+9. Fix for current bug
+10. Best practices for production
+
+DO NOT give generic answers.
+Give real working code and architecture.

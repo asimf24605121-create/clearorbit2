@@ -1,0 +1,157 @@
+Act as a Senior SaaS Backend + Frontend Engineer.
+
+Project: ClearOrbit
+
+I want to implement a COMPLETE USER PROFILE MANAGEMENT SYSTEM with strict control rules.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Create a User Profile system where:
+
+✔ User MUST fill required fields (mandatory)  
+✔ User can EDIT their data  
+✔ User CANNOT change restricted fields (like expiry date)  
+✔ User can upload profile photo  
+✔ Admin can see all user data + photo  
+
+--------------------------------------
+🧠 MANDATORY LOGIC (VERY IMPORTANT)
+--------------------------------------
+
+When user logs in:
+
+1. Check profile_completed
+2. If FALSE → force user to fill profile form
+3. Disable ALL platform access until completed
+
+--------------------------------------
+📦 DATABASE UPDATE
+--------------------------------------
+
+Extend users table:
+
+- full_name
+- phone
+- country
+- city
+- gender
+- profile_image (path)
+- profile_completed (boolean)
+- subscription_expiry (already exists)
+
+--------------------------------------
+📋 USER PROFILE FORM (MANDATORY)
+--------------------------------------
+
+Fields:
+
+✔ Full Name (required)  
+✔ Phone (required)  
+✔ Country (required)  
+✔ City  
+✔ Gender  
+✔ Profile Image Upload  
+
+--------------------------------------
+⚠️ RULES (IMPORTANT)
+--------------------------------------
+
+✔ User MUST fill required fields before continuing  
+✔ User CANNOT submit empty form  
+
+--------------------------------------
+🔐 RESTRICTED FIELDS (VERY IMPORTANT)
+--------------------------------------
+
+User CANNOT change:
+
+❌ subscription_expiry  
+❌ account role  
+❌ platform access  
+
+Only admin can modify these.
+
+--------------------------------------
+🧩 BACKEND VALIDATION (PHP)
+--------------------------------------
+
+In update_profile.php:
+
+- Allow only editable fields
+- Ignore or block restricted fields
+
+Example:
+
+unset($_POST['subscription_expiry']);
+
+--------------------------------------
+📸 PROFILE IMAGE UPLOAD
+--------------------------------------
+
+✔ Upload to /uploads/profile/  
+✔ Save file path in database  
+✔ Validate file type (jpg/png)  
+✔ Limit size (e.g. 2MB)  
+
+--------------------------------------
+🌐 FRONTEND (USER SIDE)
+--------------------------------------
+
+Create Profile Page:
+
+✔ Show user data  
+✔ Edit button  
+✔ Upload image  
+✔ Save changes  
+
+--------------------------------------
+🧭 ADMIN PANEL
+--------------------------------------
+
+In admin → Users table:
+
+✔ Show:
+
+- user name  
+- phone  
+- country  
+- profile image  
+- expiry date  
+
+✔ Admin can edit ALL fields  
+
+--------------------------------------
+🔑 PASSWORD CHANGE
+--------------------------------------
+
+Add "Change Password":
+
+✔ Current password required  
+✔ New password  
+✔ Confirm password  
+
+--------------------------------------
+⚡ UX FEATURES
+--------------------------------------
+
+✔ Success message after update  
+✔ Image preview before upload  
+✔ Form validation messages  
+✔ Mobile responsive  
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ User must complete profile  
+✔ User can edit personal data  
+✔ Restricted fields protected  
+✔ Profile image system working  
+✔ Admin sees everything  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING LOGIN OR SUBSCRIPTION SYSTEM.
+ONLY ADD PROFILE CONTROL LAYER.

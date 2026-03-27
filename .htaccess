@@ -1,0 +1,90 @@
+# ============================================================
+# ClearOrbit — Apache Configuration for Hostinger
+# ============================================================
+
+RewriteEngine On
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Block access to sensitive files and directories
+<FilesMatch "\.(sqlite|db|sql|log|env|gitignore|md)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^lib/ - [F,L]
+    RewriteRule ^data/ - [F,L]
+    RewriteRule ^scripts/ - [F,L]
+    RewriteRule ^vendor/ - [F,L]
+    RewriteRule ^\.git/ - [F,L]
+    RewriteRule ^\.local/ - [F,L]
+    RewriteRule ^config\.php$ - [F,L]
+    RewriteRule ^db\.php$ - [F,L]
+    RewriteRule ^composer\.(json|lock)$ - [F,L]
+    RewriteRule ^replit\.(md|nix)$ - [F,L]
+    RewriteRule (^\.|/\.) - [F,L]
+
+    # Serve existing files and directories directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Clean URL routing
+    RewriteRule ^admin/?$ admin.html [L]
+    RewriteRule ^dashboard/?$ dashboard.html [L]
+    RewriteRule ^buy/?$ buy.html [L]
+    RewriteRule ^contact/?$ contact.html [L]
+    RewriteRule ^profile/?$ profile.html [L]
+    RewriteRule ^parser/?$ parser.html [L]
+    RewriteRule ^reset-password/?$ reset_password.html [L]
+
+    # Default fallback
+    RewriteRule ^$ index.html [L]
+</IfModule>
+
+# Block directory listing
+Options -Indexes
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>
+
+# PHP settings for shared hosting
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_reporting 32767
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value session.cookie_httponly 1
+    php_value session.use_strict_mode 1
+</IfModule>
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>

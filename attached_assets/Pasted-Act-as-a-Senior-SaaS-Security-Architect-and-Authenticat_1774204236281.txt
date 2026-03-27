@@ -1,0 +1,176 @@
+Act as a Senior SaaS Security Architect and Authentication Engineer.
+
+Implement an ADVANCED SESSION & DEVICE CONTROL SYSTEM in ClearOrbit.
+
+---
+
+## 🎯 OBJECTIVE
+
+Enforce strict login rules:
+
+✔ 1 PC allowed
+✔ 1 Mobile allowed
+❌ Multiple PCs at same time
+❌ Multiple mobiles at same time
+❌ Multiple tabs using same session
+
+---
+
+## 📱 DEVICE TYPE DETECTION
+
+Detect device type using user-agent:
+
+* Desktop (PC)
+* Mobile
+
+Store in database:
+
+* device_type
+* browser
+* OS
+* IP
+
+---
+
+## 🧠 SESSION MANAGEMENT SYSTEM
+
+Create table: user_sessions
+
+Fields:
+
+* id
+* user_id
+* session_id
+* device_type (pc/mobile)
+* ip_address
+* user_agent
+* status (active/inactive)
+* last_activity
+
+---
+
+## 🔐 LOGIN RULES
+
+On login:
+
+IF device_type = PC:
+
+* Check:
+  active PC session exists?
+
+  IF YES:
+  → BLOCK login
+  OR
+  → force logout old session
+
+IF device_type = MOBILE:
+
+* Same logic
+
+---
+
+## 🔁 SINGLE SESSION PER DEVICE TYPE
+
+Allowed:
+
+✔ 1 PC + 1 Mobile
+
+Not allowed:
+
+❌ 2 PC
+❌ 2 Mobile
+
+---
+
+## 🚫 MULTI-TAB BLOCK SYSTEM
+
+Implement:
+
+* session_token stored in DB
+* each request validates token
+
+If same account opened in another tab:
+
+→ invalidate previous session
+→ auto logout old tab
+
+---
+
+## 🔄 AUTO LOGOUT SYSTEM
+
+If:
+
+* new login detected
+* OR duplicate session detected
+
+Then:
+
+→ mark old session inactive
+→ force logout
+
+---
+
+## 📡 REAL-TIME SESSION VALIDATION
+
+On every request:
+
+* Check session_id in DB
+* Check status = active
+
+IF not:
+
+→ destroy session
+→ redirect to login
+
+---
+
+## 🧪 EXTENSION INTEGRATION (IMPORTANT)
+
+If extension is used:
+
+* Validate session before cookie injection
+* If session invalid → block access
+
+---
+
+## ⚠️ SECURITY RULES
+
+* Regenerate session ID on login
+* Prevent session hijacking
+* Use secure cookies
+* Validate IP + user-agent
+
+---
+
+## 📊 ADMIN MONITORING
+
+Admin panel shows:
+
+* Active sessions
+* Device type (PC / Mobile)
+* IP address
+* Highlight suspicious activity (RED)
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+* session_manager.php
+* device_detector.php
+* login validation logic
+* auto logout system
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+System should ensure:
+
+✔ 1 PC + 1 Mobile only
+✔ No duplicate sessions
+✔ No multi-tab abuse
+✔ Auto logout on conflict
+✔ Fully secure authentication
+
+PRODUCTION LEVEL SECURITY. NO BYPASS.

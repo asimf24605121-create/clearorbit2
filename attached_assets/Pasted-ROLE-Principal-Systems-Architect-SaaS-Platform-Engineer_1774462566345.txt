@@ -1,0 +1,216 @@
+ROLE: Principal Systems Architect + SaaS Platform Engineer
+
+MISSION:
+Transform the existing system into a full-scale "Session Intelligence Platform" with smart routing, analytics, and automated decision-making.
+
+---
+
+CORE OBJECTIVE
+
+Build a system that:
+
+* intelligently selects best cookies
+* matches users with optimal sessions
+* minimizes logout risk
+* provides admin-level visibility
+
+---
+
+MODULE 1: SMART COOKIE SELECTOR (AI LOGIC)
+
+1. Create scoring algorithm:
+
+score = 0
+
++50 → has NetflixId
++20 → has SecureNetflixId
++20 → geo match
+-30 → recent logout
+-20 → multiple users
++10 → recently active
+
+---
+
+2. Best Cookie Selection:
+
+When user requests session:
+→ system auto-selects highest score cookie
+
+---
+
+3. Auto Fallback:
+
+If selected cookie fails:
+→ instantly switch to next best cookie
+
+---
+
+MODULE 2: GEO / PROXY MATCHING
+
+4. Country Matching Logic:
+
+IF account_country == user_country:
+→ use direct connection
+
+ELSE:
+→ mark as "geo mismatch"
+
+---
+
+5. Proxy Recommendation System:
+
+If mismatch detected:
+→ suggest same-country IP
+
+Example:
+"Recommended: India IP for best stability"
+
+---
+
+MODULE 3: SESSION ROUTER
+
+6. User Assignment System:
+
+* assign 1 cookie per user
+* prevent overload
+
+---
+
+7. Load Balancer:
+
+Distribute users across cookies evenly
+
+---
+
+MODULE 4: ADMIN DASHBOARD
+
+8. Create Admin Panel:
+
+Display:
+
+* total cookies
+* active sessions
+* failed sessions
+* geo mismatches
+
+---
+
+9. Cookie Table:
+
+Columns:
+
+* Cookie ID
+* Status (Active / Risky / Dead)
+* Health Score
+* Users using it
+* Country
+
+---
+
+10. Real-Time Updates:
+
+* auto refresh stats
+* live monitoring
+
+---
+
+MODULE 5: ANALYTICS ENGINE
+
+11. Track:
+
+* success rate
+* logout rate
+* average lifetime
+
+---
+
+12. Graphs:
+
+* cookies health trend
+* usage per cookie
+
+---
+
+MODULE 6: LOGIN SIMULATION SYSTEM (SAFE)
+
+13. Provide:
+
+* "Copy Cookie" button
+* "Copy Login URL" button
+
+NOTE:
+DO NOT automate login bypass
+ONLY provide formatted data
+
+---
+
+MODULE 7: ALERT SYSTEM
+
+14. Auto Alerts:
+
+IF cookie health < 40:
+→ mark as "Critical"
+
+IF multiple failures:
+→ notify admin
+
+---
+
+MODULE 8: SECURITY LAYER
+
+15. Protect system:
+
+* sanitize all inputs
+* mask sensitive data
+* prevent XSS
+
+---
+
+MODULE 9: DATABASE DESIGN
+
+16. Tables:
+
+cookies:
+
+* id
+* netflix_id
+* secure_netflix_id
+* country
+* health_score
+* status
+* created_at
+
+sessions:
+
+* user_id
+* cookie_id
+* start_time
+* status
+
+logs:
+
+* event
+* timestamp
+* cookie_id
+
+---
+
+FINAL RESULT
+
+A complete SaaS platform that:
+
+* intelligently manages sessions
+* reduces failures
+* auto-selects best cookie
+* provides full admin control
+
+---
+
+CONSTRAINTS:
+
+* PHP backend
+* Vanilla JS frontend
+* No Node.js
+* No Python
+
+---

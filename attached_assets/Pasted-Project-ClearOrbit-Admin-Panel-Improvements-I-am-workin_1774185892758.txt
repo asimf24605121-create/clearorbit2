@@ -1,0 +1,164 @@
+Project: ClearOrbit Admin Panel Improvements
+
+I am working on an admin dashboard system called "ClearOrbit". I need you to improve multiple modules and fix functional gaps. Do NOT redesign from scratch — only enhance existing logic and UI behavior.
+
+---
+
+1. SUBSCRIPTIONS PAGE ISSUES
+
+---
+
+Problems:
+
+* Table refresh button is not working.
+* No option to delete an active subscription.
+
+Requirements:
+
+* Fix the "Refresh" button so it properly reloads latest subscription data from backend without page reload.
+* Add a "Delete Subscription" button in each row under Actions column.
+* When delete is clicked:
+
+  * Show confirmation (Are you sure?).
+  * Remove subscription from database.
+  * Instantly update UI (no manual refresh needed).
+
+Expected Behavior Example:
+
+* Admin deletes "Netflix" subscription for user.
+* Row disappears instantly.
+* Activity log entry is created.
+
+---
+
+2. USERS PAGE (DEVICE CONTROL IMPROVEMENT)
+
+---
+
+Current Behavior:
+
+* User devices exist but logic is unclear.
+
+Requirements:
+
+* Each user can have MAXIMUM 2 registered devices.
+* But ONLY 1 device can be ACTIVE at a time.
+
+Improve system:
+
+* If user logs in from a new device:
+
+  * If already 2 devices exist → remove oldest device OR block login (choose best UX).
+* If user logs in from another device:
+
+  * Previous active device should automatically become inactive.
+* Add clear labels:
+
+  * Active Device
+  * Inactive Device(s)
+
+Add Controls:
+
+* "Reset Devices" → removes all devices.
+* Show device list with IP + status.
+
+---
+
+3. COOKIE VAULT PAGE
+
+---
+
+Problem:
+
+* No delete option for stored cookies.
+
+Requirements:
+
+* Add "Delete Cookie" button for each row.
+* On delete:
+
+  * Remove from database.
+  * Update UI instantly.
+* Optional:
+
+  * Add bulk delete (future ready).
+
+---
+
+4. WHATSAPP CONFIGURATION (MAJOR CHANGE)
+
+---
+
+Current Issues:
+
+* Two fields: Shared Number & Private Number.
+* This is unnecessary complexity.
+* Refresh button not working.
+
+Requirements:
+
+* Remove "Shared" and "Private" concept completely.
+* Only ONE WhatsApp number per platform.
+* Even better:
+
+  * Move WhatsApp configuration INTO Subscription system.
+
+New Behavior:
+
+* When admin assigns subscription:
+
+  * Attach ONE WhatsApp number to that platform.
+* Remove separate WhatsApp page entirely.
+
+Also:
+
+* Fix refresh button to properly reload data.
+
+---
+
+5. ACTIVITY LOGS PAGE
+
+---
+
+Problems:
+
+* No delete option.
+
+Requirements:
+
+* Add "Delete" button for EACH log entry.
+* Add "Delete All Logs" button at top.
+
+Behavior:
+
+* Single delete → removes one log.
+* Delete all → clears entire table (with confirmation).
+
+Example:
+
+* Admin clicks delete on log ID 54 → removed instantly.
+* Admin clicks "Delete All" → logs wiped clean.
+
+---
+
+## GENERAL REQUIREMENTS
+
+* All refresh buttons must work WITHOUT full page reload.
+* UI should update instantly after actions (real-time feel).
+* Maintain clean admin UX (no clutter).
+* Ensure backend + frontend sync properly.
+* Every major action should be logged in Activity Logs.
+
+Focus:
+
+* Fix functionality
+* Improve control
+* Keep system scalable
+
+Do NOT:
+
+* Overcomplicate UI
+* Break existing structure
+
+Goal:
+Make the admin panel fully functional, responsive, and production-ready.

@@ -1,0 +1,199 @@
+Act as a Senior PHP Backend Architect and SaaS Access Control Engineer.
+
+Build a **complete Admin Role Management System** for ClearOrbit using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVE
+
+* Super Admin can create Managers
+* Managers get LIMITED access
+* UI + Backend both must enforce role-based access
+
+---
+
+## 👑 HOW MANAGER IS CREATED (IMPORTANT)
+
+Create a page:
+
+create_admin.php
+
+Form fields:
+
+* Name
+* Email
+* Password
+* Role (dropdown)
+
+Dropdown options:
+
+* Super Admin
+* Manager
+
+When form submits:
+
+* Save in "admins" table
+* Password hashed
+* Role saved (super_admin / manager)
+
+---
+
+## 🗄️ DATABASE STRUCTURE
+
+admins table:
+
+* id
+* name
+* email
+* password
+* role (super_admin / manager)
+* created_at
+
+---
+
+## 🔐 LOGIN SYSTEM
+
+On admin login:
+
+* Store in session:
+  $_SESSION['admin_role']
+  $_SESSION['admin_id']
+
+---
+
+## 🧠 ROLE-BASED REDIRECTION
+
+After login:
+
+IF role == super_admin:
+→ redirect to:
+/admin/dashboard.php
+
+IF role == manager:
+→ redirect to:
+/manager/dashboard.php
+
+---
+
+## 📁 SEPARATE DASHBOARDS (IMPORTANT)
+
+1. Super Admin Panel:
+   /admin/
+
+   Pages:
+
+   * dashboard.php
+   * users.php
+   * subscriptions.php
+   * payments.php
+   * cookies.php
+   * pricing.php
+
+2. Manager Panel:
+   /manager/
+
+   Pages:
+
+   * dashboard.php
+   * users.php ONLY
+
+---
+
+## 🚫 ACCESS CONTROL (CRITICAL)
+
+On EVERY page:
+
+Check role:
+
+IF manager tries to access admin pages:
+→ redirect to:
+/access_denied.php
+
+Example:
+
+/admin/payments.php
+→ manager cannot open
+
+---
+
+## 🎨 UI / SIDEBAR CONTROL
+
+Super Admin Sidebar:
+
+* Overview
+* Users
+* Subscriptions
+* Cookie Vault
+* Platforms
+* Pricing
+* Payments
+* Logs
+
+Manager Sidebar:
+
+* Overview
+* Users ONLY
+
+---
+
+## 📊 MANAGER PERMISSIONS
+
+Manager can:
+
+* Add user
+* Delete user
+* Reset user device
+
+Manager CANNOT:
+
+* Access subscriptions
+* Access payments
+* Access cookies
+* Access system settings
+
+---
+
+## 🔒 SECURITY RULES
+
+* Do NOT rely only on hiding UI
+* Must block backend routes
+* Use session validation
+* Prevent direct URL access
+
+---
+
+## ⚡ EXTRA FEATURES
+
+* Show role badge in header:
+  "Manager" (blue)
+  "Super Admin" (green)
+
+* Log actions:
+
+  * manager created user
+  * manager deleted user
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* create_admin.php
+* admin_login.php
+* middleware.php (role check)
+* /admin/dashboard.php
+* /manager/dashboard.php
+* access_denied.php
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+* Super Admin creates Manager
+* Manager logs in → sees limited dashboard
+* Admin sees full dashboard
+* System fully secure and separated
+
+NO ROLE LEAKS. PRODUCTION READY.

@@ -1,0 +1,191 @@
+Act as a Senior PHP Security Engineer and SaaS Authentication Architect.
+
+Build an advanced **Device-Based Login Control System** for a SaaS platform (ClearOrbit) using PHP + MySQL (NO Node.js).
+
+---
+
+## 🎯 OBJECTIVES
+
+Create a system where:
+
+* A user can login on LIMITED devices only
+* Admin can track devices
+* System blocks unauthorized logins
+* Logout frees device slot
+* Admin sees suspicious activity
+
+---
+
+## 🔐 LOGIN DEVICE CONTROL
+
+1. Each user has a device limit:
+
+* Default: 1 device
+* Max allowed: 2 devices
+
+2. On login:
+
+* Generate unique device_id
+  (combine: IP + user-agent + random hash)
+
+* Store in database
+
+3. Check:
+
+IF active devices >= allowed:
+→ BLOCK login
+→ Show message:
+"Access denied. This account is already active on another device."
+
+---
+
+## 🔄 LOGOUT SYSTEM (IMPORTANT)
+
+When user logs out:
+
+* Remove device_id from database
+* Free the slot
+
+Result:
+User can login from another browser/device
+
+---
+
+## 📱 DEVICE DETECTION SYSTEM
+
+Detect device type using user-agent:
+
+* Mobile
+* Desktop (PC)
+* Tablet
+
+Save in DB:
+
+* device_type
+* browser
+* OS
+
+---
+
+## 🧠 SESSION TRACKING TABLE
+
+Create table: user_sessions
+
+Fields:
+
+* id
+* user_id
+* device_id
+* ip_address
+* user_agent
+* device_type (mobile/pc)
+* browser
+* os
+* status (active/inactive)
+* last_activity
+* created_at
+
+---
+
+## ⚠️ MULTIPLE LOGIN DETECTION
+
+If user tries:
+
+* More than allowed devices
+
+Then:
+
+* Log event in DB
+* Mark as "suspicious activity"
+
+---
+
+## 👨‍💼 ADMIN PANEL FEATURES
+
+1. Show all users with:
+
+* Active devices count
+* Device type (PC / Mobile)
+* IP address
+* Browser
+
+2. Highlight in RED:
+
+* Users exceeding device limit
+* Suspicious login attempts
+
+3. Add button:
+
+* "Reset Devices"
+
+→ Removes all active sessions for that user
+
+---
+
+## 📊 USER DASHBOARD
+
+Show:
+
+* Current device info:
+  "You are logged in from: Chrome on Windows (PC)"
+
+* Active devices list
+
+---
+
+## 🔁 AUTO CLEANUP SYSTEM
+
+* If user inactive for X minutes:
+  → Mark session inactive
+
+---
+
+## 🛡️ SECURITY RULES
+
+* Use PHP sessions securely
+* Regenerate session ID on login
+* Prevent session hijacking
+* Use prepared statements
+
+---
+
+## 🎯 BEHAVIOR FLOW
+
+1. Login from Browser A → allowed
+
+2. Login from Browser B:
+
+   IF limit = 1 → blocked
+   IF limit = 2 → allowed
+
+3. Logout from Browser A:
+   → slot free
+
+4. Login from Browser C:
+   → allowed
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+Generate full working code:
+
+* login.php
+* logout.php
+* session_manager.php
+* device_detector.php
+* admin_sessions.php (admin panel)
+* database schema
+
+---
+
+## 🎯 FINAL GOAL
+
+Build a professional SaaS login system where:
+
+* Users are restricted to specific devices
+* Logout correctly frees access
+* Admin can monitor everything
+* System is secure, scalable, and clean
+
+NO BUGS. PRODUCTION-READY CODE.

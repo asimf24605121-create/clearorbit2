@@ -1,0 +1,189 @@
+Act as a Senior SaaS Architect and PHP Backend Engineer.
+
+Upgrade the ClearOrbit Multi-Account System with BOTH:
+
+✔ Automatic account assignment
+✔ Manual account (login slot) creation by admin
+
+DO NOT rebuild system. Extend existing functionality only.
+
+---
+
+## 🎯 OBJECTIVE
+
+Allow admin to:
+
+✔ Add multiple cookie accounts per platform
+✔ Each account acts as a "login slot"
+✔ System auto assigns users to available slots
+✔ Admin can manually create new slots when all are full
+
+---
+
+## 🧠 SYSTEM SCENARIO
+
+Platform: Coursera
+
+Admin creates:
+
+Login Slot 1 → max 5 users
+Login Slot 2 → max 5 users
+
+Users login:
+
+* Slot 1 → full (5/5)
+* Slot 2 → 3/5
+
+Next user → auto assigned to Slot 2
+
+---
+
+If ALL slots are FULL:
+
+👉 Admin can:
+
+✔ Add new slot (Login Slot 3)
+✔ Add new cookies
+
+System instantly increases capacity
+
+---
+
+## 🧩 DATABASE STRUCTURE
+
+TABLE: platform_accounts
+
+* id
+* platform_id
+* slot_name (e.g. "Login 1", "Login 2")
+* cookie_data
+* max_users (default 5)
+* created_at
+
+---
+
+TABLE: account_sessions
+
+* id
+* account_id
+* user_id
+* status (active/inactive)
+* last_active
+* device_type
+
+---
+
+## ⚙️ ADMIN PANEL FEATURES
+
+1. ADD NEW LOGIN SLOT (IMPORTANT)
+
+* Button: "Add Login Slot"
+
+Form:
+
+* Slot Name (auto or manual)
+* Cookies (JSON)
+* Max Users (default 5)
+
+---
+
+2. VIEW SLOT STATUS
+
+Show per platform:
+
+Login 1 → 5/5 (Full)
+Login 2 → 3/5 (Available)
+Login 3 → 0/5 (New)
+
+---
+
+3. EDIT SLOT
+
+* Update cookies
+* Change max users
+
+---
+
+4. DELETE SLOT (optional)
+
+---
+
+## ⚙️ USER FLOW
+
+User clicks:
+
+✔ "Access Platform"
+
+Backend:
+
+* Fetch all slots
+* Find slot with available capacity
+* Assign automatically
+
+---
+
+IF ALL FULL:
+
+→ Show:
+
+"All slots are full. Please try later."
+
+---
+
+## 🔄 SESSION LOGIC
+
+* Create session on login
+* Update last_active
+* Auto free slot after inactivity (5–10 min)
+
+---
+
+## 🔗 API RESPONSE
+
+Return:
+
+{
+"success": true,
+"account_id": X,
+"cookies": [...]
+}
+
+---
+
+## 🎨 USER SIDE
+
+* ONLY one button:
+
+✔ "Access Platform"
+
+NO multiple buttons visible to user
+
+---
+
+## 🔐 RULES
+
+* 1 user = 1 active session
+* Prevent overuse
+* Block access if no slots
+
+---
+
+## 🧪 TEST CASES
+
+✔ Admin adds slot → capacity increases
+✔ Users auto assigned
+✔ Slot full → next slot used
+✔ All full → blocked
+✔ New slot added → users can login again
+
+---
+
+## 🎯 FINAL GOAL
+
+A flexible system where:
+
+✔ Admin controls slots manually
+✔ System assigns users automatically
+✔ Scales easily with more users
+
+NO MANUAL LOGIN BUTTON CONFUSION.

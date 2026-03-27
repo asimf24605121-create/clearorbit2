@@ -1,0 +1,169 @@
+Act as a Senior Chrome Extension Engineer, Web Security Specialist, and SaaS Debugging Expert.
+
+Perform a COMPLETE A→Z audit of the COOKIE SYSTEM in the ClearOrbit project.
+
+This is a CRITICAL system responsible for login access (via cookies).
+
+---
+
+## 🚨 CURRENT PROBLEM
+
+* Coursera cookies added
+* But:
+  → Login fails OR wrong behavior
+  → Cookies may not be injected properly
+  → Platform mismatch sometimes occurs
+
+---
+
+## 🎯 OBJECTIVE
+
+Audit and FIX the entire cookie system so that:
+
+* Cookies persist correctly
+* Cookies inject correctly
+* Each platform works independently
+* No data loss or mismatch occurs
+
+---
+
+## 🔍 FULL SYSTEM CHECK (A → Z)
+
+1. COOKIE STORAGE CHECK
+
+* Verify cookies are stored correctly in database
+
+* Ensure structure:
+
+  [
+  {
+  "domain": ".coursera.org",
+  "name": "CAUTH",
+  "value": "...",
+  "path": "/",
+  "secure": true,
+  "httpOnly": true
+  }
+  ]
+
+* Validate JSON format
+
+---
+
+2. PLATFORM-COOKIE LINK CHECK
+
+* Ensure cookies are linked to correct platform
+* No mixing between platforms
+
+---
+
+3. COOKIE REPLACEMENT LOGIC
+
+* When new cookies are added:
+  → old cookies MUST be deleted
+  → new cookies must replace correctly
+
+---
+
+4. COOKIE INJECTION CHECK (CRITICAL)
+
+Check extension:
+
+* chrome.cookies.set used correctly
+* Domain matches EXACT platform
+* Handle:
+
+  * .coursera.org
+  * coursera.org
+  * subdomains
+
+---
+
+5. COOKIE CLEARING SYSTEM
+
+Before injecting:
+
+* Clear ONLY target domain cookies
+* Do NOT clear other platform cookies
+
+---
+
+6. LOGIN VERIFICATION
+
+After injection:
+
+* Confirm login success via:
+
+  * URL change OR
+  * DOM element (profile avatar etc.)
+
+---
+
+7. EXPIRY / SESSION CHECK
+
+* Check if cookies expired
+* Handle session cookies properly
+
+---
+
+8. UI SYNC CHECK
+
+* If cookies exist → show "Access"
+* If not → show "Add Cookies"
+* Delete button must match real state
+
+---
+
+9. EXTENSION FLOW CHECK
+
+Full flow:
+
+Click Access →
+Send platform →
+Inject cookies →
+Open correct site →
+Login success
+
+---
+
+10. DEBUG & LOGGING
+
+Add logs:
+
+* Cookie loaded
+* Cookie injected
+* Domain matched
+* Errors
+
+---
+
+## 🧪 TEST CASES
+
+* Add Coursera cookies → login works ✅
+* Refresh → still logged in ✅
+* Add new cookies → old removed ✅
+* Delete cookies → session ends ✅
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+* Fixed cookie system
+* Correct injection logic
+* Clean DB handling
+* Debug logs
+* Stable behavior
+
+---
+
+## 🎯 FINAL GOAL
+
+A bulletproof cookie system where:
+
+✔ Coursera login works
+✔ No platform mismatch
+✔ Cookies persist correctly
+✔ Injection is accurate
+✔ UI reflects real state
+
+NO FAILURES. PRODUCTION READY.

@@ -1,0 +1,115 @@
+Act as a Senior Full Stack Engineer (PHP + JS + Chrome Extension Expert).
+
+I have a SaaS project ClearOrbit with cookie-based login via browser extension.
+
+I want you to implement a COMPLETE logout cleanup system with the following behavior:
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+When a user clicks LOGOUT:
+
+1. ALL active sessions must be terminated
+2. ALL platform cookies must be removed from the browser
+3. ALL opened platform tabs must refresh automatically
+4. NO cookies should remain stored after logout
+
+--------------------------------------
+🧠 BACKEND (PHP)
+--------------------------------------
+
+1. Update logout.php:
+
+- Destroy PHP session
+- Mark all user sessions in `account_sessions` as inactive:
+
+UPDATE account_sessions 
+SET status = 'inactive' 
+WHERE user_id = ?
+
+- Return JSON:
+
+{
+  "success": true,
+  "action": "logout_cleanup"
+}
+
+--------------------------------------
+🌐 FRONTEND (DASHBOARD JS)
+--------------------------------------
+
+On logout button click:
+
+1. Call logout.php via fetch
+2. After success, send message to extension:
+
+window.postMessage({
+  type: "CLEARORBIT_LOGOUT",
+  action: "CLEAR_ALL_COOKIES"
+}, "*");
+
+3. Redirect to login page
+
+--------------------------------------
+🧩 EXTENSION (CRITICAL PART)
+--------------------------------------
+
+In background/service worker:
+
+Handle message:
+
+if (request.action === "CLEAR_ALL_COOKIES") {
+
+  // Remove ALL cookies for all configured platforms
+  const domains = [
+    ".netflix.com",
+    ".coursera.org",
+    ".openai.com",
+    ".spotify.com",
+    ".grammarly.com"
+  ];
+
+  for (const domain of domains) {
+    chrome.cookies.getAll({ domain }, (cookies) => {
+      cookies.forEach(cookie => {
+        chrome.cookies.remove({
+          url: "https://" + cookie.domain.replace(/^\./, "") + cookie.path,
+          name: cookie.name
+        });
+      });
+    });
+  }
+
+  // Refresh all tabs
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach(tab => {
+      chrome.tabs.reload(tab.id);
+    });
+  });
+}
+
+--------------------------------------
+🔐 SECURITY RULES
+--------------------------------------
+
+- Ensure cookies are NOT persisted after logout
+- Ensure user cannot reuse session after logout
+- Ensure all platforms are cleared (no cross-session leakage)
+
+--------------------------------------
+💎 EXPECTED RESULT
+--------------------------------------
+
+After logout:
+
+✔ All platform sessions destroyed  
+✔ Cookies fully removed  
+✔ All tabs refreshed  
+✔ User forced to login again  
+✔ No shared account leakage  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING SYSTEM.
+ONLY ADD THIS FEATURE CLEANLY.

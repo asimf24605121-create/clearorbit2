@@ -1,0 +1,566 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  username         String   @unique
+  passwordHash     String   @map("password_hash")
+  role             String   @default("user")
+  isActive         Int      @default(1) @map("is_active")
+  deviceId         String?  @map("device_id")
+  lastLoginIp      String?  @map("last_login_ip")
+  adminLevel       String?  @map("admin_level")
+  name             String?
+  email            String?
+  phone            String?
+  expiryDate       String?  @map("expiry_date")
+  country          String?
+  city             String?
+  gender           String?
+  profileImage     String?  @map("profile_image")
+  profileCompleted Int      @default(0) @map("profile_completed")
+  resellerId       Int?     @map("reseller_id")
+  createdAt        String   @default("") @map("created_at")
+
+  sessions         UserSession[]
+  loginHistory     LoginHistory[]
+  subscriptions    UserSubscription[]
+  activityLogs     ActivityLog[]
+  payments         Payment[]
+  notifications    UserNotification[]
+  supportTickets   SupportTicket[]
+  accountSessions  AccountSession[]
+  securityEvents   SecurityEvent[]
+  passwordResets   PasswordResetToken[]
+  reseller         Reseller?
+
+  @@index([role])
+  @@index([createdAt])
+  @@index([resellerId])
+  @@map("users")
+}
+
+model Platform {
+  id                Int      @id @default(autoincrement())
+  name              String
+  logoUrl           String?  @map("logo_url")
+  bgColorHex        String   @default("#1e293b") @map("bg_color_hex")
+  isActive          Int      @default(1) @map("is_active")
+  maxSlotsPerCookie Int      @default(5) @map("max_slots_per_cookie")
+  cookieDomain      String?  @map("cookie_domain")
+  loginUrl          String?  @map("login_url")
+  healthScore       Int      @default(100) @map("health_score")
+  healthStatus      String   @default("active") @map("health_status")
+  autoDetected      Int      @default(0) @map("auto_detected")
+  lastHealthCheck   String?  @map("last_health_check")
+  totalAccounts     Int      @default(0) @map("total_accounts")
+
+  cookies           CookieVault[]
+  subscriptions     UserSubscription[]
+  pricingPlans      PricingPlan[]
+  whatsappConfig    WhatsappConfig?
+  payments          Payment[]
+  platformAccounts  PlatformAccount[]
+  accountSessions   AccountSession[]
+
+  @@map("platforms")
+}
+
+model CookieVault {
+  id                 Int      @id @default(autoincrement())
+  platformId         Int      @map("platform_id")
+  cookieString       String   @map("cookie_string")
+  expiresAt          String?  @map("expires_at")
+  updatedAt          String   @default("") @map("updated_at")
+  cookieCount        Int      @default(0) @map("cookie_count")
+  slot               Int      @default(1)
+  cookieStatus       String   @default("VALID") @map("cookie_status")
+  loginStatus        String   @default("PENDING") @map("login_status")
+  score              Int      @default(0)
+  lastChecked        String?  @map("last_checked")
+  fingerprint        String?
+  poolType           String   @default("active") @map("pool_type")
+  verifiedAt         String?  @map("verified_at")
+  verifyProof        String?  @map("verify_proof")
+  verificationStatus String   @default("PENDING") @map("verification_status")
+
+  platform           Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([platformId])
+  @@index([fingerprint])
+  @@index([cookieStatus])
+  @@index([platformId, poolType, cookieStatus])
+  @@map("cookie_vault")
+}
+
+model UserSubscription {
+  id         Int    @id @default(autoincrement())
+  userId     Int    @map("user_id")
+  platformId Int    @map("platform_id")
+  startDate  String @map("start_date")
+  endDate    String @map("end_date")
+  isActive   Int    @default(1) @map("is_active")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([platformId, isActive])
+  @@index([endDate, isActive])
+  @@index([isActive, endDate])
+  @@map("user_subscriptions")
+}
+
+model ActivityLog {
+  id        Int     @id @default(autoincrement())
+  userId    Int?    @map("user_id")
+  action    String
+  ipAddress String? @map("ip_address")
+  createdAt String  @default("") @map("created_at")
+
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("activity_logs")
+}
+
+model LoginAttempt {
+  id          Int    @id @default(autoincrement())
+  ipAddress   String @map("ip_address")
+  attemptedAt String @default("") @map("attempted_at")
+
+  @@index([ipAddress, attemptedAt])
+  @@map("login_attempts")
+}
+
+model UserSession {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @map("user_id")
+  sessionToken   String  @map("session_token")
+  deviceId       String  @map("device_id")
+  ipAddress      String? @map("ip_address")
+  userAgent      String? @map("user_agent")
+  deviceType     String  @default("desktop") @map("device_type")
+  browser        String  @default("Unknown")
+  os             String  @default("Unknown")
+  status         String  @default("active")
+  lastActivity   String  @default("") @map("last_activity")
+  lastActivityAt BigInt  @default(0) @map("last_activity_at")
+  createdAtMs    BigInt  @default(0) @map("created_at_ms")
+  fingerprint    String  @default("") @map("fingerprint")
+  logoutReason   String? @map("logout_reason")
+  createdAt      String  @default("") @map("created_at")
+
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken])
+  @@index([userId, status])
+  @@index([lastActivityAt])
+  @@map("user_sessions")
+}
+
+model LoginHistory {
+  id         Int    @id @default(autoincrement())
+  userId     Int    @map("user_id")
+  ipAddress  String? @map("ip_address")
+  userAgent  String? @map("user_agent")
+  deviceType String @default("desktop") @map("device_type")
+  browser    String @default("Unknown")
+  os         String @default("Unknown")
+  action     String @default("login")
+  createdAt  String @default("") @map("created_at")
+
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("login_history")
+}
+
+model PricingPlan {
+  id           Int    @id @default(autoincrement())
+  platformId   Int    @map("platform_id")
+  durationKey  String @map("duration_key")
+  sharedPrice  Float  @default(0) @map("shared_price")
+  privatePrice Float  @default(0) @map("private_price")
+
+  platform     Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@unique([platformId, durationKey])
+  @@map("pricing_plans")
+}
+
+model WhatsappConfig {
+  id            Int    @id @default(autoincrement())
+  platformId    Int    @unique @map("platform_id")
+  sharedNumber  String @default("") @map("shared_number")
+  privateNumber String @default("") @map("private_number")
+
+  platform      Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@map("whatsapp_config")
+}
+
+model Payment {
+  id            Int     @id @default(autoincrement())
+  userId        Int?    @map("user_id")
+  platformId    Int     @map("platform_id")
+  username      String  @default("")
+  durationKey   String  @map("duration_key")
+  accountType   String  @default("shared") @map("account_type")
+  price         Float   @default(0)
+  status        String  @default("pending")
+  whatsappMsg   String? @map("whatsapp_msg")
+  createdAt     String  @default("") @map("created_at")
+  updatedAt     String  @default("") @map("updated_at")
+  screenshot    String?
+  paymentMethod String? @map("payment_method")
+  resellerId    Int?    @map("reseller_id")
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  platform      Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([resellerId])
+  @@map("payments")
+}
+
+model SupportTicket {
+  id           Int    @id @default(autoincrement())
+  userId       Int    @map("user_id")
+  platformName String @map("platform_name")
+  message      String
+  status       String @default("pending")
+  createdAt    String @default("") @map("created_at")
+
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("support_tickets")
+}
+
+model Announcement {
+  id        Int     @id @default(autoincrement())
+  title     String
+  message   String
+  type      String  @default("popup")
+  status    String  @default("active")
+  startTime String? @map("start_time")
+  endTime   String? @map("end_time")
+  createdAt String  @default("") @map("created_at")
+
+  @@map("announcements")
+}
+
+model UserNotification {
+  id        Int    @id @default(autoincrement())
+  userId    Int?   @map("user_id")
+  title     String
+  message   String
+  type      String @default("info")
+  isRead    Int    @default(0) @map("is_read")
+  createdAt String @default("") @map("created_at")
+
+  user      User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("user_notifications")
+}
+
+model PlatformAccount {
+  id                  Int      @id @default(autoincrement())
+  platformId          Int      @map("platform_id")
+  slotName            String   @default("Login 1") @map("slot_name")
+  cookieData          String   @default("") @map("cookie_data")
+  maxUsers            Int      @default(5) @map("max_users")
+  cookieCount         Int      @default(0) @map("cookie_count")
+  expiresAt           String?  @map("expires_at")
+  isActive            Int      @default(1) @map("is_active")
+  successCount        Int      @default(0) @map("success_count")
+  failCount           Int      @default(0) @map("fail_count")
+  lastSuccessAt       String?  @map("last_success_at")
+  lastFailedAt        String?  @map("last_failed_at")
+  healthStatus        String   @default("healthy") @map("health_status")
+  cooldownUntil       String?  @map("cooldown_until")
+  cookieStatus        String   @default("VALID") @map("cookie_status")
+  loginStatus         String   @default("PENDING") @map("login_status")
+  lastVerifiedAt      String?  @map("last_verified_at")
+  intelligenceScore   Int      @default(0) @map("intelligence_score")
+  stabilityStatus     String   @default("UNKNOWN") @map("stability_status")
+  lastIntelligenceRun String?  @map("last_intelligence_run")
+  cookieId            Int?     @map("cookie_id")
+  profileIndex        Int      @default(1) @map("profile_index")
+  fingerprint         String?
+  storageData         String?  @map("storage_data")
+  authHeaders         String?  @map("auth_headers")
+  authType            String   @default("cookie") @map("auth_type")
+  verificationStatus  String   @default("IMPORTED") @map("verification_status")
+  verificationMethod  String?  @map("verification_method")
+  lastCheckedAt       String?  @map("last_checked_at")
+  createdAt           String   @default("") @map("created_at")
+  updatedAt           String   @default("") @map("updated_at")
+
+  platform            Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  intelligenceLogs    AccountIntelligenceLog[]
+  accountSessions     AccountSession[]
+
+  @@index([cookieId])
+  @@index([platformId, isActive])
+  @@index([platformId, isActive, healthStatus, successCount, failCount])
+  @@index([intelligenceScore, stabilityStatus])
+  @@index([fingerprint])
+  @@map("platform_accounts")
+}
+
+model AccountIntelligenceLog {
+  id           Int    @id @default(autoincrement())
+  accountId    Int    @map("account_id")
+  platformId   Int    @map("platform_id")
+  eventType    String @map("event_type")
+  oldScore     Int    @default(0) @map("old_score")
+  newScore     Int    @default(0) @map("new_score")
+  oldStability String @default("UNKNOWN") @map("old_stability")
+  newStability String @default("UNKNOWN") @map("new_stability")
+  reason       String @default("")
+  createdAt    String @default("") @map("created_at")
+
+  account      PlatformAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("account_intelligence_log")
+}
+
+model AccountSession {
+  id           Int    @id @default(autoincrement())
+  accountId    Int    @map("account_id")
+  userId       Int    @map("user_id")
+  platformId   Int    @map("platform_id")
+  status       String @default("active")
+  deviceType   String @default("desktop") @map("device_type")
+  lastActive   String @default("") @map("last_active")
+  lastActiveAt BigInt @default(0) @map("last_active_at")
+  createdAtMs  BigInt @default(0) @map("created_at_ms")
+  createdAt    String @default("") @map("created_at")
+  sessionKey   String @default("") @map("session_key")
+  ipAddress    String @default("") @map("ip_address")
+  reason       String @default("") @map("reason")
+
+  account      PlatformAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform     Platform        @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, status])
+  @@index([userId, platformId])
+  @@index([userId, platformId, sessionKey, ipAddress, status])
+  @@index([status])
+  @@index([lastActive])
+  @@index([lastActiveAt])
+  @@index([sessionKey])
+  @@map("account_sessions")
+}
+
+model ContactMessage {
+  id        Int    @id @default(autoincrement())
+  name      String
+  email     String
+  message   String
+  isRead    Int    @default(0) @map("is_read")
+  createdAt String @default("") @map("created_at")
+
+  @@index([isRead, createdAt])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model SiteSetting {
+  settingKey   String @id @map("setting_key")
+  settingValue String @map("setting_value")
+  updatedAt    String @default("") @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model PasswordResetToken {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @map("user_id")
+  token     String @unique
+  expiresAt String @map("expires_at")
+  used      Int    @default(0)
+  createdAt String @default("") @map("created_at")
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model LoginAttemptLog {
+  id         Int     @id @default(autoincrement())
+  username   String  @default("")
+  ipAddress  String  @default("") @map("ip_address")
+  userAgent  String? @map("user_agent")
+  deviceType String  @default("desktop") @map("device_type")
+  browser    String  @default("Unknown")
+  os         String  @default("Unknown")
+  status     String  @default("failed")
+  reason     String?
+  createdAt  String  @default("") @map("created_at")
+
+  @@index([status, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([username, createdAt])
+  @@map("login_attempt_logs")
+}
+
+model Reseller {
+  id             Int    @id @default(autoincrement())
+  userId         Int    @unique @map("user_id")
+  balance        Float  @default(0)
+  commissionRate Float  @default(20) @map("commission_rate")
+  totalEarnings  Float  @default(0) @map("total_earnings")
+  totalUsers     Int    @default(0) @map("total_users")
+  status         String @default("active")
+  createdAt      String @default("") @map("created_at")
+
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   ResellerTransaction[]
+  rechargeRequests RechargeRequest[]
+
+  @@map("resellers")
+}
+
+model ResellerTransaction {
+  id           Int    @id @default(autoincrement())
+  resellerId   Int    @map("reseller_id")
+  type         String
+  amount       Float  @default(0)
+  balanceAfter Float  @default(0) @map("balance_after")
+  description  String?
+  status       String @default("completed")
+  createdAt    String @default("") @map("created_at")
+
+  reseller     Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, createdAt])
+  @@map("reseller_transactions")
+}
+
+model RechargeRequest {
+  id         Int     @id @default(autoincrement())
+  resellerId Int     @map("reseller_id")
+  amount     Float   @default(0)
+  method     String  @default("manual")
+  screenshot String?
+  status     String  @default("pending")
+  adminNote  String? @map("admin_note")
+  createdAt  String  @default("") @map("created_at")
+  updatedAt  String  @default("") @map("updated_at")
+
+  reseller   Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("recharge_requests")
+}
+
+model SessionPool {
+  id               Int     @id @default(autoincrement())
+  netflixId        String  @map("netflix_id")
+  secureNetflixId  String? @map("secure_netflix_id")
+  domain           String  @default(".netflix.com")
+  accountCountry   String? @map("account_country")
+  healthScore      Int     @default(100) @map("health_score")
+  status           String  @default("active")
+  lockedBy         String? @map("locked_by")
+  lockTime         String? @map("lock_time")
+  usageCount       Int     @default(0) @map("usage_count")
+  lastUsed         String? @map("last_used")
+  cooldownUntil    String? @map("cooldown_until")
+  createdAt        String  @default("") @map("created_at")
+  updatedAt        String  @default("") @map("updated_at")
+
+  analytics        SessionAnalytic[]
+
+  @@index([status])
+  @@index([status, healthScore])
+  @@map("session_pool")
+}
+
+model SessionAnalytic {
+  id        Int     @id @default(autoincrement())
+  poolId    Int?    @map("pool_id")
+  event     String
+  detail    String?
+  ipAddress String? @map("ip_address")
+  createdAt String  @default("") @map("created_at")
+
+  pool      SessionPool? @relation(fields: [poolId], references: [id], onDelete: SetNull)
+
+  @@index([poolId, event])
+  @@map("session_analytics")
+}
+
+model IpGeoCache {
+  id          Int    @id @default(autoincrement())
+  ipAddress   String @unique @map("ip_address")
+  country     String @default("Unknown")
+  countryCode String @default("--") @map("country_code")
+  region      String @default("Unknown")
+  city        String @default("Unknown")
+  isp         String @default("Unknown")
+  lat         Float  @default(0)
+  lon         Float  @default(0)
+  timezone    String @default("")
+  lookedUpAt  String @default("") @map("looked_up_at")
+
+  @@map("ip_geo_cache")
+}
+
+model SecurityEvent {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @map("user_id")
+  eventType String  @map("event_type")
+  severity  String  @default("low")
+  ipAddress String? @map("ip_address")
+  details   String?
+  createdAt String  @default("") @map("created_at")
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventType, createdAt])
+  @@index([severity, createdAt])
+  @@map("security_events")
+}
+
+model SystemSettings {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String @default("")
+
+  @@map("system_settings")
+}
+
+model AdminAuditLog {
+  id         Int     @id @default(autoincrement())
+  adminId    Int     @map("admin_id")
+  action     String
+  entityType String  @map("entity_type")
+  entityId   Int?    @map("entity_id")
+  details    String  @default("")
+  ipAddress  String? @map("ip_address")
+  createdAt  String  @default("") @map("created_at")
+
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
+  @@map("admin_audit_log")
+}

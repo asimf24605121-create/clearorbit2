@@ -1,0 +1,213 @@
+You are a Senior Chrome Extension Engineer, Security Architect, and SaaS Systems Engineer.
+
+Build a **production-grade Chrome Extension (Manifest V3)** for a SaaS platform called **ClearOrbit**.
+
+This extension is mission-critical and must securely manage **shared account access via cookie injection** across platforms like:
+
+* Coursera
+* Netflix
+* Spotify
+* Disney+
+
+---
+
+## ⚠️ CORE ARCHITECTURE RULES
+
+* Use Chrome Extension Manifest V3
+* Use:
+
+  * background service worker
+  * content scripts
+  * chrome.cookies API
+  * chrome.storage API
+* NO Node.js, NO backend dependency
+* Fully client-side secure architecture
+* Must be modular, clean, and scalable
+
+---
+
+## 🎯 PRIMARY OBJECTIVE
+
+Allow users to access shared accounts via injected cookies, while STRICTLY enforcing security rules to prevent misuse.
+
+---
+
+## 🔐 ZERO-TRUST SECURITY MODEL
+
+Implement a strict security layer:
+
+1. Only allow cookie injection for whitelisted domains
+2. Validate cookie schema before injection
+3. Prevent cross-domain cookie leakage
+4. Encrypt cookie storage using chrome.storage (basic obfuscation layer)
+5. Prevent DevTools tampering (detect debugger / suspicious behavior if possible)
+6. Auto-expire session if cookies are invalid
+
+---
+
+## 🍪 ADVANCED COOKIE ENGINE
+
+Build a robust cookie system:
+
+* Clear ALL existing cookies for target domain before injection
+* Inject cookies using chrome.cookies.set
+* Support full cookie schema:
+  domain, name, value, path, secure, httpOnly, expirationDate
+* Handle edge cases:
+
+  * SameSite issues
+  * Subdomain cookies (.domain.com)
+* After injection:
+  → Force reload tab
+  → Verify login success (DOM check or URL pattern)
+
+---
+
+## 🚫 LOGOUT & ACCOUNT PROTECTION SYSTEM
+
+Implement MULTI-LAYER blocking:
+
+1. DOM Interception:
+
+   * Block clicks on:
+     logout, sign out, الحساب, settings, billing
+   * Use event delegation (capture phase)
+
+2. Mutation Observer:
+
+   * Detect dynamically loaded logout buttons
+   * Auto-block them
+
+3. Navigation Guard:
+
+   * Detect URL changes to:
+     /account
+     /settings
+     /billing
+     /profile
+   * Redirect OR show full overlay
+
+4. Network Interception:
+
+   * Override fetch + XMLHttpRequest
+   * Block requests containing:
+     logout, signout, session/end
+
+5. History API Hijack:
+
+   * Intercept pushState / replaceState
+   * Prevent restricted navigation
+
+---
+
+## 🧠 FAILSAFE RECOVERY SYSTEM
+
+If session breaks:
+
+* Auto-detect logout state
+* Immediately re-inject cookies
+* Silent refresh
+* Retry up to 3 times
+
+---
+
+## 🧩 SMART PLATFORM DETECTION
+
+Auto-detect platform based on domain:
+
+* coursera.org
+* netflix.com
+* spotify.com
+* disneyplus.com
+
+Apply platform-specific rules if needed.
+
+---
+
+## 📢 USER WARNING SYSTEM (PREMIUM UX)
+
+Create a smooth UI system:
+
+1. Floating Banner:
+   "This is a shared account. Do not modify settings."
+
+2. Toast Notifications:
+
+   * Logout blocked
+   * Access restricted
+
+3. Full-screen Overlay:
+   When accessing restricted pages
+
+4. No alert() usage
+   Use custom UI with animations
+
+---
+
+## 🎨 UI REQUIREMENTS
+
+* Clean, modern SaaS style
+* Smooth fade/slide animations
+* Rounded corners + soft shadows
+* Minimal but premium look
+
+---
+
+## 📡 EXTENSION ↔ DASHBOARD CONNECTION
+
+* Use chrome.runtime messaging
+* Send heartbeat to dashboard page
+* Dashboard should detect:
+  "Extension Connected" or "Not Connected"
+
+---
+
+## ⚡ PERFORMANCE OPTIMIZATION
+
+* Avoid heavy DOM loops
+* Debounce observers
+* Use efficient selectors
+* Minimize memory usage
+
+---
+
+## 🧪 EDGE CASE HANDLING
+
+Handle:
+
+* SPA websites (React apps like Netflix)
+* Lazy-loaded menus
+* Shadow DOM elements
+* Multiple tabs syncing
+
+---
+
+## 📦 OUTPUT REQUIREMENTS
+
+Generate FULL working code:
+
+1. manifest.json
+2. background.js (service worker)
+3. content.js (main logic)
+4. cookieManager.js (modular cookie system)
+5. securityLayer.js (blocking logic)
+6. uiOverlay.js (UI system)
+7. messaging system
+8. clean folder structure
+
+---
+
+## 🎯 FINAL GOAL
+
+Build a **secure, unbreakable shared account protection extension** that:
+
+* Injects cookies reliably
+* Prevents logout completely
+* Blocks account access pages
+* Protects shared sessions
+* Works across all major platforms
+* Feels premium and smooth
+
+Make it robust, secure, scalable, and production-ready.
+
+NO SHORTCUTS. WRITE CLEAN, COMMENTED, MODULAR CODE.

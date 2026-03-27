@@ -1,0 +1,158 @@
+ROLE: Senior QA Engineer + Full Stack Tester + SaaS Product Auditor
+
+TASK:
+Perform full LIVE AGENT testing of the entire website using realistic test data.
+
+---
+
+STEP 1 — TEST DATA CREATION
+
+Create realistic data:
+
+* 10–20 users
+* multiple platforms (Netflix, Spotify, Coursera)
+* valid + invalid cookies
+* different expiry dates
+* active + expired subscriptions
+
+---
+
+STEP 2 — FULL USER FLOW TESTING
+
+Test:
+
+1. Create User
+2. Assign platforms
+3. Assign slots
+4. Login / logout
+5. Expiry system
+6. Subscription extend
+7. Delete user
+
+Verify each:
+
+✔ working
+❌ broken
+
+---
+
+STEP 3 — COOKIE SYSTEM TEST
+
+Test:
+
+* paste cookies (all formats: JSON, string, Netscape)
+* platform auto-detection
+* login validation
+* health score update
+
+---
+
+STEP 4 — SLOT SYSTEM TEST
+
+Test:
+
+* slot assignment
+* slot full condition
+* slot release on expiry
+* slot reuse
+
+---
+
+STEP 5 — DASHBOARD TEST
+
+Check:
+
+* Overview stats
+* Live event stream
+* User access intelligence
+* Platform load
+
+Verify:
+
+* data correct
+* no loading errors
+
+---
+
+STEP 6 — USERS PAGE TEST
+
+Check:
+
+* platform display
+* expiry date
+* filters
+* pagination
+* CSV export
+
+---
+
+STEP 7 — EVENTS SYSTEM TEST
+
+Check:
+
+* events logging
+* filtering system
+* delete events
+* clear all
+
+---
+
+STEP 8 — SECURITY TEST
+
+Check:
+
+* admin access
+* invalid requests
+* API protection
+* input validation
+
+---
+
+STEP 9 — BUG DETECTION
+
+Find:
+
+* non-working buttons
+* API errors
+* console errors
+* wrong data mapping
+
+---
+
+STEP 10 — AUTO FIX
+
+For each issue:
+
+* identify root cause
+* fix backend or frontend
+* retest
+
+---
+
+STEP 11 — PERFORMANCE TEST
+
+Check:
+
+* page load speed
+* large data handling
+* API response time
+
+---
+
+STEP 12 — FINAL REPORT
+
+Return:
+
+1. Working features ✅
+2. Broken features ❌
+3. Fixed issues 🔧
+4. Remaining issues ⚠️
+5. Suggested improvements 🚀
+
+---
+
+GOAL:
+
+Make the entire system production-ready, fully working, and bug-free.
+
+---

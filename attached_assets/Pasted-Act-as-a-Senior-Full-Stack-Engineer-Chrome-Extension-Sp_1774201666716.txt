@@ -1,0 +1,190 @@
+Act as a Senior Full Stack Engineer, Chrome Extension Specialist, and SaaS Debugging Expert.
+
+Fix and stabilize the ClearOrbit platform system completely.
+
+---
+
+## 🚨 CURRENT ISSUES
+
+1. Platform mismatch:
+
+   * Clicking one platform opens another (e.g., Coursera → Udemy)
+
+2. Cookie inconsistency:
+
+   * New cookies added
+   * But later disappear OR not synced
+
+3. UI inconsistency:
+
+   * Delete button not showing correctly
+   * Old cookies not properly handled
+
+---
+
+## 🎯 OBJECTIVE
+
+Build a stable system where:
+
+* Each platform works independently
+* Cookies are consistent and persistent
+* UI always reflects actual cookie state
+* No mismatch, no data loss
+
+---
+
+## 🔍 REQUIRED FIXES
+
+1. PLATFORM VALIDATION SYSTEM
+
+* Before opening any platform:
+
+  * Validate platform ID
+  * Match with correct URL
+
+* If mismatch:
+  → block action
+  → show error
+
+---
+
+2. CENTRAL PLATFORM CONFIG
+
+Create single source of truth:
+
+platforms = {
+coursera: {
+url: "https://www.coursera.org",
+domain: ".coursera.org"
+},
+netflix: {
+url: "https://www.netflix.com",
+domain: ".netflix.com"
+}
+}
+
+---
+
+3. COOKIE STORAGE FIX
+
+* Store cookies per platform in database
+* Each platform has separate cookie set
+
+---
+
+4. COOKIE VALIDATION SYSTEM
+
+When loading dashboard:
+
+FOR EACH platform:
+
+* Check if cookies exist in DB
+* Check expiry (if available)
+
+IF valid:
+→ show "Access Now"
+
+IF missing/expired:
+→ show "Add Cookies"
+
+---
+
+5. AUTO DELETE OLD COOKIES
+
+When new cookies are added:
+
+* Automatically DELETE old cookies of that platform
+* Replace with new ones
+
+NO duplicate cookie entries allowed
+
+---
+
+6. DELETE BUTTON LOGIC
+
+* Show "Delete Cookies" button ONLY when cookies exist
+
+On click:
+
+* Delete cookies from DB
+* Update UI immediately
+
+---
+
+7. UI SYNC SYSTEM
+
+* UI must ALWAYS reflect database state
+
+Example:
+
+IF cookies exist:
+→ show:
+Access Now + Delete
+
+IF no cookies:
+→ show:
+Add Cookies
+
+---
+
+8. PREVENT DATA LOSS
+
+* Ensure cookies are not auto-deleted incorrectly
+* Add logging for:
+
+  cookie added
+  cookie deleted
+  cookie replaced
+
+---
+
+9. CLICK HANDLER FIX
+
+Each button must:
+
+* Use data-platform attribute
+* Use correct platform mapping
+* No shared/global variable conflicts
+
+---
+
+10. DEBUG MODE (IMPORTANT)
+
+Add logs:
+
+console.log("Platform:", platform)
+console.log("Cookies found:", status)
+console.log("Action:", action)
+
+---
+
+## 🧪 TEST CASES
+
+* Add cookies → persist in DB ✅
+* Refresh page → still present ✅
+* Add new cookies → old removed ✅
+* Delete cookies → UI updates ✅
+* Click platform → correct site opens ✅
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+* Fixed JS logic
+* Cookie handling system
+* UI sync logic
+* Platform validation system
+
+---
+
+## 🎯 FINAL GOAL
+
+A stable SaaS system where:
+
+✔ Platforms never mismatch
+✔ Cookies always consistent
+✔ UI always correct
+✔ Old cookies auto replaced
+✔ Delete button works properly
+
+ZERO BUGS. PRODUCTION LEVEL.

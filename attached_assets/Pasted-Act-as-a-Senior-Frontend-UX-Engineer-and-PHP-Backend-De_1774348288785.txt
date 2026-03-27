@@ -1,0 +1,148 @@
+Act as a Senior Frontend UX Engineer and PHP Backend Developer.
+
+Upgrade the ClearOrbit user dashboard platform display system.
+
+---
+
+## 🎯 OBJECTIVE
+
+Show ALL platforms to the user, but clearly differentiate between:
+
+✔ Active subscriptions
+❌ Inactive / not subscribed platforms
+
+---
+
+## 🧩 BACKEND LOGIC
+
+1. FETCH ALL PLATFORMS
+
+* Get ALL platforms from platforms table
+
+---
+
+2. FETCH USER SUBSCRIPTIONS
+
+* Get user active subscriptions from subscriptions table
+
+---
+
+3. MERGE DATA
+
+For each platform:
+
+IF user has active subscription:
+→ status = active
+
+ELSE:
+→ status = inactive
+
+---
+
+## 🎨 FRONTEND UI LOGIC
+
+For EACH platform card:
+
+---
+
+✅ ACTIVE PLATFORM DESIGN
+
+* Green gradient button:
+  "Access Now"
+
+* Status badge:
+  "Active" (green)
+
+* Full color logo
+
+* Progress bar visible
+
+---
+
+❌ INACTIVE PLATFORM DESIGN
+
+* Greyed out card (opacity: 0.6)
+
+* Button:
+
+  "Not Subscribed" OR "Locked"
+
+* Button disabled (no click)
+
+* Add lock icon 🔒
+
+* Status badge:
+  "Inactive" (gray or red)
+
+---
+
+🎯 COLOR SYSTEM
+
+* Active → Green (#16a34a or similar)
+* Inactive → Gray (#9ca3af)
+
+---
+
+🧠 UX IMPROVEMENTS
+
+1. HOVER EFFECT
+
+* Inactive card hover:
+  → Show tooltip:
+  "You don’t have access to this platform"
+
+---
+
+2. FILTER OPTION
+
+Add filter dropdown:
+
+* All
+* Active
+* Inactive
+
+---
+
+3. VISUAL PRIORITY
+
+* Show active platforms FIRST
+* Then inactive platforms
+
+---
+
+4. EMPTY STATE
+
+If user has no subscriptions:
+
+→ Show message:
+"No active subscriptions yet"
+
+---
+
+🔐 SECURITY RULE
+
+* Even if user clicks inactive platform:
+  → Block API request
+  → Do NOT return cookies
+
+---
+
+## 🧪 TEST CASES
+
+* User logs in → sees all platforms ✅
+* Active ones → green + clickable ✅
+* Inactive → disabled + grey ✅
+* No access bypass possible ❌
+
+---
+
+## 🎯 FINAL GOAL
+
+A premium SaaS dashboard where:
+
+✔ User sees ALL platforms
+✔ Clearly knows what is active
+✔ Clean UI + no confusion
+✔ Secure access control
+
+NETFLIX-LEVEL UX EXPERIENCE.

@@ -1,0 +1,180 @@
+ROLE: Principal Engineer + Autonomous Bug Fixing Agent + SaaS Optimizer
+
+TASK:
+Automatically fix all detected issues from the system audit and upgrade the platform to enterprise SaaS level.
+
+---
+
+INPUT:
+
+Use previous audit report.
+
+---
+
+OBJECTIVE:
+
+* Fix ALL broken features
+* Improve weak systems
+* Optimize architecture
+* Ensure production-level reliability
+
+---
+
+PHASE 1 — CRITICAL BUG FIXES (DO FIRST)
+
+Fix immediately:
+
+1. Non-working buttons:
+
+* Check (verify)
+* Replace Cookie
+* Edit
+* Delete
+
+Ensure:
+
+* API calls working
+* correct responses
+* UI updates instantly
+
+---
+
+2. API FAILURES:
+
+Fix endpoints:
+
+* /api/account_manager.php
+* /api/access_platform.php
+* /api/slot_feedback.php
+
+Ensure:
+
+* no crashes
+* proper JSON responses
+* error handling
+
+---
+
+3. COOKIE SYSTEM FIX:
+
+* remove duplicate storage
+* ensure only cookie_vault is used
+* enforce cookie_id reference
+
+---
+
+---
+
+PHASE 2 — SYSTEM CORRECTIONS
+
+1. SLOT SYSTEM:
+
+* enforce: 1 cookie → multiple slots
+* enforce max_users per slot
+* prevent overbooking
+
+---
+
+2. VALIDATION:
+
+* replace weak validation with real login check
+* unify Check / Recheck
+
+---
+
+3. FAILOVER:
+
+* implement auto replacement when cookie dies
+* use reserve cookie if available
+
+---
+
+---
+
+PHASE 3 — UI/UX IMPROVEMENT
+
+1. SIMPLIFY FLOW:
+
+* single page: Account Manager
+* remove duplicate UI sections
+
+---
+
+2. BUTTON UX:
+
+* add loading state
+* disable during request
+* show success/error messages
+
+---
+
+3. DASHBOARD:
+
+* show:
+  Available / High Demand / Unavailable
+
+---
+
+---
+
+PHASE 4 — PERFORMANCE & STABILITY
+
+* optimize slot assignment queries
+* ensure transaction safety
+* handle concurrent users
+
+---
+
+---
+
+PHASE 5 — SECURITY
+
+* validate all inputs
+* sanitize cookie data
+* enforce authentication checks
+
+---
+
+---
+
+PHASE 6 — FINAL VALIDATION
+
+After all fixes:
+
+* re-run full system test
+* confirm:
+
+✔ all buttons working
+✔ all APIs working
+✔ slots assigned correctly
+✔ cookies validated correctly
+✔ UI responsive
+
+---
+
+OUTPUT FORMAT:
+
+1. FIX SUMMARY:
+
+* what was broken
+* what was fixed
+
+2. IMPROVEMENTS ADDED:
+
+* new features / optimizations
+
+3. REMAINING ISSUES (if any)
+
+---
+
+FINAL GOAL:
+
+System must be:
+
+* fully functional
+* bug-free
+* clean architecture
+* scalable
+* SaaS production ready
+
+---

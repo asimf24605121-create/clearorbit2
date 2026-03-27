@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearOrbit — Reseller Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#F0F4FF 0%,#E8EEFF 50%,#F5F3FF 100%);min-height:100vh}
+        .card{background:#fff;border-radius:.75rem;border:1px solid #E5E7EB;padding:1.25rem}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:.375rem;font-weight:600;font-size:.875rem;padding:.5rem 1rem;border-radius:.5rem;transition:all .15s;cursor:pointer;border:none}
+        .btn-primary{background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff}
+        .btn-primary:hover{opacity:.9}
+        .btn-secondary{background:#F3F4F6;color:#374151;border:1px solid #E5E7EB}
+        .btn-secondary:hover{background:#E5E7EB}
+        .btn-sm{font-size:.8125rem;padding:.375rem .75rem}
+        .input{width:100%;padding:.5rem .75rem;border:1px solid #D1D5DB;border-radius:.5rem;font-size:.875rem;transition:border-color .15s}
+        .input:focus{outline:none;border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.1)}
+        .label{display:block;font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.025em;margin-bottom:.25rem}
+        .badge{display:inline-flex;align-items:center;font-size:.6875rem;font-weight:700;padding:.125rem .5rem;border-radius:9999px}
+        .badge-green{background:#ECFDF5;color:#059669}
+        .badge-red{background:#FEF2F2;color:#EF4444}
+        .badge-yellow{background:#FFFBEB;color:#D97706}
+        .badge-blue{background:#EFF6FF;color:#2563EB}
+        .nav-item{display:flex;align-items:center;gap:.625rem;padding:.625rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;color:#6B7280;cursor:pointer;transition:all .15s}
+        .nav-item:hover{background:#F3F4F6;color:#111827}
+        .nav-item.active{background:linear-gradient(135deg,#6C5CE720,#4F46E520);color:#6C5CE7;font-weight:600}
+        .section{display:none}
+        .section.active{display:block}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .animate-in{animation:fadeInUp .3s ease-out}
+    </style>
+</head>
+<body>
+    <div class="flex min-h-screen">
+        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col p-4 fixed h-full z-40">
+            <div class="flex items-center gap-3 mb-6 px-2">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <div>
+                    <div class="font-bold text-gray-900 text-sm">ClearOrbit</div>
+                    <div class="text-[10px] text-gray-400 font-medium">Reseller Panel</div>
+                </div>
+            </div>
+            <nav class="flex-1 space-y-1">
+                <div class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Dashboard
+                </div>
+                <div class="nav-item" data-section="users" onclick="showSection('users')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+                    My Users
+                </div>
+                <div class="nav-item" data-section="wallet" onclick="showSection('wallet')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Wallet
+                </div>
+                <div class="nav-item" data-section="create" onclick="showSection('create')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    Create User
+                </div>
+            </nav>
+            <div class="mt-auto pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-2 px-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs" id="avatarInitial">R</div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900" id="sidebarUsername">Reseller</div>
+                        <div class="text-[10px] text-gray-400">Reseller Account</div>
+                    </div>
+                </div>
+                <button onclick="logout()" class="nav-item w-full text-red-500 hover:bg-red-50 hover:text-red-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 ml-64 p-6">
+            <div class="mb-6">
+                <h1 class="text-xl font-bold text-gray-900" id="pageTitle">Dashboard</h1>
+                <p class="text-sm text-gray-500" id="pageSubtitle">Overview of your reseller account</p>
+            </div>
+
+            <div id="sec-dashboard" class="section active animate-in">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="kpiCards">
+                    <div class="card text-center"><div class="text-2xl font-bold text-indigo-600" id="kpi-balance">—</div><div class="text-xs text-gray-500 mt-1">Balance (PKR)</div></div>
+                    <div class="card text-center"><div class="text-2xl font-bold text-emerald-600" id="kpi-users">—</div><div class="text-xs text-gray-500 mt-1">Total Users</div></div>
+                    <div class="card text-center"><div class="text-2xl font-bold text-blue-600" id="kpi-subs">—</div><div class="text-xs text-gray-500 mt-1">Active Subs</div></div>
+                    <div class="card text-center"><div class="text-2xl font-bold text-amber-600" id="kpi-earnings">—</div><div class="text-xs text-gray-500 mt-1">Total Earnings</div></div>
+                </div>
+                <div class="card">
+                    <h3 class="font-semibold text-gray-900 mb-3">Recent Transactions</h3>
+                    <div id="recentTransactions" class="text-sm text-gray-400">Loading...</div>
+                </div>
+            </div>
+
+            <div id="sec-users" class="section animate-in">
+                <div class="card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">My Users</h3>
+                        <button onclick="showSection('create')" class="btn btn-primary btn-sm">+ Create User</button>
+                    </div>
+                    <div id="usersList" class="text-sm text-gray-400">Loading...</div>
+                </div>
+            </div>
+
+            <div id="sec-wallet" class="section animate-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="card">
+                        <h3 class="font-semibold text-gray-900 mb-3">Current Balance</h3>
+                        <div class="text-3xl font-bold text-indigo-600 mb-4">PKR <span id="walletBalance">0</span></div>
+                        <h4 class="font-medium text-gray-700 text-sm mb-2">Request Recharge</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="label">Amount (PKR)</label>
+                                <input type="number" id="rechargeAmount" class="input" min="100" step="100" placeholder="Enter amount (min 100)">
+                            </div>
+                            <div>
+                                <label class="label">Payment Method</label>
+                                <select id="rechargeMethod" class="input">
+                                    <option value="easypaisa">Easypaisa</option>
+                                    <option value="jazzcash">JazzCash</option>
+                                    <option value="bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <button onclick="requestRecharge()" class="btn btn-primary w-full">Submit Recharge Request</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="font-semibold text-gray-900 mb-3">Transaction History</h3>
+                        <div id="walletTransactions" class="text-sm text-gray-400">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sec-create" class="section animate-in">
+                <div class="card max-w-lg">
+                    <h3 class="font-semibold text-gray-900 mb-1">Create New User</h3>
+                    <p class="text-xs text-gray-400 mb-4">Cost: PKR <span id="costPerUser">100</span> per user (deducted from your balance)</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="label">Username *</label>
+                            <input type="text" id="newUsername" class="input" placeholder="Enter username" data-testid="input-reseller-username">
+                        </div>
+                        <div>
+                            <label class="label">Email</label>
+                            <input type="email" id="newEmail" class="input" placeholder="Enter email (optional)" data-testid="input-reseller-email">
+                        </div>
+                        <div>
+                            <label class="label">Password *</label>
+                            <input type="password" id="newPassword" class="input" placeholder="Min 6 characters" data-testid="input-reseller-password">
+                        </div>
+                        <div>
+                            <label class="label">Duration (Days)</label>
+                            <div class="flex gap-2">
+                                <button onclick="setDuration(7)" class="btn btn-secondary btn-sm flex-1">7d</button>
+                                <button onclick="setDuration(30)" class="btn btn-secondary btn-sm flex-1 ring-2 ring-indigo-300" id="dur-30">30d</button>
+                                <button onclick="setDuration(90)" class="btn btn-secondary btn-sm flex-1">90d</button>
+                                <button onclick="setDuration(180)" class="btn btn-secondary btn-sm flex-1">180d</button>
+                                <button onclick="setDuration(365)" class="btn btn-secondary btn-sm flex-1">365d</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="label">Platforms</label>
+                            <div id="platformGrid" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto"></div>
+                        </div>
+                        <div id="createResult" class="hidden"></div>
+                        <button onclick="createUser()" class="btn btn-primary w-full" id="createUserBtn" data-testid="button-reseller-create-user">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                            Create User & Activate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="whatsappFloat"></div>
+    <div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script src="js/safe-fetch.js"></script>
+<script>
+let CSRF_TOKEN = '';
+let PLATFORMS = [];
+let _duration = 30;
+
+async function init() {
+    try {
+        const csrfRes = await fetch('api/csrf_token', { credentials: 'include' });
+        const csrfData = await csrfRes.json();
+        if (csrfData.csrf_token) CSRF_TOKEN = csrfData.csrf_token;
+    } catch(e) {}
+
+    try {
+        const sessRes = await fetch('api/check_session', { credentials: 'include' });
+        if (!sessRes.ok) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
+        const sessData = await sessRes.json();
+        if (sessData.csrf_token) { CSRF_TOKEN = sessData.csrf_token; sessionStorage.setItem('csrf_token', CSRF_TOKEN); }
+    } catch(e) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
+
+    loadDashboard();
+    loadPlatforms();
+    loadWhatsAppFloat();
+}
+
+function csrfHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN };
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showAlert(msg, isError = false) {
+    const c = document.getElementById('alertContainer');
+    const el = document.createElement('div');
+    el.className = `px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`;
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+}
+
+function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item[data-section]').forEach(n => {
+        n.classList.toggle('active', n.dataset.section === name);
+    });
+    const titles = { dashboard: ['Dashboard', 'Overview of your reseller account'], users: ['My Users', 'Manage your created users'], wallet: ['Wallet', 'Balance and transactions'], create: ['Create User', 'Add a new user to your network'] };
+    const [t, s] = titles[name] || [name, ''];
+    document.getElementById('pageTitle').textContent = t;
+    document.getElementById('pageSubtitle').textContent = s;
+
+    if (name === 'users') loadUsers();
+    if (name === 'wallet') loadWallet();
+    if (name === 'dashboard') loadDashboard();
+}
+
+async function loadDashboard() {
+    const txEl = document.getElementById('recentTransactions');
+    try {
+        const res = await fetch('api/reseller_dashboard', { credentials: 'include' });
+        if (res.status === 401 || res.status === 403) { window.location.href = 'index.html'; return; }
+        const data = await res.json();
+        if (!data.success) {
+            if (txEl) txEl.innerHTML = '<div class="text-center py-4 text-gray-400">No data available</div>';
+            document.getElementById('kpi-balance').textContent = '0';
+            document.getElementById('kpi-users').textContent = '0';
+            document.getElementById('kpi-subs').textContent = '0';
+            document.getElementById('kpi-earnings').textContent = '0';
+            return;
+        }
+
+        const r = data.reseller;
+        const s = data.stats;
+        document.getElementById('kpi-balance').textContent = r.balance.toLocaleString();
+        document.getElementById('kpi-users').textContent = s.total_users;
+        document.getElementById('kpi-subs').textContent = s.active_subscriptions;
+        document.getElementById('kpi-earnings').textContent = r.total_earnings.toLocaleString();
+        document.getElementById('costPerUser').textContent = s.cost_per_user;
+        document.getElementById('sidebarUsername').textContent = data.reseller.status === 'active' ? 'Active Reseller' : 'Pending';
+
+        if (!data.transactions || data.transactions.length === 0) {
+            txEl.innerHTML = '<div class="text-center py-4 text-gray-400">No transactions yet</div>';
+        } else {
+            let html = '<div class="space-y-2">';
+            data.transactions.forEach(tx => {
+                const color = tx.type === 'recharge' ? 'text-green-600' : tx.type === 'deduction' ? 'text-red-600' : 'text-blue-600';
+                const sign = tx.type === 'recharge' ? '+' : '-';
+                html += `<div class="flex items-center justify-between py-2 border-b border-gray-50">
+                    <div>
+                        <div class="font-medium text-gray-700 text-sm">${escHtml(tx.description || tx.type)}</div>
+                        <div class="text-[10px] text-gray-400">${new Date(tx.created_at).toLocaleString()}</div>
+                    </div>
+                    <div class="${color} font-bold">${sign}PKR ${Math.abs(tx.amount).toLocaleString()}</div>
+                </div>`;
+            });
+            html += '</div>';
+            txEl.innerHTML = html;
+        }
+    } catch(e) {
+        console.error('Dashboard load failed', e);
+        if (txEl) txEl.innerHTML = '<div class="text-center py-4 text-red-400">Failed to load data</div>';
+        document.getElementById('kpi-balance').textContent = '0';
+        document.getElementById('kpi-users').textContent = '0';
+        document.getElementById('kpi-subs').textContent = '0';
+        document.getElementById('kpi-earnings').textContent = '0';
+    }
+}
+
+async function loadUsers() {
+    const el = document.getElementById('usersList');
+    try {
+        const res = await fetch('api/reseller_users', { headers: csrfHeaders(), credentials: 'include' });
+        const data = await res.json();
+        if (!data.success) { el.innerHTML = '<div class="text-red-400">Failed to load</div>'; return; }
+        if (data.users.length === 0) { el.innerHTML = '<div class="text-center py-6 text-gray-400">No users yet. Create your first user!</div>'; return; }
+
+        let html = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-gray-500 border-b"><th class="py-2 px-2">Username</th><th class="py-2 px-2">Email</th><th class="py-2 px-2">Status</th><th class="py-2 px-2">Platforms</th><th class="py-2 px-2">Created</th><th class="py-2 px-2">Actions</th></tr></thead><tbody>';
+        data.users.forEach(u => {
+            const statusBadge = u.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Disabled</span>';
+            const platforms = (u.subscriptions || []).map(s => `<span class="badge badge-blue mr-1">${escHtml(s.platform_name || 'Platform #' + s.platform_id)}</span>`).join('');
+            html += `<tr class="border-b border-gray-50 hover:bg-gray-50">
+                <td class="py-2.5 px-2 font-medium text-gray-900">${escHtml(u.username)}</td>
+                <td class="py-2.5 px-2 text-gray-500">${escHtml(u.email || '—')}</td>
+                <td class="py-2.5 px-2">${statusBadge}</td>
+                <td class="py-2.5 px-2">${platforms || '<span class="text-gray-400">None</span>'}</td>
+                <td class="py-2.5 px-2 text-gray-400">${new Date(u.created_at).toLocaleDateString()}</td>
+                <td class="py-2.5 px-2">
+                    <button onclick="toggleUser(${u.id})" class="btn btn-sm ${u.is_active ? 'btn-secondary' : 'btn-primary'}">${u.is_active ? 'Disable' : 'Enable'}</button>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+        el.innerHTML = html;
+    } catch(e) { el.innerHTML = '<div class="text-red-400">Network error</div>'; }
+}
+
+async function toggleUser(userId) {
+    try {
+        const res = await fetch('api/reseller_users', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'toggle_active', user_id: userId })
+        });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) loadUsers();
+    } catch(e) { showAlert('Network error', true); }
+}
+
+async function loadWallet() {
+    try {
+        const res = await fetch('api/reseller_wallet', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.success) {
+            const txEl = document.getElementById('walletTransactions');
+            if (txEl) txEl.innerHTML = '<div class="text-center py-4 text-gray-400">No wallet data available</div>';
+            return;
+        }
+        document.getElementById('walletBalance').textContent = data.balance.toLocaleString();
+
+        const txEl = document.getElementById('walletTransactions');
+        if (data.transactions.length === 0) {
+            txEl.innerHTML = '<div class="text-center py-4 text-gray-400">No transactions</div>';
+        } else {
+            let html = '<div class="space-y-2 max-h-80 overflow-y-auto">';
+            data.transactions.forEach(tx => {
+                const color = tx.type === 'recharge' ? 'text-green-600' : 'text-red-600';
+                const sign = tx.type === 'recharge' || tx.type === 'commission' ? '+' : '-';
+                const statusBadge = tx.status === 'completed' ? '<span class="badge badge-green">Done</span>' : '<span class="badge badge-yellow">Pending</span>';
+                html += `<div class="flex items-center justify-between py-2 border-b border-gray-50">
+                    <div>
+                        <div class="text-sm font-medium text-gray-700">${escHtml(tx.description || tx.type)}</div>
+                        <div class="text-[10px] text-gray-400">${new Date(tx.created_at).toLocaleString()} ${statusBadge}</div>
+                    </div>
+                    <div class="${color} font-bold text-sm">${sign}PKR ${Math.abs(tx.amount).toLocaleString()}</div>
+                </div>`;
+            });
+            html += '</div>';
+            txEl.innerHTML = html;
+        }
+    } catch(e) {
+        const txEl = document.getElementById('walletTransactions');
+        if (txEl) txEl.innerHTML = '<div class="text-center py-4 text-red-400">Failed to load wallet</div>';
+    }
+}
+
+async function requestRecharge() {
+    const amount = parseFloat(document.getElementById('rechargeAmount').value);
+    const method = document.getElementById('rechargeMethod').value;
+    if (!amount || amount < 100) { showAlert('Minimum recharge is PKR 100', true); return; }
+    try {
+        const res = await fetch('api/reseller_wallet', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'request_recharge', amount, method })
+        });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) { document.getElementById('rechargeAmount').value = ''; loadWallet(); }
+    } catch(e) { showAlert('Network error', true); }
+}
+
+async function loadPlatforms() {
+    try {
+        const res = await fetch('api/get_public_platforms', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            PLATFORMS = data.platforms || [];
+            const grid = document.getElementById('platformGrid');
+            if (grid) {
+                grid.innerHTML = PLATFORMS.map(p => `
+                    <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-100 hover:border-indigo-200 cursor-pointer text-sm">
+                        <input type="checkbox" class="platform-cb rounded border-gray-300 text-indigo-600" value="${p.id}">
+                        ${p.logo_url ? `<img src="${escHtml(p.logo_url)}" class="w-5 h-5 rounded" onerror="this.style.display='none'">` : ''}
+                        <span class="text-gray-700">${escHtml(p.name)}</span>
+                    </label>
+                `).join('');
+            }
+        }
+    } catch(e) {}
+}
+
+function setDuration(days) {
+    _duration = days;
+    document.querySelectorAll('[id^="dur-"]').forEach(b => b.classList.remove('ring-2', 'ring-indigo-300'));
+    const active = document.querySelector(`[onclick="setDuration(${days})"]`);
+    if (active) active.classList.add('ring-2', 'ring-indigo-300');
+}
+
+async function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const password = document.getElementById('newPassword').value.trim();
+    const platformIds = [...document.querySelectorAll('.platform-cb:checked')].map(c => parseInt(c.value));
+
+    if (!username || !password) { showAlert('Username and password are required', true); return; }
+    if (password.length < 6) { showAlert('Password must be at least 6 characters', true); return; }
+
+    const btn = document.getElementById('createUserBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        const res = await fetch('api/reseller_users', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'create', username, email, password, platform_ids: platformIds, duration_days: _duration })
+        });
+        const data = await res.json();
+        const resultEl = document.getElementById('createResult');
+        if (data.success) {
+            resultEl.innerHTML = `<div class="px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">${escHtml(data.message)}<br><span class="text-xs text-green-500">New balance: PKR ${data.balance?.toLocaleString() || '—'}</span></div>`;
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newEmail').value = '';
+            document.getElementById('newPassword').value = '';
+            document.querySelectorAll('.platform-cb:checked').forEach(c => c.checked = false);
+            loadDashboard();
+        } else {
+            resultEl.innerHTML = `<div class="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">${escHtml(data.message)}</div>`;
+        }
+        resultEl.classList.remove('hidden');
+    } catch(e) { showAlert('Network error', true); }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg> Create User & Activate';
+}
+
+async function loadWhatsAppFloat() {
+    try {
+        const res = await fetch('api/get_settings');
+        const data = await res.json();
+        if (data.success && data.whatsapp_number) {
+            const msg = encodeURIComponent(data.whatsapp_message || '');
+            document.getElementById('whatsappFloat').innerHTML = `
+                <a href="https://wa.me/${data.whatsapp_number}${msg ? '?text=' + msg : ''}" target="_blank" rel="noopener"
+                   class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110"
+                   style="background:#25D366;" title="Chat on WhatsApp" data-testid="button-whatsapp-float">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                </a>`;
+        }
+    } catch(e) {}
+}
+
+async function logout() {
+    try {
+        await fetch('api/logout', { method: 'POST', headers: csrfHeaders(), credentials: 'include' });
+    } catch(e) {}
+    window.location.href = '/';
+}
+
+init();
+</script>
+</body>
+</html>

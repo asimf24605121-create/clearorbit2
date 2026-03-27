@@ -1,0 +1,66 @@
+The "Hybrid Context-Aware" Prompt for Replit Agent
+Task: Upgrade the Universal Session Parser to support "Metadata-Heavy" formats (Colon-separated and Emoji-prefixed).
+
+Core Objective: The system must now detect data from structured lists that use icons/emojis and colons (e.g., 🌍 Country: Brazil 🇧🇷 or Cookie: NetflixId=...).
+
+Updated Requirements:
+
+Advanced Tokenizer:
+
+Implement a regex that looks for Lines. If a line contains a colon : or an equals sign =, split it into Key and Value.
+
+Emoji Stripping: Automatically strip leading emojis from the "Key" (e.g., 🌍 Country becomes Country) so the system can categorize it.
+
+Contextual Cookie Detection:
+
+Specifically look for a key named Cookie or 🔗 Direct Login URL.
+
+If the value contains NetflixId=, extract only the portion starting from NetflixId= until the end of the line.
+
+Smart Netscape Mapping:
+
+If a line starts with Cookie:, treat the entire value as the session payload.
+
+Use urllib.parse.unquote to decode the ct%3D parts within that cookie string to ensure the final Netscape file is valid.
+
+Login URL Parsing:
+
+If a Direct Login URL is detected, extract the nftoken parameter. Provide a specific button to "Copy Login Token."
+
+Multi-Format Support:
+
+The system must still support the old Pipe-Delimited (|) format. If no newlines are found, use the Pipe-logic; if multiple lines are found, use the Line-logic.
+
+Test Input: > [Paste the Brazil/Miguel account text here]
+
+How to adapt your PHP/JS code for this:
+If you are writing the code yourself, add this logic to your Universal Parser function:
+
+1. The Regex (JavaScript/PHP)
+Instead of just splitting by |, use this regex to find pairs in the new format:
+
+Code snippet
+/^(?:\s*[\uD800-\uDBFF].\s*)?([^:]+):\s*(.*)$/gm
+(?:\s*[\uD800-\uDBFF].\s*)?: This ignores the leading emoji (like 🌍 or 👤).
+
+([^:]+): Captures the name (e.g., "Country").
+
+:\s*(.*): Captures everything after the colon as the value.
+
+2. Handling the "Cookie" field
+Since the cookie in your new format is labeled Cookie: NetflixId=..., your code needs a small "if" statement:
+
+JavaScript
+// In your JS Parser loop:
+if (key.toLowerCase().includes('cookie')) {
+    // Split the cookie string into its components (ct, ch, v, pg)
+    // and prepare them for the Netscape Generator
+    const cookieData = value.replace('NetflixId=', '');
+    processNetscape(cookieData);
+}
+Why this upgrade is better:
+Emoji-Proof: It won't get confused by the 📁 or 📅 icons.
+
+Line-by-Line: It's much easier to read the "Miguel" type format because each piece of info is on its own line.
+
+Direct Login Support: Since these accounts often come with a Direct Login URL, your system can now extract the nftoken as a backup if the cookies are expired.

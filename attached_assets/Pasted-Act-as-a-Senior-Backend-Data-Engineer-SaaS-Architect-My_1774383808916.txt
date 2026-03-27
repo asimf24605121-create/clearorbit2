@@ -1,0 +1,115 @@
+Act as a Senior Backend Data Engineer + SaaS Architect.
+
+My dashboard UI is complete but data is not accurate.
+
+I want to convert ALL dashboard data into REAL, LIVE, DATABASE-DRIVEN metrics.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Make dashboard 100% real and accurate using database.
+
+--------------------------------------
+📊 FIX ALL METRICS
+--------------------------------------
+
+1. ACTIVE USERS
+
+SELECT COUNT(DISTINCT user_id)
+FROM account_sessions
+WHERE status='active'
+AND last_active >= NOW() - INTERVAL 5 MINUTE
+
+--------------------------------------
+
+2. LIVE SESSIONS
+
+SELECT COUNT(*)
+FROM account_sessions
+WHERE status='active'
+
+--------------------------------------
+
+3. PLATFORM LOAD (REAL)
+
+For each platform:
+
+active_sessions / total_slots * 100
+
+--------------------------------------
+
+4. SLOT USAGE
+
+SELECT 
+COUNT(active sessions) / total slots
+
+--------------------------------------
+
+5. SLOT HEALTH (REAL)
+
+Health score =
+
+(success_sessions / total_sessions) * 100
+
+--------------------------------------
+
+6. BEST SLOT
+
+Slot with highest success rate
+
+--------------------------------------
+
+7. WORST SLOT
+
+Slot with most failures OR lowest success %
+
+--------------------------------------
+
+8. EXPIRING SOON
+
+SELECT *
+FROM subscriptions
+WHERE expiry_date <= NOW() + INTERVAL 3 DAY
+
+--------------------------------------
+
+9. LIVE EVENT STREAM
+
+Use:
+
+activity_logs table
+
+ORDER BY created_at DESC LIMIT 20
+
+--------------------------------------
+
+📡 REAL-TIME UPDATE
+--------------------------------------
+
+✔ Auto refresh every 5–10 seconds  
+✔ No page reload  
+
+--------------------------------------
+
+⚠️ REMOVE FAKE VALUES
+--------------------------------------
+
+❌ No hardcoded data  
+❌ No dummy percentages  
+
+--------------------------------------
+
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Accurate numbers  
+✔ Real slot usage  
+✔ Real user activity  
+✔ Real system insights  
+✔ True SaaS dashboard  
+
+--------------------------------------
+
+DO NOT TOUCH UI.
+ONLY FIX DATA ENGINE.

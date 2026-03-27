@@ -1,0 +1,159 @@
+ROLE: Principal SaaS Architect (Subscription Lifecycle System)
+
+TASK:
+Implement a complete "Auto Expiry + Auto Renewal + Warning + Slot Control System" for user subscriptions and accounts.
+
+---
+
+OBJECTIVE
+
+Fully automate subscription lifecycle:
+
+* auto expiry detection
+* warning system
+* auto disable
+* auto renewal support
+
+---
+
+1. AUTO EXPIRY SYSTEM
+
+When account is created:
+
+* detect expiry from cookie (if available)
+* else apply default expiry (30 days)
+
+Store:
+
+* expiry_date
+* created_at
+
+---
+
+2. LIVE STATUS ENGINE
+
+Every time data loads:
+
+IF current_date > expiry_date:
+→ status = EXPIRED
+
+IF remaining_days <= 3:
+→ status = EXPIRING_SOON
+
+ELSE:
+→ status = ACTIVE
+
+---
+
+3. AUTO DISABLE SYSTEM
+
+IF status = EXPIRED:
+
+* disable slot
+* remove user access
+* mark account inactive
+
+---
+
+4. WARNING SYSTEM (IMPORTANT)
+
+Add UI badges:
+
+* 🟢 Active
+* 🟡 Expiring Soon (3 days left)
+* 🔴 Expired
+
+---
+
+5. AUTO NOTIFICATIONS
+
+Trigger alerts:
+
+* 3 days before expiry
+* on expiry
+
+Send via:
+
+* dashboard alert
+* optional email / WhatsApp
+
+---
+
+6. AUTO RENEWAL SYSTEM
+
+Add feature:
+
+Admin can:
+
+* extend +7 days
+* extend +30 days
+
+When extended:
+
+* update expiry_date
+* reactivate slot
+
+---
+
+7. BULK RENEWAL
+
+Allow:
+
+* select multiple users
+* extend all at once
+
+---
+
+8. SLOT CONTROL
+
+When expired:
+
+* free slot automatically
+* make it available for new users
+
+---
+
+9. USER PROFILE INTEGRATION
+
+Show:
+
+* expiry date
+* remaining days
+* status badge
+
+Add buttons:
+
+* Extend
+* Disable
+* Reassign slot
+
+---
+
+10. BACKGROUND JOB (CRON)
+
+Run every 5–10 minutes:
+
+* check expiry
+* update status
+* clean expired accounts
+
+---
+
+FINAL RESULT
+
+System becomes:
+
+* fully automated
+* no manual expiry tracking
+* auto slot management
+* SaaS billing-ready
+
+---
+
+CONSTRAINTS
+
+* keep system stable
+* integrate with existing database
+* do not remove current features
+
+---

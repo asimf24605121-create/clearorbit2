@@ -1,0 +1,124 @@
+Act as a Senior Chrome Extension + PHP SaaS Engineer.
+
+I have a SaaS project ClearOrbit that logs users into platforms like Coursera using injected cookies.
+
+I want a STRICT LOGOUT SYSTEM with REAL browser behavior.
+
+--------------------------------------
+🎯 EXACT BEHAVIOR REQUIRED
+--------------------------------------
+
+SCENARIO:
+
+1. User clicks "Access Now" → logs into Coursera via cookies
+2. User uses Coursera normally
+3. User goes back and clicks "Logout" from ClearOrbit
+
+EXPECTED RESULT:
+
+✔ Coursera tab should instantly REFRESH  
+✔ User should be LOGGED OUT from Coursera  
+✔ All Coursera cookies should be REMOVED from browser  
+✔ No session should remain active  
+✔ User must login again manually if they revisit  
+
+--------------------------------------
+🧠 BACKEND (PHP)
+--------------------------------------
+
+logout.php:
+
+- Destroy PHP session
+- Mark all user sessions inactive:
+
+UPDATE account_sessions 
+SET status = 'inactive' 
+WHERE user_id = ?
+
+Return JSON:
+
+{
+  "success": true,
+  "action": "FORCE_BROWSER_LOGOUT",
+  "platforms": ["coursera.org", "netflix.com", "openai.com"]
+}
+
+--------------------------------------
+🌐 FRONTEND (JS)
+--------------------------------------
+
+On logout:
+
+fetch('/api/logout.php')
+.then(res => res.json())
+.then(data => {
+
+  window.postMessage({
+    type: "CLEARORBIT_LOGOUT",
+    action: "FORCE_BROWSER_LOGOUT",
+    platforms: data.platforms
+  }, "*");
+
+  window.location.href = "/login.html";
+});
+
+--------------------------------------
+🧩 EXTENSION (CRITICAL PART)
+--------------------------------------
+
+In background/service worker:
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+  if (request.action === "FORCE_BROWSER_LOGOUT") {
+
+    request.platforms.forEach(domain => {
+
+      // STEP 1: REMOVE ALL COOKIES
+      chrome.cookies.getAll({ domain: "." + domain }, cookies => {
+        cookies.forEach(cookie => {
+          chrome.cookies.remove({
+            url: "https://" + domain + cookie.path,
+            name: cookie.name
+          });
+        });
+      });
+
+      // STEP 2: FIND AND REFRESH TABS
+      chrome.tabs.query({}, tabs => {
+        tabs.forEach(tab => {
+          if (tab.url && tab.url.includes(domain)) {
+            chrome.tabs.reload(tab.id);
+          }
+        });
+      });
+
+    });
+
+    sendResponse({ success: true });
+  }
+
+});
+
+--------------------------------------
+🔐 SECURITY RULES
+--------------------------------------
+
+- Cookies MUST be deleted before refresh
+- No reuse of session allowed
+- Works even if multiple tabs open
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ User logs out from ClearOrbit  
+✔ Coursera tab auto refresh  
+✔ Coursera session destroyed  
+✔ Cookies removed  
+✔ User sees login page  
+
+--------------------------------------
+
+DO NOT BREAK EXISTING LOGIN SYSTEM.
+ONLY ADD CLEAN LOGOUT CONTROL.

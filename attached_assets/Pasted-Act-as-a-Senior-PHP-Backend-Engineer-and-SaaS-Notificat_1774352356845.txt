@@ -1,0 +1,165 @@
+Act as a Senior PHP Backend Engineer and SaaS Notification System Architect.
+
+Upgrade ClearOrbit to include a PERSISTENT USER NOTIFICATION SYSTEM.
+
+---
+
+## 🎯 OBJECTIVE
+
+When admin sends a notification:
+
+✔ It shows instantly on user dashboard
+✔ It is stored in database
+✔ It appears in notification panel (sidebar / dropdown)
+✔ User can view it later
+
+---
+
+## 🧩 DATABASE STRUCTURE
+
+Create table: user_notifications
+
+Fields:
+
+* id
+* user_id (nullable if broadcast)
+* title
+* message
+* type (info, warning, success)
+* is_read (boolean)
+* created_at
+
+---
+
+## ⚙️ BACKEND LOGIC
+
+1. CREATE NOTIFICATION
+
+When admin sends announcement (type = notification):
+
+* Insert into user_notifications
+* If "All users":
+  → create entries for all users
+
+---
+
+2. FETCH NOTIFICATIONS (USER SIDE)
+
+API:
+
+/api/get_notifications.php
+
+Return:
+
+* latest notifications
+* unread first
+
+---
+
+3. MARK AS READ
+
+API:
+
+/api/mark_read.php
+
+* Update is_read = true
+
+---
+
+## 🎨 FRONTEND (USER DASHBOARD)
+
+---
+
+🔔 NOTIFICATION ICON (TOP BAR)
+
+* Bell icon 🔔
+* Show unread count badge
+
+---
+
+📂 NOTIFICATION PANEL (IMPORTANT)
+
+When clicking bell:
+
+Open dropdown or side panel:
+
+Each notification:
+
+* Title
+* Message
+* Time (e.g. 2 min ago)
+* Status (read/unread)
+
+---
+
+🟢 UNREAD STYLE
+
+* Highlight background
+* Bold text
+
+---
+
+⚪ READ STYLE
+
+* Normal text
+* Faded
+
+---
+
+📌 CLICK BEHAVIOR
+
+When user clicks notification:
+
+✔ Mark as read
+✔ Optional redirect
+
+---
+
+📢 REAL-TIME POPUP
+
+When new notification arrives:
+
+* Show toast popup (bottom/top corner)
+* Auto-hide after few seconds
+
+---
+
+## 🧠 UX IMPROVEMENTS
+
+* "Mark all as read" button
+* Limit to last 20–50 notifications
+* Infinite scroll (optional)
+
+---
+
+🔐 SECURITY
+
+* Only logged-in user sees own notifications
+* No cross-user access
+
+---
+
+## 🧪 TEST CASES
+
+* Admin sends notification → appears instantly ✅
+* Notification stored in DB ✅
+* User sees in panel later ✅
+* Read/unread works correctly ✅
+
+---
+
+## 🎯 FINAL GOAL
+
+A professional notification system like:
+
+✔ Facebook
+✔ LinkedIn
+✔ SaaS dashboards
+
+Where:
+
+✔ Notifications persist
+✔ Real-time + history
+✔ Clean UX
+
+FULLY FUNCTIONAL NOTIFICATION SYSTEM.

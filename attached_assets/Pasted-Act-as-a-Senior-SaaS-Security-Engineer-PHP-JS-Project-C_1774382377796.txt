@@ -1,0 +1,107 @@
+Act as a Senior SaaS Security Engineer (PHP + JS).
+
+Project: ClearOrbit
+
+I want to enforce STRICT role-based access control.
+
+--------------------------------------
+🎯 OBJECTIVE
+--------------------------------------
+
+Manager role should have EXTREMELY LIMITED access.
+
+Manager can ONLY:
+
+✔ View Users page  
+✔ Add user  
+✔ Delete user  
+
+--------------------------------------
+🚫 MANAGER MUST NOT ACCESS
+--------------------------------------
+
+❌ Overview Dashboard  
+❌ Subscriptions  
+❌ Account Slots  
+❌ Cookie Vault  
+❌ Platforms  
+❌ Payments  
+❌ Activity Logs  
+❌ Admin Management  
+❌ ANY other page  
+
+--------------------------------------
+🧠 BACKEND SECURITY (VERY IMPORTANT)
+--------------------------------------
+
+In ALL admin PHP files:
+
+Add:
+
+if ($_SESSION['role'] === 'manager') {
+
+    $allowed = ['users.php', 'create_user.php', 'delete_user.php'];
+
+    $current = basename($_SERVER['PHP_SELF']);
+
+    if (!in_array($current, $allowed)) {
+        http_response_code(403);
+        echo json_encode(["error" => "Access denied"]);
+        exit;
+    }
+}
+
+--------------------------------------
+🌐 FRONTEND (SIDEBAR CONTROL)
+--------------------------------------
+
+If role === 'manager':
+
+✔ Show ONLY:
+- Users
+
+❌ Hide:
+- Overview
+- All other menu items
+
+--------------------------------------
+🔁 AUTO REDIRECT (IMPORTANT)
+--------------------------------------
+
+If manager tries to open dashboard manually:
+
+➡ Redirect to:
+
+/users.html
+
+--------------------------------------
+🧩 UI SIMPLIFICATION
+--------------------------------------
+
+Manager panel should look minimal:
+
+✔ Users table  
+✔ Add user button  
+✔ Delete button  
+
+--------------------------------------
+🔐 EXTRA SECURITY
+--------------------------------------
+
+Even if manager opens API manually:
+
+➡ Backend must block ALL restricted endpoints
+
+--------------------------------------
+💎 FINAL RESULT
+--------------------------------------
+
+✔ Manager sees ONLY Users page  
+✔ Cannot access Overview at all  
+✔ Cannot access any sensitive data  
+✔ Fully secure SaaS system  
+
+--------------------------------------
+
+DO NOT BREAK ADMIN ROLE.
+ONLY APPLY RESTRICTIONS TO MANAGER.

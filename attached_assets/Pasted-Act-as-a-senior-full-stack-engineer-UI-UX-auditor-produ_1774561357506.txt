@@ -1,0 +1,335 @@
+Act as a senior full-stack engineer, UI/UX auditor, product analyst, and backend architect.
+
+I want you to inspect my **Account Manager** page in detail and explain **every function, button, section, card, badge, metric, filter, and action** shown on this page.
+
+You must analyze it from both **frontend and backend** perspectives.
+
+## Main Goal
+
+Explain:
+
+1. what every function does
+2. how each button works
+3. what happens on click
+4. what backend/API/database logic is connected
+5. what data is displayed
+6. what is missing, broken, unclear, or poorly designed
+7. what improvements should be made
+
+---
+
+## Pages / Sections visible in this Account Manager UI
+
+Please inspect and explain all of these areas:
+
+### 1) Import Account Cookie
+
+Explain:
+
+* Paste Cookie Data textarea
+* supported formats
+* Single / Bulk Import toggle
+* Slots to Create
+* Max Users / Slot
+* Auto Setup button
+* auto-detection of platform
+* duplicate cookie prevention
+* slot creation logic
+* account import validation
+* what happens on successful import
+* what happens on failed import
+* toast/alert/success message handling
+
+### 2) Auto Setup Complete Result Panel
+
+Explain:
+
+* platform detected
+* status
+* slots created
+* max streams
+* login score
+* cookies processed
+* expiry info
+* login verification status
+* Import Another button
+* how result summary is generated
+* what fields come from backend
+* why some values show as undefined
+* how this should be fixed
+
+### 3) Recent Import Activity
+
+Explain:
+
+* each activity row
+* platform name
+* status label
+* slot count
+* stream count
+* time display
+* sorting logic
+* source of activity history
+* whether this comes from DB or local state
+* retention/history logic
+
+### 4) Account Intelligence
+
+Explain:
+
+* Run Intelligence button
+* Auto Clean button
+* Refresh button
+* Total Accounts
+* Avg IQ Score
+* Stable / Risky / Dead
+* Success Rate
+* Platform Breakdown cards
+* IQ score meaning
+* health classification logic
+* how account scoring works
+* how platform stats are calculated
+* what backend jobs/services are responsible
+
+### 5) Default Expiry
+
+Explain:
+
+* Default Expiry dropdown
+* fallback when cookie has no expiry
+* how expiry is stored
+* whether it is global or per platform
+* what happens when import has no expiry value
+
+### 6) Slot Capacity Overview
+
+Explain:
+
+* All Platforms dropdown filter
+* Recheck All button
+* Refresh button
+* auto-recheck every 15 min
+* group by platform
+* slot counters like "2 slots"
+* users/capacity display like "NaN/2 users"
+* Delete All button
+* each account card
+* account title like “Coursera Login”, “Netflix Login”, “Spotify Login 1”
+* Vault badge
+* Unverified badge
+* VALID badge
+* Available badge
+* health bar / progress bar
+* cookies count
+* score
+* expiry left
+* success rate
+* IQ score
+* stream/capacity indicators like undefined/1, undefined/4, undefined/5
+* platform section checkbox
+* card checkbox
+
+### 7) Per-Card Actions
+
+Explain each button separately:
+
+* Check
+* Edit
+* Replace
+* Delete
+
+For each action explain:
+
+* frontend component/function name
+* modal or page opened
+* API endpoint called
+* request payload
+* validation
+* permissions
+* expected response
+* UI updates after success
+* error handling after failure
+
+---
+
+## Required Analysis
+
+I want a complete breakdown in the following format:
+
+### A. High-Level Purpose
+
+What is the purpose of this Account Manager page in the product?
+
+### B. Frontend Breakdown
+
+Explain:
+
+* page layout
+* sections
+* cards
+* forms
+* filters
+* status badges
+* progress bars
+* toasts
+* buttons
+* dropdowns
+* conditional rendering
+* loading states
+* empty states
+* disabled states
+* error states
+
+### C. Backend Breakdown
+
+Explain:
+
+* all APIs used by this page
+* controllers
+* services
+* models
+* database tables/collections
+* background jobs
+* validation logic
+* cookie parsing logic
+* platform detection logic
+* slot allocation logic
+* account health check logic
+* intelligence scoring logic
+* delete/replace/edit logic
+* scheduled recheck logic
+
+### D. Button-by-Button Function Map
+
+Create a table with these columns:
+
+* UI Element
+* Where It Appears
+* Frontend File
+* Component Name
+* Function Name
+* Backend Route / Service
+* What It Does
+* Input Required
+* Success Result
+* Failure Result
+* Notes / Problems
+
+### E. Data Flow
+
+Explain the full flow step by step:
+
+* page load
+* initial API calls
+* rendering logic
+* user interaction
+* backend processing
+* DB updates
+* UI refresh
+* activity log update
+* intelligence recalculation
+* slot overview refresh
+
+### F. Problems / Bugs / Bad UX
+
+Identify all possible issues such as:
+
+* undefined values being shown
+* NaN values being shown
+* confusing labels
+* missing loading states
+* weak validation
+* unclear success/failure feedback
+* inconsistent naming
+* possible broken buttons
+* API mismatch
+* poor data formatting
+* missing permissions checks
+* performance issues
+* duplicate data risk
+* fragile cookie parsing
+* bad error handling
+* bad empty states
+* mobile responsiveness issues
+
+### G. Improvement Suggestions
+
+Give practical improvement recommendations for:
+
+* frontend UI
+* backend architecture
+* API design
+* database structure
+* naming consistency
+* health scoring
+* import UX
+* activity logs
+* edit/replace flow
+* bulk import UX
+* validation
+* error messages
+* system observability
+* auto-clean safety
+* performance for 1000+ users
+* admin usability
+* audit trails
+* slot capacity clarity
+* better labels instead of undefined / NaN
+
+### H. Priority Fixes
+
+At the end, give:
+
+* Critical fixes
+* High-priority improvements
+* Nice-to-have improvements
+
+---
+
+## Important Instructions
+
+* Do not give vague answers
+* Do not assume hidden behavior without checking code
+* If a function is missing, say it clearly
+* If UI exists but backend is missing, say it clearly
+* If a button is visual only and not functional, say it clearly
+* If the same data is calculated incorrectly, explain why
+* Pay special attention to the visible problems in this UI:
+
+  * "undefined" values
+  * "NaN" values
+  * possible missing stream/user calculations
+  * suspicious score logic
+  * validation and verification gaps
+
+---
+
+## Extra Task
+
+After explaining all functions, also answer these questions:
+
+1. What improvements should be made to make this Account Manager page more professional?
+2. What should be improved in UI/UX?
+3. What backend changes are needed for reliability and scale?
+4. What must be fixed before production?
+5. What should be optimized for fast performance and low loading time?
+6. What features are missing for a proper admin-grade account management system?
+7. How can this page be redesigned to be cleaner, safer, and easier to manage?
+
+---
+
+## Final Output Format
+
+Give the response in this order:
+
+1. Overview
+2. Full function-by-function explanation
+3. Frontend analysis
+4. Backend analysis
+5. Button/action table
+6. Bugs/issues found
+7. Improvement recommendations
+8. Production-readiness review
+9. Exact files I should edit first
+
+Now inspect the Account Manager page and explain everything in detail.

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <title>ClearOrbit &mdash; Premium Subscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/styles/responsive.css"/>
+    <style>
+        *{box-sizing:border-box}
+        body{background:linear-gradient(135deg,#F0EEFF 0%,#E8F0FE 40%,#F5F3FF 100%);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+
+        .glass-header{background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.5)}
+
+        .gradient-text{background:linear-gradient(135deg,#6C5CE7,#4F46E5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        .btn-gradient{background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;border:none;padding:.625rem 1.25rem;border-radius:.75rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(108,92,231,.25);display:inline-flex;align-items:center;gap:.5rem}
+        .btn-gradient:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 28px rgba(108,92,231,.4);filter:brightness(1.06)}
+        .btn-gradient:active{transform:translateY(0) scale(1)}
+
+        .btn-ghost{color:#6B7280;font-size:.875rem;font-weight:500;padding:.5rem .75rem;border-radius:.75rem;transition:all .2s;cursor:pointer;background:none;border:none;text-decoration:none}
+        .btn-ghost:hover{color:#6C5CE7;background:rgba(108,92,231,.06)}
+
+        .card{background:rgba(255,255,255,.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.55);border-radius:1.25rem;overflow:hidden;transition:all .35s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative}
+        .card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(108,92,231,.12);border-color:rgba(108,92,231,.15)}
+
+        .card-popular::before{content:'Popular';position:absolute;top:.875rem;right:.875rem;background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;font-size:.5625rem;font-weight:700;padding:.25rem .625rem;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;z-index:2}
+        .card-best::before{content:'Best Value';position:absolute;top:.875rem;right:.875rem;background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;font-size:.5625rem;font-weight:700;padding:.25rem .625rem;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;z-index:2}
+
+        .card-glow:hover{box-shadow:0 16px 48px rgba(108,92,231,.18),0 0 0 1px rgba(108,92,231,.1)}
+
+        .feature-card{background:rgba(255,255,255,.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.5);border-radius:1rem;padding:2rem;text-align:center;transition:all .3s ease}
+        .feature-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.06)}
+        .feature-icon{width:3.5rem;height:3.5rem;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+
+        .premium-input{width:100%;padding:.75rem 1rem .75rem 2.75rem;border:1px solid rgba(209,213,219,.5);border-radius:.875rem;font-size:.875rem;color:#111827;outline:none;transition:all .25s;background:rgba(255,255,255,.7);backdrop-filter:blur(8px)}
+        .premium-input:focus{border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.12);background:#fff}
+
+        .input{width:100%;padding:.625rem 1rem;border:1px solid rgba(209,213,219,.5);border-radius:.75rem;font-size:.875rem;color:#111827;outline:none;transition:all .2s;background:rgba(255,255,255,.7)}
+        .input:focus{border-color:#6C5CE7;box-shadow:0 0 0 3px rgba(108,92,231,.12);background:#fff}
+
+        .badge{display:inline-flex;align-items:center;padding:.25rem .75rem;border-radius:999px;font-size:.6875rem;font-weight:600;letter-spacing:.02em}
+        .badge-green{background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.12)}
+
+        .btn{padding:.5rem 1rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:.375rem}
+        .btn-primary{background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;border:none;box-shadow:0 2px 8px rgba(108,92,231,.2)}.btn-primary:hover{box-shadow:0 4px 16px rgba(108,92,231,.3);filter:brightness(1.05)}
+        .btn-secondary{background:rgba(255,255,255,.8);color:#374151;border:1px solid rgba(209,213,219,.5);backdrop-filter:blur(8px)}.btn-secondary:hover{background:#fff;border-color:#C7D2FE;color:#6C5CE7}
+        .btn-success{background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none}.btn-success:hover{filter:brightness(1.06)}
+        .btn-sm{padding:.375rem .75rem;font-size:.75rem}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;visibility:hidden;transition:all .25s}
+        .modal-overlay.active{opacity:1;visibility:visible}
+        .modal-overlay.active .modal-content{transform:scale(1);opacity:1}
+        .modal-content{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:1.25rem;width:100%;max-width:520px;box-shadow:0 25px 60px rgba(0,0,0,.15);transform:scale(.95);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);max-height:90vh;overflow-y:auto;border:1px solid rgba(255,255,255,.6)}
+
+        .plan-option{border:1px solid rgba(229,231,235,.6);border-radius:.75rem;padding:1rem;cursor:pointer;transition:all .2s;position:relative;background:rgba(249,250,251,.5)}
+        .plan-option:hover{border-color:rgba(108,92,231,.3);background:rgba(238,242,255,.4)}
+        .plan-option.selected{border-color:#6C5CE7;background:rgba(238,242,255,.6);box-shadow:0 0 0 1px rgba(108,92,231,.15)}
+        .plan-option .check{width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid #D1D5DB;transition:all .2s;flex-shrink:0}
+        .plan-option.selected .check{border-color:#6C5CE7;background:#6C5CE7}
+        .plan-option.selected .check::after{content:'';display:block;width:.375rem;height:.375rem;border-radius:50%;background:#fff;margin:.25rem auto}
+
+        .type-option{border:1px solid rgba(229,231,235,.6);border-radius:.75rem;padding:.875rem;cursor:pointer;transition:all .2s;text-align:center;flex:1;background:rgba(249,250,251,.5)}
+        .type-option:hover{border-color:rgba(108,92,231,.3)}
+        .type-option.selected{border-color:#6C5CE7;background:rgba(238,242,255,.6);box-shadow:0 0 0 1px rgba(108,92,231,.15)}
+
+        .best-badge{position:absolute;top:-.5rem;right:.75rem;background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;font-size:.5625rem;font-weight:700;padding:.1875rem .625rem;border-radius:999px;text-transform:uppercase;letter-spacing:.05em}
+
+        .skeleton{background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:.75rem}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+        .whatsapp-btn{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-weight:600;border-radius:.75rem;padding:.8125rem 1.5rem;font-size:.9375rem;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;border:none;width:100%;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.25)}
+        .whatsapp-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,.35);filter:brightness(1.06)}
+
+        .modal-buy-btn{background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;border:none;font-weight:600;border-radius:.75rem;padding:.8125rem 1.5rem;font-size:.9375rem;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;width:100%;justify-content:center;box-shadow:0 4px 16px rgba(108,92,231,.25)}
+        .modal-buy-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(108,92,231,.35);filter:brightness(1.06)}
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .animate-in{animation:fadeInUp .5s ease forwards}
+        .animate-in-d1{animation:fadeInUp .5s ease .08s forwards;opacity:0}
+        .animate-in-d2{animation:fadeInUp .5s ease .16s forwards;opacity:0}
+        .animate-in-d3{animation:fadeInUp .5s ease .24s forwards;opacity:0}
+
+        .nav-link{color:#6B7280;font-size:.875rem;font-weight:500;text-decoration:none;padding:.375rem .75rem;border-radius:.5rem;transition:all .2s}
+        .nav-link:hover{color:#6C5CE7;background:rgba(108,92,231,.06)}
+
+        .footer-link{color:#9CA3AF;font-size:.75rem;text-decoration:none;transition:color .2s}
+        .footer-link:hover{color:#6C5CE7}
+
+        .hamburger{display:none;background:none;border:none;cursor:pointer;padding:.5rem;color:#6B7280}
+        .mobile-menu{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(229,231,235,.4);padding:.75rem 1rem;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+        .mobile-menu.open{display:flex;flex-direction:column;gap:.25rem}
+        .mobile-menu a{padding:.625rem .75rem;border-radius:.5rem;font-size:.875rem;font-weight:500;color:#374151;text-decoration:none;transition:all .2s}
+        .mobile-menu a:hover{background:rgba(108,92,231,.06);color:#6C5CE7}
+        @media(max-width:639px){
+            .hamburger{display:flex}
+            .desktop-nav{display:none !important}
+        }
+        @media(max-width:767px){
+            .modal-content{max-width:100%;max-height:100vh;height:auto;min-height:100vh;border-radius:0;margin:0}
+            .modal-overlay{padding:0}
+            .whatsapp-btn,.modal-buy-btn{min-height:48px}
+            .plan-option{padding:.875rem}
+            .type-option{padding:.75rem}
+        }
+    </style>
+</head>
+<body>
+<div class="min-h-screen flex flex-col">
+    <header class="glass-header sticky top-0 z-30" style="position:sticky;position:-webkit-sticky">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <span class="font-bold text-gray-900">ClearOrbit</span>
+            </div>
+            <nav class="desktop-nav hidden sm:flex items-center gap-1">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#platforms" class="nav-link">Pricing</a>
+                <a href="index.html" class="nav-link">Login</a>
+                <a href="#platforms" class="btn-gradient ml-2" style="padding:.5rem 1rem;font-size:.8125rem">Get Started</a>
+            </nav>
+            <div class="sm:hidden flex items-center gap-2">
+                <button class="hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')" aria-label="Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+            <div id="mobileMenu" class="mobile-menu">
+                <a href="#features" onclick="document.getElementById('mobileMenu').classList.remove('open')">Features</a>
+                <a href="#platforms" onclick="document.getElementById('mobileMenu').classList.remove('open')">Pricing</a>
+                <a href="index.html">Login</a>
+                <a href="#platforms" class="btn-gradient" style="text-align:center;margin-top:.25rem" onclick="document.getElementById('mobileMenu').classList.remove('open')">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1">
+        <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 text-center">
+            <div class="animate-in">
+                <div class="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-white/50 rounded-full px-4 py-1.5 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs font-semibold text-gray-500">Trusted by 1000+ users worldwide</span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">Get <span class="gradient-text">Premium Subscription</span></h1>
+                <p class="text-gray-500 mt-2 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">Choose your favorite platform and get instant access. Affordable shared accounts with guaranteed uptime and 24/7 support.</p>
+            </div>
+
+            <div class="flex justify-center mt-8 mb-4 animate-in-d1">
+                <div class="relative" style="min-width:240px;max-width:400px;width:100%">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="searchPlatforms" class="premium-input" style="padding-left:2.75rem" placeholder="Search platforms..." oninput="filterPlatforms()"/>
+                </div>
+            </div>
+        </section>
+
+        <section id="platforms" class="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+            <div id="skeletonGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div class="card p-6"><div class="skeleton h-16 w-16 mx-auto mb-4" style="border-radius:1rem"></div><div class="skeleton h-4 w-2/3 mx-auto mb-3"></div><div class="skeleton h-10 w-full" style="border-radius:.75rem"></div></div>
+                <div class="card p-6"><div class="skeleton h-16 w-16 mx-auto mb-4" style="border-radius:1rem"></div><div class="skeleton h-4 w-2/3 mx-auto mb-3"></div><div class="skeleton h-10 w-full" style="border-radius:.75rem"></div></div>
+                <div class="card p-6"><div class="skeleton h-16 w-16 mx-auto mb-4" style="border-radius:1rem"></div><div class="skeleton h-4 w-2/3 mx-auto mb-3"></div><div class="skeleton h-10 w-full" style="border-radius:.75rem"></div></div>
+                <div class="card p-6"><div class="skeleton h-16 w-16 mx-auto mb-4" style="border-radius:1rem"></div><div class="skeleton h-4 w-2/3 mx-auto mb-3"></div><div class="skeleton h-10 w-full" style="border-radius:.75rem"></div></div>
+            </div>
+
+            <div id="platformsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 hidden"></div>
+
+            <div id="emptyState" class="hidden py-16 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+                <p class="text-gray-500 text-sm font-medium">No platforms available right now.</p>
+            </div>
+        </section>
+
+        <section id="features" class="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Why Choose <span class="gradient-text">ClearOrbit</span>?</h2>
+                <p class="text-gray-400 text-sm max-w-md mx-auto">Everything you need for premium platform access, built for reliability and ease of use.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="feature-card">
+                    <div class="feature-icon bg-green-50">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1.5">Secure Access</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Enterprise-grade encryption protects your sessions. No passwords stored, cookie-based access only.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon bg-blue-50">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1.5">Instant Activation</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Get access within minutes of payment confirmation. No waiting, no complicated setup required.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon bg-purple-50">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1.5">24/7 Support</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Round-the-clock customer support via WhatsApp. We're always here to help with any issues.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/40 bg-white/30 backdrop-blur-sm py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-md bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-700">ClearOrbit</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="#features" class="footer-link">Features</a>
+                    <a href="#platforms" class="footer-link">Pricing</a>
+                    <a href="index.html" class="footer-link">Login</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="#" class="text-gray-400 hover:text-indigo-500 transition-colors" aria-label="Twitter">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-500 transition-colors" aria-label="Instagram">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-500 transition-colors" aria-label="Facebook">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                </div>
+                <p class="text-gray-400 text-xs">&copy; 2026 ClearOrbit. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div id="planModal" class="modal-overlay" onclick="if(event.target===this)closePlanModal()">
+    <div class="modal-content">
+        <div class="px-6 py-4 border-b border-gray-100/60 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="modalLogo" class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-bold"></div>
+                <div>
+                    <h3 id="modalPlatformName" class="font-bold text-gray-900">Platform</h3>
+                    <p class="text-xs text-gray-400">Choose your plan</p>
+                </div>
+            </div>
+            <button onclick="closePlanModal()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Duration</label>
+                <div class="space-y-2.5" id="durationOptions">
+                    <div class="plan-option selected" onclick="selectDuration(this, '1_week')" data-duration="1_week">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3"><div class="check"></div><span class="text-sm font-medium text-gray-900">1 Week</span></div>
+                            <span class="text-sm font-bold text-gray-900" data-price-slot="1_week">$2.99</span>
+                        </div>
+                    </div>
+                    <div class="plan-option" onclick="selectDuration(this, '1_month')" data-duration="1_month">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3"><div class="check"></div><span class="text-sm font-medium text-gray-900">1 Month</span></div>
+                            <span class="text-sm font-bold text-gray-900" data-price-slot="1_month">$7.99</span>
+                        </div>
+                    </div>
+                    <div class="plan-option" onclick="selectDuration(this, '6_months')" data-duration="6_months">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3"><div class="check"></div><span class="text-sm font-medium text-gray-900">6 Months</span></div>
+                            <span class="text-sm font-bold text-gray-900" data-price-slot="6_months">$34.99</span>
+                        </div>
+                    </div>
+                    <div class="plan-option" onclick="selectDuration(this, '1_year')" data-duration="1_year">
+                        <div class="best-badge">Best Value</div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3"><div class="check"></div><span class="text-sm font-medium text-gray-900">1 Year</span></div>
+                            <span class="text-sm font-bold text-gray-900" data-price-slot="1_year">$59.99</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Account Type</label>
+                <div class="flex gap-3">
+                    <div class="type-option" onclick="selectType(this, 'shared')">
+                        <svg class="w-5 h-5 mx-auto mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <p class="text-sm font-medium text-gray-900">Shared</p>
+                        <p class="text-xs text-gray-400">Lower price</p>
+                    </div>
+                    <div class="type-option selected" onclick="selectType(this, 'private')">
+                        <svg class="w-5 h-5 mx-auto mb-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <p class="text-sm font-medium text-gray-900">Private</p>
+                        <p class="text-xs text-gray-400">Solo access</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Your Username</label>
+                <input id="buyUsername" class="input" placeholder="Enter your username"/>
+            </div>
+
+            <div class="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 rounded-xl p-4 flex items-center justify-between border border-indigo-100/50">
+                <div>
+                    <p class="text-xs text-gray-500 font-medium">Total Price</p>
+                    <p id="totalPrice" class="text-2xl font-extrabold gradient-text">$7.99</p>
+                </div>
+                <span class="badge badge-green">Instant Access</span>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="buyNow()" class="flex-1 modal-buy-btn">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    Buy Now
+                </button>
+                <button id="whatsappBtn" onclick="orderViaWhatsApp()" class="whatsapp-btn flex-1">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    WhatsApp Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeSuccessModal()"></div>
+    <div id="successContent" class="relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl max-w-md w-full p-8 text-center transform scale-95 opacity-0 transition-all duration-300 border border-white/60">
+        <div id="successIcon" class="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"></div>
+        <h3 id="successTitle" class="text-xl font-extrabold text-gray-900 mb-2"></h3>
+        <p id="successMsg" class="text-gray-500 text-sm mb-6"></p>
+        <button onclick="closeSuccessModal()" class="btn-gradient w-full justify-center py-3 rounded-xl font-semibold">Got it</button>
+    </div>
+</div>
+
+<script>
+function showResultModal(success, title, message) {
+    const modal = document.getElementById('successModal');
+    const content = document.getElementById('successContent');
+    const icon = document.getElementById('successIcon');
+    document.getElementById('successTitle').textContent = title;
+    document.getElementById('successMsg').textContent = message;
+    if (success) {
+        icon.className = 'w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-green-100';
+        icon.innerHTML = '<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    } else {
+        icon.className = 'w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-red-100';
+        icon.innerHTML = '<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    }
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => { content.style.transform = 'scale(1)'; content.style.opacity = '1'; });
+}
+function closeSuccessModal() {
+    const content = document.getElementById('successContent');
+    content.style.transform = 'scale(0.95)'; content.style.opacity = '0';
+    setTimeout(() => { document.getElementById('successModal').style.display = 'none'; }, 200);
+}
+
+const FALLBACK_CONFIG = { prices: { '1_week': 2.99, '1_month': 7.99, '6_months': 34.99, '1_year': 59.99 }, whatsapp: '1234567890' };
+let PLATFORMS_CONFIG = {};
+
+let selectedDuration = '1_week';
+let selectedType = 'private';
+let currentPlatform = null;
+let ALL_PLATFORMS = [];
+
+const BADGE_MAP = { 'Netflix': 'card-popular', 'ChatGPT': 'card-popular', 'Canva': 'card-best', 'Coursera': 'card-best' };
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+async function loadPlatforms() {
+    try {
+        const res = await fetch('api/get_public_platforms', { credentials: 'include' });
+        const data = await res.json();
+        ALL_PLATFORMS = (data.platforms || []).filter(p => p.is_active);
+
+        ALL_PLATFORMS.forEach(p => {
+            const cfg = { prices: { ...FALLBACK_CONFIG.prices }, whatsapp: FALLBACK_CONFIG.whatsapp };
+            if (p.pricing) {
+                ['1_week','1_month','6_months','1_year'].forEach(key => {
+                    if (p.pricing[key]) {
+                        cfg.prices[key] = parseFloat(p.pricing[key].private) || cfg.prices[key];
+                        cfg.prices[key + '_shared'] = parseFloat(p.pricing[key].shared) || cfg.prices[key] * 0.6;
+                        cfg.prices[key + '_private'] = parseFloat(p.pricing[key].private) || cfg.prices[key];
+                    }
+                });
+            }
+            if (p.whatsapp) {
+                cfg.whatsapp = p.whatsapp || FALLBACK_CONFIG.whatsapp;
+            }
+            PLATFORMS_CONFIG[p.name] = cfg;
+        });
+
+        document.getElementById('skeletonGrid').classList.add('hidden');
+        if (ALL_PLATFORMS.length === 0) {
+            document.getElementById('emptyState').classList.remove('hidden');
+            return;
+        }
+        renderPlatforms(ALL_PLATFORMS);
+        document.getElementById('platformsGrid').classList.remove('hidden');
+    } catch (e) {
+        document.getElementById('skeletonGrid').classList.add('hidden');
+        console.error('loadPlatforms error', e);
+    }
+}
+
+function renderPlatforms(platforms) {
+    document.getElementById('platformsGrid').innerHTML = platforms.map((p, i) => {
+        const logoSrc = p.logo_url || '';
+        const color = p.bg_color_hex || '#6C5CE7';
+        const badgeClass = BADGE_MAP[p.name] || '';
+        const logoHtml = logoSrc
+            ? `<img src="${escHtml(logoSrc)}" alt="${escHtml(p.name)}" class="w-16 h-16 rounded-2xl object-cover mx-auto" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div style="display:none" class="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 items-center justify-center text-2xl font-bold mx-auto">${escHtml(p.name.charAt(0))}</div>`
+            : `<div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto" style="background:${escHtml(color)}">${escHtml(p.name[0].toUpperCase())}</div>`;
+        const delay = Math.min(i * 60, 300);
+        return `
+        <div class="card card-glow ${badgeClass} p-6 text-center platform-card" data-name="${escHtml(p.name.toLowerCase())}" data-platform-idx="${i}" style="animation:fadeInUp .5s ease ${delay}ms forwards;opacity:0">
+            <div class="mb-4">${logoHtml}</div>
+            <h3 class="font-bold text-gray-900 mb-1">${escHtml(p.name)}</h3>
+            <p class="text-xs text-gray-400 mb-4">Premium access available</p>
+            <button data-idx="${i}" class="view-plans-btn btn-gradient w-full justify-center" style="padding:.625rem 1rem">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                View Plans
+            </button>
+        </div>`;
+    }).join('');
+    document.querySelectorAll('.view-plans-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.dataset.idx);
+            if (ALL_PLATFORMS[idx]) openPlanModal(ALL_PLATFORMS[idx]);
+        });
+    });
+}
+
+function filterPlatforms() {
+    const q = document.getElementById('searchPlatforms').value.toLowerCase();
+    document.querySelectorAll('.platform-card').forEach(card => {
+        card.style.display = (card.dataset.name || '').includes(q) ? '' : 'none';
+    });
+}
+
+function openPlanModal(platform) {
+    currentPlatform = platform;
+    document.getElementById('modalPlatformName').textContent = platform.name;
+    const logoEl = document.getElementById('modalLogo');
+    if (platform.logo_url) {
+        logoEl.innerHTML = `<img src="${escHtml(platform.logo_url)}" class="w-11 h-11 rounded-xl object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div style="display:none" class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 items-center justify-center text-lg font-bold">${escHtml(platform.name.charAt(0))}</div>`;
+    } else {
+        logoEl.style.background = platform.bg_color_hex || '#6C5CE7';
+        logoEl.textContent = platform.name[0].toUpperCase();
+    }
+
+    selectedDuration = '1_week';
+    selectedType = 'private';
+    document.querySelectorAll('.plan-option').forEach((el, i) => {
+        el.classList.toggle('selected', i === 0);
+    });
+    document.querySelectorAll('.type-option').forEach((el, i) => {
+        el.classList.toggle('selected', i === 1);
+    });
+
+    updatePrices();
+    document.getElementById('planModal').classList.add('active');
+}
+
+function closePlanModal() {
+    document.getElementById('planModal').classList.remove('active');
+    currentPlatform = null;
+}
+
+function selectDuration(el, duration) {
+    document.querySelectorAll('.plan-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDuration = duration;
+    updatePrices();
+}
+
+function selectType(el, type) {
+    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedType = type;
+    updatePrices();
+}
+
+function getConfig(platformName) {
+    return PLATFORMS_CONFIG[platformName] || FALLBACK_CONFIG;
+}
+
+function getPriceForKey(config, key, type) {
+    const pKey = key + '_' + type;
+    if (config.prices[pKey] !== undefined) return config.prices[pKey];
+    const base = config.prices[key] || 0;
+    return type === 'shared' ? base * 0.6 : base;
+}
+
+function updatePrices() {
+    if (!currentPlatform) return;
+    const config = getConfig(currentPlatform.name);
+
+    ['1_week', '1_month', '6_months', '1_year'].forEach(key => {
+        const price = getPriceForKey(config, key, selectedType);
+        const el = document.querySelector(`[data-price-slot="${key}"]`);
+        if (el) el.textContent = '$' + price.toFixed(2);
+    });
+
+    const total = getPriceForKey(config, selectedDuration, selectedType);
+    document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+}
+
+function getDurationLabel(d) {
+    const map = { '1_week': '1 Week', '1_month': '1 Month', '6_months': '6 Months', '1_year': '1 Year' };
+    return map[d] || d;
+}
+
+async function buyNow() {
+    if (!currentPlatform) return;
+    const username = document.getElementById('buyUsername').value.trim();
+    if (!username) {
+        document.getElementById('buyUsername').focus();
+        document.getElementById('buyUsername').style.borderColor = '#EF4444';
+        setTimeout(() => document.getElementById('buyUsername').style.borderColor = '', 2000);
+        return;
+    }
+
+    const config = getConfig(currentPlatform.name);
+    const price = getPriceForKey(config, selectedDuration, selectedType).toFixed(2);
+
+    try {
+        const res = await fetch('api/create_payment', { credentials: 'include',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                platform_id: currentPlatform.id,
+                username,
+                duration_key: selectedDuration,
+                account_type: selectedType,
+                price: parseFloat(price)
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showResultModal(true, 'Order Placed!', 'Your order is pending admin approval. You will receive access once your payment is confirmed.');
+        } else {
+            showResultModal(false, 'Order Failed', data.message || 'Failed to place order. Please try again.');
+        }
+    } catch(e) {
+        showResultModal(false, 'Connection Error', 'Network error. Please check your connection and try again.');
+    }
+}
+
+async function orderViaWhatsApp() {
+    if (!currentPlatform) return;
+    const username = document.getElementById('buyUsername').value.trim();
+    if (!username) {
+        document.getElementById('buyUsername').focus();
+        document.getElementById('buyUsername').style.borderColor = '#EF4444';
+        setTimeout(() => document.getElementById('buyUsername').style.borderColor = '', 2000);
+        return;
+    }
+
+    const config = getConfig(currentPlatform.name);
+    const price = getPriceForKey(config, selectedDuration, selectedType).toFixed(2);
+    const whatsappNumber = config.whatsapp || '1234567890';
+
+    try {
+        await fetch('api/create_payment', { credentials: 'include',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                platform_id: currentPlatform.id,
+                username,
+                duration_key: selectedDuration,
+                account_type: selectedType,
+                price: parseFloat(price)
+            })
+        });
+    } catch(e) {}
+
+    const message = `Hello, I want to buy *${currentPlatform.name}*\nUsername: ${username}\nPlan: ${getDurationLabel(selectedDuration)}\nType: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}\nPrice: $${price}`;
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
+}
+
+loadPlatforms();
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+Act as a Senior Frontend UX Engineer and PHP SaaS Developer.
+
+Fix UI/UX and layout issues in the ClearOrbit project while keeping the existing system intact.
+
+---
+
+## 🎯 OBJECTIVE
+
+* Fix broken UI in:
+
+  * Support Tickets
+  * Announcements
+  * Contact Messages
+
+* Ensure clean, responsive layout
+
+* Fix zoom issues (125% → must work perfectly at 100%)
+
+---
+
+## 🚨 CURRENT PROBLEMS
+
+1. Message text is not displaying properly
+
+   * Text overlapping or cutting
+   * Not wrapping inside table
+
+2. Table layout is broken
+
+   * Columns misaligned
+   * Message column too small
+
+3. UI breaks at zoom (125%)
+
+   * Layout not responsive
+   * Elements overflow
+
+---
+
+## 🧩 REQUIRED FIXES
+
+1. TEXT WRAPPING FIX
+
+Apply:
+
+* word-wrap: break-word;
+* white-space: normal;
+* max-width for message column
+
+Ensure:
+
+* Long messages wrap properly
+* No overflow outside table
+
+---
+
+2. TABLE DESIGN FIX
+
+* Make table fully responsive
+
+* Set proper column widths:
+
+  Title → small
+  Message → large
+  Status → small
+  Date → small
+
+* Add padding and spacing
+
+---
+
+3. RESPONSIVE LAYOUT FIX
+
+* Use:
+
+  max-width: 100%
+  overflow-x: auto (for tables)
+
+* Ensure layout works on:
+
+  * 100% zoom ✅
+  * 125% zoom ✅
+  * Mobile ✅
+
+---
+
+4. CONTAINER FIX
+
+* Wrap tables inside:
+
+  .table-container {
+  width: 100%;
+  overflow-x: auto;
+  }
+
+---
+
+5. MESSAGE DISPLAY IMPROVEMENT
+
+* Limit message preview:
+
+  max 2 lines in table
+
+* Add:
+
+  "View More" button OR tooltip
+
+---
+
+6. MODAL / POPUP VIEW (OPTIONAL)
+
+* On click → show full message in modal
+
+---
+
+7. ANNOUNCEMENT FORM FIX
+
+* Improve textarea size
+* Add spacing
+* Fix alignment
+
+---
+
+8. CONTACT MESSAGES FIX
+
+* Show full user message properly
+* No cut or overflow
+
+---
+
+9. GLOBAL UI FIX
+
+* Fix font sizes (consistent)
+* Fix spacing
+* Ensure clean SaaS look
+
+---
+
+## 🔐 DO NOT CHANGE
+
+* Do NOT break backend logic
+* Do NOT change database
+* Only fix UI + display issues
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+* Updated CSS
+* Updated table layout
+* Responsive fixes
+* Clean UI improvements
+
+---
+
+## 🎯 FINAL GOAL
+
+* Messages fully readable
+* Tables clean and aligned
+* No UI break on zoom
+* Professional SaaS look
+
+WORK LIKE A PRO UX ENGINEER.

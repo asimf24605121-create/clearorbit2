@@ -1,0 +1,101 @@
+
+This is a significant architecture upgrade. Let me assess the current system and plan the work carefully.
+
+I've analyzed the full system. This is a substantial upgrade touching the schema, session store, Socket.io, and cleanup logic. Let me plan and execute this methodically.
+
+Let me start with T001 — the schema migration:
+
+Now let me implement T001 — add numeric timestamp columns and fingerprint:
+
+Schema migrated. Now let me backfill existing sessions with numeric timestamps and create the in-memory session store (T002):
+
+Now T002 — create the in-memory SessionStore:
+
+Now T003 — update all write paths. Let me update the helpers first, then auth.js, dashboard.js, and server.js:
+
+Now let me update all the write/read paths. This touches many files. Let me update auth.js (login), dashboard.js (heartbeat, access, release, force logout), server.js (cleanup, socket), and middleware/auth.js (session validation):
+
+Now update dashboard.js — heartbeat, access_platform, release, force logout, session_status, get_dashboard:
+
+Now update the access_platform session creation to use numeric timestamps + store:
+
+Now update the heartbeat, release, and force logout endpoints:
+
+Now update server.js — cleanup job, socket rooms, store initialization, and slot sync:
+
+Now update server.js to add user rooms, session store init, and improved cleanup:
+
+Now update the cleanup job to use numeric timestamps and the session store:
+
+Now add session store sync and slot sync to startup and as a periodic job:
+
+Let me check the current state of the session store and the server startup, then continue the implementation.
+
+Good — the session store has all the methods I've been calling. Now let me add the startup sync and periodic slot sync check to server.js, then update accounts.js for admin session operations.
+
+Now update accounts.js to use the session store for admin operations (slot management, force release, enrichment):
+
+Now update accounts.js — add the sessionStore import and update enrichAccountWithSessions to use numeric timestamps, plus update the admin session mutation paths:
+
+Now update the admin session mutation endpoints in accounts.js (auto_clean sessions release, reassign_slot, assign_slot) to sync with the store:
+
+Now let me update the auth middleware to use numeric timestamps for session timeout checks, and the accounts.js lastActive select to include lastActiveAt:
+
+Now update the auth middleware to use numeric timestamps + session store:
+
+Now let me also check and update the accounts.js select queries to include lastActiveAt, and any remaining session reads in admin/support routes:
+
+Let me update the select statements in accounts.js to include lastActiveAt, and check the admin.js session-related reads:
+
+Now let me also fix the duplicate import in dashboard.js that we may have from the earlier progress:
+
+Good, only one import. Now let me restart the server and check for errors:
+
+Server started cleanly — store synced with 1 account session and 5 user sessions from the DB. Now let me quickly check for any remaining string-based timestamp comparisons that we should update for T004 completeness:
+
+Now let me update the remaining string-based comparisons in dashboard.js (lines 94, 100, 383, 390) — those are in session_status and get_dashboard user session reads:
+
+Now let me restart the server with all changes and run the e2e tests:
+
+Server running cleanly with the session store synced. Now let me run the E2E tests to verify everything works:
+
+All E2E tests pass. Let me check the server logs for any errors during the test:
+
+Clean logs — no errors. Now let me run the code review:
+
+Good review. Let me fix the critical issues identified:
+
+Fix 2: Strengthen slot sync to use ID-based reconciliation instead of count-only:
+
+Fix 3: Make cleanup DB-authoritative by using the actually-cleaned IDs from DB:
+
+Fix 4: Add fingerprint enforcement in the auth middleware:
+
+Fix 5: Update the access_platform include to also select lastActiveAt:
+
+Now restart and verify everything still works:
+
+Server running cleanly. Let me update the session plan and replit.md:
+
+Now update replit.md to document the session store:
+
+All seven tasks are complete. Here's a summary of what was done:
+
+Session System Upgrade — Complete
+
+All 7 tasks have been implemented and verified:
+
+Schema migration — lastActiveAt, lastActivityAt, createdAtMs (BigInt) and fingerprint (String) columns added to the session tables.
+
+In-memory SessionStore — Map-based store with full session lifecycle methods (register, heartbeat, release, sync). ID-based drift detection runs every 60 seconds and self-heals automatically.
+
+All write paths updated — Every session mutation (login, heartbeat, access platform, release, force logout, admin auto-clean, reassign, assign) now dual-writes to both the database and the in-memory store.
+
+All read/comparison paths updated — Numeric timestamps are the primary comparison source everywhere (auth middleware timeout, cleanup job, dashboard session filtering, account enrichment). String timestamps remain as fallback for any unmigrated rows.
+
+WebSocket user rooms — Each connected user now joins a user_{id} room on connect. emitUserEvent() is exported for pushing session updates to specific users.
+
+Cleanup safety + slot sync — Cleanup is now DB-authoritative (finds stale IDs first, then updates and releases from store). Periodic sync compares actual session IDs, not just counts, to catch any drift.
+
+Security hardening — Fingerprints (SHA-256 of IP + User Agent) are stored on login and checked on every authenticated request. Currently in detect-and-log mode so mismatches are visible in server logs without breaking existing sessions.
+

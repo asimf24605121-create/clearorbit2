@@ -1,0 +1,337 @@
+Act as a senior full-stack engineer debugging an existing production session and slot management system.
+
+Do NOT redesign from scratch.
+Patch the existing system properly.
+
+## CURRENT VERIFIED ISSUES
+
+The system had these real bugs:
+
+1. Device & Session Info showed inflated counts like "6/2"
+
+   * Root cause: active_devices counted all raw userSession rows with status='active'
+   * Old/stale/duplicate sessions were never cleaned up properly
+   * This caused false device counts
+
+2. Session list UI was incomplete
+
+   * Only the current session was shown
+   * Other active sessions from other browsers/IPs were not rendered
+
+3. Force Logout was broken
+
+   * Dashboard called an admin-only endpoint with wrong payload
+   * It failed silently
+
+4. Per-session force logout was missing
+
+   * User could not terminate one specific session
+
+5. Slot identity had already been fixed earlier to:
+   userId + platformId + browserSessionId + ipAddress
+   so different browser or different IP should create a new slot
+
+Use this as current system context.
+
+---
+
+## GOAL
+
+Fully finish and harden the session/device/slot system so that:
+
+* active device count is accurate
+* session list shows all real active sessions
+* current session is clearly marked
+* stale sessions do not inflate counts
+* force logout works for:
+
+  1. all other sessions
+  2. one specific session
+* dashboard session view and account slot view stay in sync
+* different browser or IP uses a new slot
+* closed or stale sessions are removed correctly
+
+---
+
+## REQUIRED FINAL BEHAVIOR
+
+### Session counting
+
+Count only real active sessions.
+
+Do NOT count:
+
+* stale sessions
+* duplicate rows for same real browser identity
+* old login records
+
+Use a freshness window and identity grouping.
+
+Recommended grouping identity:
+ipAddress + browser + os
+or, if available:
+browserSessionId + ipAddress
+
+### Session list UI
+
+Render every active session for the current user.
+
+For each session show:
+
+* browser
+* OS
+* IP
+* started time
+* last seen / freshness
+* current session badge
+* force logout button for other sessions
+
+### Force logout
+
+Support both:
+
+1. Force Logout Others
+2. Force Logout Specific Session
+
+Both must work from the dashboard for the logged-in user.
+
+### Slot synchronization
+
+If 2 real sessions are active:
+
+* user dashboard should show 2 active devices
+* admin/account manager should show 2 live sessions / used slots
+* no mismatch like "0 live" while sessions exist
+
+---
+
+## TASK 1 — ROOT CAUSE VALIDATION
+
+Inspect the code and verify these actual causes:
+
+* raw userSession rows were being counted
+* stale sessions were not filtered
+* activeSessionsList was not rendered
+* wrong force_logout endpoint was used
+* per-session logout was missing
+
+Confirm the exact files and functions responsible.
+
+---
+
+## TASK 2 — BACKEND FIX
+
+Patch the backend so session_status and dashboard data return:
+
+* only fresh active sessions
+* grouped unique sessions
+* correct active device count
+* session details for rendering
+* current session identification
+* consistent data for both dashboard and admin views
+
+Implement:
+
+* freshness cutoff, e.g. 30 minutes
+* grouping logic for real session identity
+* stale session exclusion
+* per-session termination endpoint
+* force logout others endpoint
+
+Important:
+Do not use raw count(status='active') anymore.
+
+---
+
+## TASK 3 — DASHBOARD FRONTEND FIX
+
+Patch the dashboard frontend so updateDeviceInfo:
+
+* renders all active sessions into activeSessionsList
+* highlights the current session
+* shows browser, OS, IP, started time
+* adds Force Logout button for every non-current session
+* updates counts correctly
+* refreshes instantly after logout
+
+Make sure the current session is never accidentally logged out by "Force Logout Others".
+
+---
+
+## TASK 4 — FORCE LOGOUT IMPLEMENTATION
+
+Implement these APIs if not already done correctly:
+
+### POST /api/force_logout
+
+For the current authenticated user:
+
+* terminate all other active sessions
+* keep current session alive
+
+### POST /api/force_logout_session
+
+For the current authenticated user:
+
+* terminate only the requested sessionId
+* verify ownership before terminating
+
+Return consistent JSON success/failure responses.
+
+Also update the frontend to use these correct endpoints.
+
+---
+
+## TASK 5 — SLOT VIEW CONSISTENCY
+
+Audit why admin slot cards can show things like:
+
+* "0 live 1 free"
+  even when user sessions exist
+
+Fix the mapping between:
+
+* user sessions
+* account sessions
+* slot live count
+* heartbeat freshness
+
+Make sure live slot count uses real fresh active session records, not stale rows or mismatched models.
+
+---
+
+## TASK 6 — DATA MODEL / CLEANUP
+
+Review the difference between:
+
+* userSession
+* accountSession
+
+Explain how they should relate.
+
+Then patch the system so:
+
+* user session counts are not inflated
+* account slot usage matches actual active platform access
+* stale rows are cleaned or ignored properly
+* historical login data stays separate from active session state
+
+---
+
+## TASK 7 — FILE-BY-FILE PATCH LIST
+
+Tell me exactly which files were changed or still need changes, such as:
+
+* dashboard route/backend file
+* session status endpoint
+* force logout endpoint
+* frontend dashboard JS / HTML
+* admin account manager rendering
+* stale session cleanup logic
+* Prisma schema if needed
+
+For each file, explain:
+
+* what was wrong
+* what changed
+* why it fixes the problem
+
+---
+
+## TASK 8 — IMPLEMENTATION CODE
+
+Give real implementation-level code for:
+
+* backend session query cleanup
+* grouped active device count
+* session list response payload
+* force logout others route
+* force logout one session route
+* frontend render function for active sessions
+* frontend forceLogoutSession(sessionId)
+* dashboard refresh after logout
+* slot live count correction
+
+Do not give pseudo-code only.
+
+---
+
+## TASK 9 — VALIDATION
+
+Test these cases:
+
+### Case A
+
+1 user, 1 browser, 1 IP
+Expected:
+
+* 1 active device
+* 1 current session shown
+
+### Case B
+
+1 user, 2 browsers, 2 IPs
+Expected:
+
+* 2 active devices
+* both sessions visible
+* both slot usages visible correctly
+
+### Case C
+
+Logout one specific session
+Expected:
+
+* only that session disappears
+* current session stays active
+
+### Case D
+
+Force Logout Others
+Expected:
+
+* all other sessions removed
+* current session remains
+
+### Case E
+
+Stale old login rows exist
+Expected:
+
+* they do not inflate active device count
+
+### Case F
+
+Admin slot card and user dashboard open together
+Expected:
+
+* live counts match real active sessions
+
+---
+
+## IMPORTANT RULES
+
+* Do not redesign everything
+* Patch the existing architecture
+* Separate historical login records from active session state
+* Never use raw active row count as device count
+* Device count must reflect unique real active sessions
+* Force logout must be user-safe and session-specific
+* Dashboard and admin panel must show consistent live state
+
+---
+
+## FINAL OUTPUT FORMAT
+
+Return in this order:
+
+1. Root cause confirmation
+2. Backend fixes
+3. Frontend fixes
+4. Force logout implementation
+5. Slot sync fixes
+6. File-by-file patch list
+7. Full code changes
+8. Validation results
+
+Focus on correctness and production reliability.

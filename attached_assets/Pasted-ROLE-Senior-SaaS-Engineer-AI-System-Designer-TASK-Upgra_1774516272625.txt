@@ -1,0 +1,183 @@
+ROLE: Senior SaaS Engineer + AI System Designer
+
+TASK:
+Upgrade Live Event System with:
+
+1. Advanced Filtering
+2. AI Smart Highlighting
+3. Fraud Detection Engine
+
+---
+
+PART 1 — EVENT FILTERING SYSTEM
+
+Frontend:
+
+Add controls:
+
+[Search 🔍] [Type ▼] [Status ▼] [Time ▼] [Clear ❌]
+
+Filters:
+
+* Search (username/email)
+* Type: login, logout, error, update, system
+* Status: success, failed, warning
+* Time: last 5 min, 1 hour, today, custom
+
+Backend API:
+
+GET /api/events
+
+Query params:
+
+* search
+* type
+* status
+* time_range
+
+Return filtered + paginated results (limit 50)
+
+---
+
+PART 2 — AI SMART HIGHLIGHT SYSTEM
+
+Goal:
+Automatically highlight important events
+
+Add field:
+event_priority = LOW / MEDIUM / HIGH / CRITICAL
+
+Logic:
+
+CRITICAL:
+
+* multiple failed logins
+* suspicious IP
+* unusual location
+
+HIGH:
+
+* password change
+* new device login
+
+MEDIUM:
+
+* normal login
+* settings update
+
+LOW:
+
+* system logs
+
+UI:
+
+* color badges:
+  CRITICAL → red
+  HIGH → orange
+  MEDIUM → blue
+  LOW → gray
+
+* highlight important rows (glow/border)
+
+---
+
+PART 3 — FRAUD DETECTION ENGINE
+
+Create detection rules:
+
+1. Multiple failed login attempts:
+   if >5 attempts in 5 minutes → flag HIGH RISK
+
+2. IP change detection:
+   if same user logs in from different country → flag
+
+3. Device change:
+   new browser/device → warning
+
+4. Session abuse:
+   multiple sessions exceeding limit → flag
+
+5. Suspicious patterns:
+   repeated login/logout loop → detect bot behavior
+
+---
+
+PART 4 — RISK SCORING SYSTEM
+
+Each event gets:
+
+risk_score (0–100)
+
+Example:
+
+* normal login → 10
+* new IP → 40
+* multiple failures → 80
+* attack pattern → 100
+
+User risk level:
+
+LOW (0–30)
+MEDIUM (31–60)
+HIGH (61–100)
+
+---
+
+PART 5 — ADMIN ACTIONS
+
+Add buttons:
+
+* Block IP
+* Logout user
+* Kill session
+* Mark safe
+
+---
+
+PART 6 — REAL-TIME MONITORING
+
+* auto refresh every 5–10 sec
+* no duplicate events
+* live highlight changes
+
+---
+
+PART 7 — DATABASE UPDATE
+
+events table add:
+
+* event_type
+* status
+* risk_score
+* priority
+* ip_address
+* device
+* location
+* created_at
+
+---
+
+PART 8 — PERFORMANCE
+
+* limit results (max 50)
+* indexing on:
+  user_id
+  created_at
+  event_type
+
+---
+
+OUTPUT:
+
+1. Smart filtered dashboard
+2. AI highlighted events
+3. Fraud detection working
+4. Clean UI with risk visibility
+
+---
+
+GOAL:
+
+Turn event system into intelligent monitoring + security engine.
+
+---

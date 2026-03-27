@@ -1,0 +1,199 @@
+Act as a Senior SaaS UI/UX Engineer and Frontend Specialist.
+
+Redesign and fix the UI of ClearOrbit Admin Panel to make it CLEAN, MODERN, and FULLY RESPONSIVE across ALL devices.
+
+---
+
+## 🎯 OBJECTIVE
+
+Fix and upgrade UI for:
+
+* Contact Messages
+* Announcements
+* Support Tickets
+
+Make the interface:
+
+✔ Professional
+✔ Clean
+✔ Fully responsive
+✔ Consistent across all screen sizes
+
+---
+
+## 📱 RESPONSIVE REQUIREMENT (IMPORTANT)
+
+The UI MUST work perfectly on:
+
+* Mobile (small screens)
+* Tablet
+* Laptop
+* Desktop (large screens)
+
+---
+
+## 🚨 CURRENT ISSUES
+
+* Broken table layout
+* Misaligned columns
+* Long messages breaking UI
+* Poor spacing
+* Bad responsiveness (zoom issues)
+* Unprofessional design
+
+---
+
+## 🧩 REQUIRED UI FIXES
+
+1. RESPONSIVE TABLE SYSTEM
+
+* Use:
+
+  overflow-x: auto;
+
+* On small screens:
+
+  → Convert table into stacked card layout
+
+Each row becomes:
+
+* Name
+* Email
+* Message
+* Status
+* Date
+* Actions
+
+---
+
+2. MESSAGE PREVIEW SYSTEM
+
+* Limit message to 2 lines
+
+CSS:
+
+* display: -webkit-box;
+* -webkit-line-clamp: 2;
+* overflow: hidden;
+
+Add:
+
+👉 "View" button → opens modal with full message
+
+---
+
+3. CLEAN TABLE DESIGN
+
+* Proper spacing:
+
+  padding: 12px 16px
+
+* Column alignment fixed
+
+* Message column wider
+
+---
+
+4. CARD UI SYSTEM
+
+Wrap everything in cards:
+
+* border-radius: 12px
+* soft shadow
+* white background
+
+---
+
+5. BUTTON & BADGE CONSISTENCY
+
+* Same button size everywhere
+* Proper spacing between buttons
+
+Badges:
+
+* Green → Active / Read
+* Red → Error
+* Gray → Inactive
+
+---
+
+6. TYPOGRAPHY FIX
+
+* Clear font hierarchy:
+
+  Title → bold
+  Subtext → lighter
+
+---
+
+7. EMPTY STATE DESIGN
+
+Instead of plain text:
+
+Show:
+
+* icon
+* centered message:
+  "No data available"
+
+---
+
+8. SPACING & LAYOUT
+
+* Add margins between sections
+* Increase row height
+* Improve readability
+
+---
+
+9. GLOBAL RESPONSIVE FIX
+
+* Use:
+
+  max-width: 100%;
+  flex-wrap: wrap;
+
+* Ensure layout works on:
+
+  ✔ 100% zoom
+  ✔ 125% zoom
+  ✔ small screens
+
+---
+
+## 🎨 DESIGN STYLE
+
+* Premium SaaS (Stripe / Notion style)
+* Minimal and clean
+* Smooth UI
+
+---
+
+## 🔐 DO NOT CHANGE
+
+* Backend logic
+* Database
+* Only UI/UX improvements
+
+---
+
+## 📦 OUTPUT REQUIRED
+
+* Updated CSS
+* Responsive tables
+* Mobile-friendly layout
+* Modal for full messages
+* Clean UI system
+
+---
+
+## 🎯 FINAL GOAL
+
+The UI should:
+
+✔ Look professional on PC
+✔ Look perfect on mobile
+✔ Handle long data cleanly
+✔ Never break layout
+
+A COMPLETE SaaS-level responsive design.

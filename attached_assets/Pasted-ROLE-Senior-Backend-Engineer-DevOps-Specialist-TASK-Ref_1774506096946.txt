@@ -1,0 +1,136 @@
+ROLE: Senior Backend Engineer + DevOps Specialist
+
+TASK:
+Refactor and optimize the entire project to be fully compatible with Hostinger shared hosting (PHP environment), so it can be deployed in the future without issues.
+
+---
+
+OBJECTIVE:
+
+Ensure the project runs smoothly on:
+
+* PHP-only shared hosting
+* Apache server (.htaccess routing)
+* MySQL database (NOT SQLite)
+* No Node.js dependency
+
+---
+
+REQUIREMENTS:
+
+1. REMOVE NODE.JS DEPENDENCIES
+
+* Remove unused:
+
+  * /client (React/Vite)
+  * /server (Node/Express)
+  * package.json
+* Ensure system runs 100% on PHP
+
+---
+
+2. DATABASE MIGRATION (IMPORTANT)
+
+* Replace SQLite with MySQL
+* Use environment config:
+
+DB_DRIVER=mysql
+DB_HOST=localhost
+DB_NAME=your_db
+DB_USER=your_user
+DB_PASS=your_pass
+
+* Update all PDO connections
+* Ensure compatibility with shared hosting
+
+---
+
+3. APACHE ROUTING SETUP
+
+* Replace router.php with .htaccess rules
+* Implement clean routing:
+
+/api/* → api handlers
+/admin → admin.html
+/dashboard → dashboard.html
+
+---
+
+4. CRON JOB READY SYSTEM
+
+Ensure these scripts are production-ready:
+
+* scripts/expire_subscriptions.php
+* scripts/cleanup_cookies.php
+
+Make them:
+
+* independent
+* safe to run via cron
+* no manual trigger required
+
+---
+
+5. FILE STRUCTURE CLEANUP
+
+Organize project:
+
+/public
+index.php
+.htaccess
+admin.html
+dashboard.html
+
+/api
+/scripts
+/config
+
+---
+
+6. SECURITY HARDENING
+
+* validate all inputs
+* sanitize cookie data
+* protect API endpoints
+* prevent direct access to sensitive files
+
+---
+
+7. ERROR HANDLING
+
+* disable debug errors in production
+* use clean JSON error responses
+
+---
+
+8. PERFORMANCE OPTIMIZATION
+
+* optimize database queries
+* reduce unnecessary API calls
+* ensure fast response
+
+---
+
+9. HOSTINGER COMPATIBILITY CHECK
+
+Verify:
+
+* no background processes required
+* no Node.js usage
+* no unsupported functions
+
+---
+
+OUTPUT:
+
+1. List of changes made
+2. Updated file structure
+3. Deployment readiness confirmation
+
+---
+
+GOAL:
+
+Make the system fully ready for Hostinger shared hosting deployment with zero future issues.
+
+---

@@ -1,0 +1,111 @@
+Act as a Senior PHP Debugging Engineer.
+
+We are working on a SaaS platform called "ClearOrbit" built with:
+
+* PHP 8 (plain)
+* MySQL
+* HTML + Tailwind CSS + Vanilla JS
+
+========================
+🚨 CURRENT ISSUES (DO NOT FIX YET — JUST ANALYZE & IDENTIFY ROOT CAUSES)
+========================================================================
+
+1. PLATFORM NOT SHOWING IN USER DASHBOARD
+
+* "My Platforms" section is empty
+* Stats show active subscriptions count
+* Platforms exist in admin panel
+* But no platform cards render on dashboard
+
+---
+
+2. PLATFORM DROPDOWN EMPTY (ADMIN PANEL)
+
+* In "Grant Access" and "Cookie Vault"
+* "Select a platform" shows but no options appear
+
+---
+
+3. USER CREATION ERROR (UNAUTHORIZED)
+
+* When admin tries to create user
+* Response: "Unauthorized"
+* Admin is already logged in
+
+---
+
+4. CSRF TOKEN ERROR
+
+* Logout fails with:
+  "Invalid or missing CSRF token"
+* Indicates CSRF system not properly integrated
+
+---
+
+5. EXTENSION INTEGRATION CONFUSION
+
+* Extension is installed
+* But dashboard data is still empty
+* Likely no connection between extension and dashboard logic
+
+---
+
+6. PLATFORM DELETE NOT WORKING
+
+* Only "Disable" option exists
+* No delete functionality
+* No backend API for deletion
+
+---
+
+7. POSSIBLE SESSION ISSUES
+
+* APIs may not be receiving session properly
+* Some endpoints behaving as unauthorized
+
+---
+
+8. FRONTEND RENDERING ISSUES
+
+* Data may be returned from API
+* But UI not updating correctly
+* Possible missing container IDs or JS execution issues
+
+---
+
+9. DATABASE RELATION ISSUES
+
+* user_subscriptions may not be properly linked with platforms
+* JOIN queries may be incorrect
+
+---
+
+10. MISSING ERROR HANDLING
+
+* No clear UI messages for:
+
+  * empty data
+  * failed API calls
+  * invalid responses
+
+---
+
+========================
+🎯 TASK
+=======
+
+Analyze ALL above issues deeply and:
+
+* Identify exact root causes
+* Explain where the system is breaking
+* List all missing components
+* DO NOT provide final fixes yet
+
+========================
+IMPORTANT
+=========
+
+Do NOT jump to coding immediately.
+First explain problems clearly.
+
+After analysis, I will ask you to fix step by step.

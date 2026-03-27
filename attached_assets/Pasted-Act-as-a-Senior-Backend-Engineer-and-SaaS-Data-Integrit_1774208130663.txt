@@ -1,0 +1,137 @@
+Act as a Senior Backend Engineer and SaaS Data Integrity Specialist.
+
+Upgrade the Cookie Vault system in ClearOrbit with FULL automation and database cleanup.
+
+---
+
+## 🎯 OBJECTIVE
+
+Build a clean and reliable system where:
+
+✔ Cookies auto-detect platform
+✔ URL auto-assigned correctly
+✔ Old incorrect URLs are removed
+✔ Database stays clean and consistent
+
+---
+
+## 🚨 CURRENT ISSUES
+
+* Platform manually selected (error-prone)
+* Cookies saved under wrong platform
+* Incorrect or auto-added URLs exist in database
+* Data inconsistency
+
+---
+
+## 🧩 REQUIRED FIXES
+
+1. AUTO PLATFORM DETECTION
+
+* Parse cookie JSON
+* Extract domain
+
+Example:
+
+".coursera.org" → Coursera
+
+---
+
+2. PLATFORM MATCHING
+
+* Match domain with platforms table
+* Get correct platform_id
+
+---
+
+3. AUTO URL ASSIGNMENT
+
+* Fetch URL from platforms table
+* Attach automatically
+
+---
+
+4. REMOVE MANUAL SELECTION
+
+* Disable or auto-fill platform dropdown
+
+---
+
+5. DATABASE CLEANUP (CRITICAL)
+
+* Scan existing cookie records
+
+FOR EACH record:
+
+IF:
+
+* URL does not match platform
+  OR
+* domain mismatch detected
+
+THEN:
+
+→ DELETE that record
+OR
+→ CORRECT it automatically
+
+---
+
+6. PREVENT FUTURE ERRORS
+
+Before saving cookies:
+
+IF domain ≠ platform domain:
+
+→ block save
+→ show error
+
+---
+
+7. SINGLE SOURCE OF TRUTH
+
+* Platform URL must come ONLY from platforms table
+* Do NOT allow manual URL input in cookies
+
+---
+
+8. UI FEEDBACK
+
+After paste:
+
+Show:
+
+Detected Platform: Coursera
+Detected Domain: .coursera.org
+Assigned URL: https://www.coursera.org
+
+---
+
+9. LOGGING SYSTEM
+
+Log:
+
+* cookie added
+* cookie rejected
+* record cleaned
+
+---
+
+## 🧪 TEST CASES
+
+* Old wrong records → auto deleted ✅
+* New cookies → correct platform assigned ✅
+* No mismatch allowed ❌
+
+---
+
+## 🎯 FINAL GOAL
+
+A clean, automated system where:
+
+✔ No wrong URLs exist
+✔ No platform mismatch
+✔ Cookies always correct
+✔ Database always clean
+
+ZERO DATA CORRUPTION. FULLY RELIABLE SYSTEM.

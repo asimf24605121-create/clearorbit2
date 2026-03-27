@@ -1,0 +1,123 @@
+🚀 FINAL DEVELOPER PROMPT (STRICT — FIX PLATFORM LOGOUT CONTROL)
+
+Paste this to Replit 👇
+
+🎯 OBJECTIVE
+
+When user logs out from ClearOrbit:
+
+❌ All platform access must stop
+❌ Shared accounts must NOT remain usable
+❌ Extension/session must be cleared
+
+✔ User must lose access immediately
+
+⚠️ CORE PROBLEM
+
+External platforms (Coursera, ChatGPT, etc.) keep their own sessions via cookies.
+
+👉 Logging out from ClearOrbit does NOT log out from those platforms automatically.
+
+✅ REQUIRED SOLUTION (COMBINED APPROACH)
+🔐 1. EXTENSION-BASED CONTROL (MANDATORY)
+On Logout:
+
+Trigger extension to:
+
+// Clear all platform cookies
+chrome.cookies.getAll({}, (cookies) => {
+  cookies.forEach(cookie => {
+    chrome.cookies.remove({
+      url: (cookie.secure ? "https://" : "http://") + cookie.domain + cookie.path,
+      name: cookie.name
+    });
+  });
+});
+ALSO CLEAR:
+localStorage.clear();
+sessionStorage.clear();
+🚫 2. BLOCK PLATFORM ACCESS VIA EXTENSION
+Before allowing access:
+
+Check:
+
+if (!isUserLoggedIn) {
+    alert("Session expired. Please login again.");
+    window.location.href = "https://yourdomain.com";
+}
+🔁 3. FORCE RE-AUTH ON PLATFORM OPEN
+
+When user clicks Access Now:
+
+👉 Always:
+
+Clear previous cookies
+Inject fresh session (if allowed)
+🔒 4. BACKEND TOKEN VALIDATION
+
+Each platform access must verify:
+
+if (!isset($_SESSION['user_id'])) {
+    die("Unauthorized");
+}
+🌐 5. ACCESS NOW BUTTON HARD BLOCK
+async function handleAccess(platform) {
+    const res = await fetch('/api/check_session.php');
+
+    if (!res.ok) {
+        alert("You are logged out");
+        window.location.href = "/index.html";
+        return;
+    }
+
+    // Only then allow access
+    openPlatform(platform);
+}
+🧠 6. IMPORTANT RULE
+
+👉 Platform access must depend on:
+
+✔ Active session
+✔ Valid backend check
+✔ Extension state
+
+🚨 7. STRICT SECURITY RULE
+
+After logout:
+
+❌ User must NOT reuse previous cookies
+❌ Platform must NOT stay logged in
+❌ Extension must reset state
+
+🧪 8. TEST CASES
+❌ Test 1:
+
+Login → Open Coursera → Works ✅
+
+❌ Test 2:
+
+Logout → Refresh Coursera
+→ MUST log out ❗
+
+❌ Test 3:
+
+Logout → Click Access Now
+→ MUST block ❗
+
+💎 FINAL RESULT
+
+✔ Logout = full system lock
+✔ Platforms unusable after logout
+✔ No session leakage
+✔ Secure SaaS + extension system
+
+⚠️ REALITY CHECK (IMPORTANT)
+
+👉 Without extension control, this is NOT fully possible
+
+Because:
+
+Coursera = external site
+Their cookies = browser controlled
+
+✔ ONLY your extension can fully control this

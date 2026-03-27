@@ -1,0 +1,341 @@
+Act as a Senior SaaS Architect, Full-Stack PHP Engineer, UI/UX Designer, and Product Engineer.
+
+We are building a FULL PRODUCTION SaaS platform called "ClearOrbit" for a Shared Access (Group Buy) business model.
+
+========================
+⚠️ STRICT ENVIRONMENT
+=====================
+
+* Hosting: Hostinger Premium Shared Hosting
+* Backend: ONLY Plain PHP 8+ (NO frameworks)
+* Database: MySQL
+* Frontend: HTML5 + Tailwind CSS (CDN) + Vanilla JavaScript
+* NO Node.js
+* NO Python
+* NO WebSockets
+
+Everything must be compatible with shared hosting.
+
+========================
+🎯 FINAL OBJECTIVE
+==================
+
+Build a COMPLETE SaaS SYSTEM including:
+
+* Admin Panel
+* User Dashboard
+* Buy Access Page
+* Payment System (manual + WhatsApp)
+* Cookie Vault (JSON multi-slot)
+* Multi-login system
+* Subscription engine
+* UI/UX premium design
+
+System must look like Stripe / Notion / Vercel.
+
+========================
+🎨 UI DESIGN SYSTEM
+===================
+
+* Theme: CLEAN WHITE ONLY
+* Background: #F9FAFB
+* Cards: #FFFFFF
+* Border: #E5E7EB
+* Primary: #4F46E5
+* Success: #10B981
+* Danger: #EF4444
+* Warning: #F59E0B
+* Text: #111827
+
+Rules:
+
+* rounded-xl
+* shadow-sm
+* no gradients
+* no glass
+* clean spacing (p-6 gap-6)
+
+========================
+👤 USER DASHBOARD (ADVANCED)
+============================
+
+* Welcome section
+* Extension status (connected / not connected)
+* Stats cards (total, active, expiring, expired)
+
+PLATFORM CARD (BIG SIZE):
+
+* Large logo
+
+* Platform name
+
+* Expiry date
+
+* Status badge:
+  green = active
+  orange = expiring
+  red = expired (dim card)
+
+* Countdown timer
+
+* Progress bar
+
+* Button: "Access Now"
+
+ON CLICK:
+
+Open MODAL:
+
+* Show 4 LOGIN SLOTS
+* Each slot:
+
+  * Login Slot 1–4
+  * Valid → green button
+  * Expired → red disabled
+
+========================
+📲 EXTENSION UX
+===============
+
+* If extension not connected:
+  show floating popup
+
+* If connected:
+  show green badge
+
+* While injecting:
+  show loader
+
+========================
+🚫 SECURITY UX
+==============
+
+* Show warning:
+  "Do not change account settings"
+
+* Block:
+  billing / logout / settings (UI level)
+
+* Auto refresh on logout
+
+========================
+💰 BUY ACCESS PAGE (IMPORTANT)
+==============================
+
+Create: buy.html
+
+PLATFORM GRID:
+
+* Big cards
+* Logo + name
+* Button: "View Plans"
+
+PLAN MODAL:
+
+User selects:
+
+1. Duration:
+
+   * 1 Week
+   * 1 Month
+   * 6 Months
+   * 1 Year
+
+2. Account Type:
+
+   * Private
+   * Shared
+
+3. Dynamic Pricing
+
+4. Badge:
+   "Best Value"
+
+========================
+📲 WHATSAPP ORDER SYSTEM
+========================
+
+On Buy:
+
+Open WhatsApp:
+
+Message:
+
+"Hello, I want to buy [Platform]
+Username: [username]
+Plan: [duration]
+Type: [private/shared]
+Price: [price]"
+
+Admin sets:
+
+* price per duration
+* private/shared price
+* WhatsApp number per platform
+
+========================
+🧠 ADMIN PANEL (FULL SYSTEM)
+============================
+
+Sections:
+
+1. Dashboard (stats + logs)
+
+2. Users:
+
+   * add user
+   * delete
+   * activate/deactivate
+   * reset device
+
+3. Platforms:
+
+   * add platform
+   * upload logo
+   * brand color
+   * delete / disable
+
+4. Subscriptions:
+
+   * assign access
+   * extend (+7 days)
+   * show expiry
+
+5. Cookie Vault:
+
+   * paste JSON cookies
+   * multi-slot (1–4)
+   * show expiry + status
+
+6. Pricing:
+
+   * set price per platform
+   * duration-based pricing
+   * private vs shared
+
+7. WhatsApp Config:
+
+   * number per platform
+   * private/shared separate
+
+8. Activity Logs:
+
+   * login
+   * logout
+   * purchase
+   * cookie update
+
+========================
+🍪 COOKIE SYSTEM (ADVANCED)
+===========================
+
+* Store FULL JSON cookies
+* base64 encode
+* detect expiry
+* use earliest expiration
+
+MULTI SLOT:
+
+* slot 1–4 per platform
+
+API:
+
+get_cookie.php:
+
+* validate session
+* check subscription
+* return valid cookie slot
+
+========================
+💰 PAYMENT SYSTEM
+=================
+
+Manual system:
+
+1. User clicks Buy → WhatsApp
+2. Admin confirms payment
+3. Admin clicks "Approve"
+4. System auto creates subscription
+
+TABLES:
+
+* payments
+* pricing_plans
+* whatsapp_config
+
+========================
+⏳ SUBSCRIPTION ENGINE
+=====================
+
+* start_date
+* end_date
+
+Auto logic:
+
+* expired → inactive
+* active → allow access
+
+========================
+🤖 CRON JOBS (HOSTINGER)
+========================
+
+1. expire_subscriptions.php
+2. cleanup_cookies.php
+
+========================
+🔐 SECURITY
+===========
+
+* PDO prepared statements
+* password_hash
+* session auth
+* CSRF (correct use)
+
+========================
+⚡ UX ENHANCEMENTS
+=================
+
+* Toast notifications
+* Loading states
+* Skeleton loaders
+* Smooth hover effects
+* Responsive design
+
+========================
+📱 RESPONSIVE
+=============
+
+* Mobile friendly
+* Sidebar collapse
+* Cards stack
+
+========================
+📦 OUTPUT
+=========
+
+Provide FULL WORKING CODE:
+
+* database.sql
+* db.php
+* all APIs
+* admin.html
+* dashboard.html
+* buy.html
+* JS logic
+* cookie system
+* payment flow
+
+========================
+🎯 FINAL RESULT
+===============
+
+This must be:
+
+* Production ready
+* Professional SaaS
+* Fully functional
+* Monetizable
+
+========================
+END
+===

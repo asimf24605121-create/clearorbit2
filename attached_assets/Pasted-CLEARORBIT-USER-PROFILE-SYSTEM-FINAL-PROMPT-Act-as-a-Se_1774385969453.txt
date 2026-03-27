@@ -1,0 +1,141 @@
+CLEARORBIT — USER PROFILE SYSTEM (FINAL PROMPT)
+
+Act as a Senior SaaS Architect (PHP + MySQL + JavaScript).
+
+Do NOT modify the existing login system. Only improve the user profile system, UI behavior, and validation.
+
+🎯 OBJECTIVE
+
+Build a clean, scalable user profile system with:
+
+Proper tab switching (View / Edit / Password)
+Strong phone validation with country code
+Fully synchronized data between user dashboard and admin panel
+Secure password handling
+No data mismatch
+🧠 1. TAB SYSTEM (CRITICAL FIX)
+Issue:
+
+Clicking “Password” still shows profile content.
+
+Requirement:
+
+Implement a tab-based system (no page reload).
+
+Behavior:
+View → shows profile data
+Edit Profile → shows editable form
+Password → shows password change form
+HTML Structure:
+<div class="tabs">
+  <button class="tab-btn active" data-tab="view">View</button>
+  <button class="tab-btn" data-tab="edit">Edit Profile</button>
+  <button class="tab-btn" data-tab="password">Password</button>
+</div>
+
+<div id="view" class="tab-content active"></div>
+<div id="edit" class="tab-content"></div>
+<div id="password" class="tab-content"></div>
+JavaScript:
+const tabs = document.querySelectorAll(".tab-btn");
+const sections = document.querySelectorAll(".tab-content");
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    sections.forEach(s => s.classList.remove("active"));
+
+    tab.classList.add("active");
+
+    const target = tab.getAttribute("data-tab");
+    document.getElementById(target).classList.add("active");
+  });
+});
+📱 2. PHONE INPUT SYSTEM (STRICT VALIDATION)
+Requirements:
+Show country selector (flag + code)
+User selects country
+Phone must match selected country format
+Invalid numbers must be rejected
+Use Library:
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/css/intlTelInput.css"/>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
+Input:
+<input type="tel" id="phone" required>
+JS Setup:
+const input = document.querySelector("#phone");
+
+const iti = window.intlTelInput(input, {
+  initialCountry: "auto",
+  separateDialCode: true,
+  preferredCountries: ["pk", "us", "gb"],
+  utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/utils.js"
+});
+Validation:
+function validatePhone() {
+  if (!iti.isValidNumber()) {
+    alert("Invalid phone number");
+    return false;
+  }
+  return true;
+}
+Save Format:
+const phone = iti.getNumber(); // Example: +923001234567
+🔐 3. PASSWORD SYSTEM
+User:
+Must enter current password
+Can update to new password
+Use secure hashing (password_hash in PHP)
+Admin:
+Can reset user password
+🔁 4. DATA SYNC (CRITICAL)
+Use single users table
+No duplicate profile table
+All profile fields stored in users table
+Fields:
+username
+email
+password
+full_name
+phone
+country
+city
+gender
+profile_image
+expiry_date
+Rule:
+When user updates profile → Admin panel must reflect instantly
+When admin updates data → User dashboard must reflect instantly
+📡 5. API STRUCTURE
+
+Create:
+
+GET  /api/get_user_profile.php
+POST /api/update_profile.php
+POST /api/change_password.php
+POST /api/admin_reset_password.php
+📸 6. PROFILE IMAGE
+Upload to: /uploads/profile/
+Store path in database
+Show in both admin and user dashboard
+⚠️ VALIDATION RULES
+Admin:
+username required
+email required
+password required
+User:
+full_name required
+phone required (validated)
+country required
+🎨 UI BEHAVIOR
+Tabs must switch instantly (no reload)
+Active tab highlighted
+Smooth UX
+Show success/error messages
+💎 FINAL RESULT
+Tabs working correctly
+Password section opens properly
+Phone validation enforced
+Clean SaaS architecture
+Fully synchronized system
+No bugs or mismatch
