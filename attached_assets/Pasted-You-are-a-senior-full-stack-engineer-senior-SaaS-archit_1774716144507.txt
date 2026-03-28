@@ -1,0 +1,310 @@
+You are a senior full-stack engineer, senior SaaS architect, senior admin-dashboard product designer, senior UX auditor, and senior performance engineer.
+
+I want you to deeply inspect my Users module before making any changes.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must be optimized for smooth performance and scalability for 1000+ concurrent users.
+Any recommendations must consider:
+- fast rendering
+- efficient DB queries
+- minimal unnecessary re-renders
+- scalable APIs
+- safe bulk operations
+- queue/background jobs if needed
+- concurrency-safe mutations
+- lightweight filters/search
+- no blocking admin actions
+
+==================================================
+GOAL
+==================================================
+
+I do NOT want a shallow explanation.
+I want you to inspect the real implementation of the Users module and tell me:
+
+1. what it currently does
+2. how it currently works
+3. what is missing
+4. what is visually weak
+5. what is logically wrong or confusing
+6. what backend/data issues exist
+7. what performance/scaling issues exist
+8. what should be improved next
+
+Do not redesign blindly.
+Audit first.
+
+==================================================
+VISIBLE UI CONTEXT
+==================================================
+
+The Users section currently appears to include:
+
+TOP CREATE USER AREA:
+- Create User + Assign Access
+- Username field
+- Email field
+- Password field
+- Subscription (optional)
+- Duration buttons:
+  - 7 Days
+  - 30 Days
+  - 90 Days
+  - 180 Days
+  - 1 Year
+- Duration input box
+- Platforms selection grid with search
+- Select All checkbox
+- Create User & Activate button
+
+USERS LIST AREA:
+- All Users count
+- Status filter
+- Sort dropdown
+- Search box
+- Export CSV
+- User table columns:
+  - User
+  - Email
+  - Platforms
+  - Join Date
+  - Expiry
+  - Status
+  - Actions
+- Actions appear to include:
+  - View
+  - Edit
+  - Disable
+  - Delete
+
+It looks like this module is used for:
+- creating users
+- assigning subscriptions/platform access
+- listing users
+- filtering/searching/exporting users
+- managing user lifecycle
+
+==================================================
+PHASE 1 — REAL IMPLEMENTATION AUDIT
+==================================================
+
+Inspect the actual codebase and identify:
+
+- frontend files/components for Users module
+- backend routes/APIs used by this page
+- DB schema/tables related to users, subscriptions, user-platform access
+- create-user flow
+- assign-access flow
+- duration/subscription logic
+- platform selection logic
+- users table query logic
+- status filter logic
+- export CSV logic
+- view/edit/disable/delete logic
+- validation rules
+- permission/RBAC logic
+- audit logging
+- whether the create form and user list are fully wired
+- whether counts are real
+- whether expiry is computed or stored
+- whether platform count is accurate
+- whether this module is production-safe and performant
+
+Then explain clearly:
+
+1. what currently works
+2. what is partially implemented
+3. what is fake UI only
+4. what is inconsistent
+5. what is dangerous
+6. what is missing completely
+
+==================================================
+PHASE 2 — EXPLAIN CURRENT WORKING
+==================================================
+
+For each visible element, explain exactly what it currently does and what it SHOULD do:
+
+1. Username field
+2. Email field
+3. Password field
+4. Subscription optional section
+5. Duration buttons
+6. Duration input field
+7. Platforms search
+8. Platform select grid
+9. Select All checkbox
+10. Create User & Activate button
+11. All Users count
+12. Status filter
+13. Sort dropdown
+14. Search box
+15. Export CSV
+16. View button
+17. Edit button
+18. Disable button
+19. Delete button
+20. Status badge
+21. Expiry field
+22. Platforms count badge
+
+For each one define:
+- current behavior
+- expected behavior
+- backend/API requirement
+- validation requirement
+- edge cases
+- permission/safety requirement
+
+==================================================
+PHASE 3 — FIND LOGIC / PRODUCT PROBLEMS
+==================================================
+
+I want you to identify product and logic flaws, for example:
+
+- Is “Create User + Assign Access” truly one-step or is there hidden follow-up logic?
+- What happens if no platform is selected?
+- What happens if subscription is optional but duration is filled?
+- What happens if user has platforms but no expiry?
+- What happens if multiple subscriptions overlap?
+- What happens if platform availability is zero?
+- Can the system assign dead/inactive platforms?
+- Is “Platforms count” showing assigned platforms or active subscriptions?
+- Is Expiry user-level or subscription-level?
+- What happens if one user has multiple platform expiries?
+- Should the table show a single expiry date if access differs by platform?
+- Is disable just a UI state or does it revoke sessions too?
+- Is delete safe if active sessions or payments exist?
+- Is CSV export complete and safe?
+- Are view/edit flows strong enough?
+- Are user status semantics too weak (Active/Disabled only)?
+- Should there be states like:
+  - Active
+  - Expired
+  - Partial Access
+  - Suspended
+  - Pending
+  - Disabled
+
+Be brutally honest.
+
+==================================================
+PHASE 4 — FIND MISSING FEATURES
+==================================================
+
+Tell me what a professional Users module should also have, such as:
+
+- user detail modal/page
+- platform-level expiry breakdown
+- subscription history
+- payment linkage
+- last login
+- active sessions count
+- force logout
+- resend credentials email
+- reset password action
+- notes/admin comments
+- account health/risk flag
+- bulk actions
+- role filter
+- export improvements
+- platform access drilldown
+- audit log link
+- quick extend subscription
+- partial platform revoke
+- user activity summary
+- login attempts summary
+- create-user success flow with generated credentials preview
+
+Only recommend features that add real admin value.
+
+==================================================
+PHASE 5 — UI/UX AUDIT
+==================================================
+
+Audit the GUI deeply.
+
+Tell me:
+- what looks visually weak
+- what is confusing
+- what wastes space
+- what is not actionable enough
+- what hierarchy is weak
+- whether create form is too large/basic
+- whether platforms selection UX is weak
+- whether user table is too flat/basic
+- whether actions are too risky or unclear
+- whether status/expiry information is insufficient
+
+I want improvement ideas for:
+- layout
+- hierarchy
+- form UX
+- platform picker UX
+- table usability
+- action clarity
+- status semantics
+- empty states
+- loading states
+- safety
+- admin efficiency
+- responsive behavior
+
+==================================================
+PHASE 6 — BACKEND / DATA / PERFORMANCE AUDIT
+==================================================
+
+Inspect and report:
+
+- how users are created
+- how subscriptions are stored
+- how user-platform access is stored
+- whether create flow is transactional
+- whether expiry logic is consistent
+- whether filters/search are efficient
+- whether export CSV is scalable
+- whether users table is paginated
+- whether platform selection is availability-aware
+- whether delete/disable is transaction-safe
+- whether active sessions are revoked on disable
+- whether 1000+ concurrent users would make this slow
+
+IMPORTANT:
+This platform must remain fast for 1000+ concurrent users.
+I want you to explicitly identify all bottlenecks and scaling risks.
+
+==================================================
+PHASE 7 — OUTPUT FORMAT
+==================================================
+
+After auditing, give me the answer in this exact structure:
+
+1. CURRENT WORKING SUMMARY
+- What the Users module currently does
+
+2. WHAT WORKS
+- Fully working features
+
+3. WHAT IS BROKEN / WEAK / MISSING
+- Logic issues
+- UX issues
+- backend/data issues
+- safety issues
+- performance/scaling issues
+
+4. WHAT THIS MODULE SHOULD REALLY BE
+- Best product definition of Users + Access Management in this system
+
+5. WHAT SHOULD BE IMPROVED NEXT
+- Priority improvements in order
+
+6. FILE-BY-FILE NOTES
+- Which files contain the main logic
+
+IMPORTANT:
+- Inspect real code first
+- Do not redesign first
+- Be brutally honest
+- Think like a lead engineer
+- Keep performance and 1000+ users scalability in mind
