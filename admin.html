@@ -3760,9 +3760,20 @@ function vuFormatGeo(g) {
     const flag = g.country_code && g.country_code !== '--' ? `<img src="https://flagcdn.com/16x12/${g.country_code.toLowerCase()}.png" style="display:inline;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'"/>` : '';
     const parts = [g.city, g.region, g.country].filter(v => v && v !== 'Unknown');
     const loc = parts.join(', ') || 'Unknown';
-    const isp = g.isp && g.isp !== 'Unknown' ? `<span style="color:#9CA3AF;margin-left:4px">· ${escHtml(g.isp)}</span>` : '';
-    const approx = g.proxy ? ' <span style="color:#F59E0B;font-size:10px" title="This IP may use a proxy/VPN">(VPN/Proxy)</span>' : '';
-    return `${flag}<span style="color:#374151">${escHtml(loc)}</span>${isp}${approx}`;
+    const isp = g.isp && g.isp !== 'Unknown' ? `<br/><span style="color:#9CA3AF;font-size:10px">${escHtml(g.isp)}</span>` : '';
+    let badges = '';
+    if (g.proxy && g.hosting) {
+        badges = '<br/><span style="display:inline-flex;align-items:center;gap:3px;margin-top:2px"><span style="background:#FEF3C7;color:#92400E;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:600">VPN / Hosting</span></span>';
+    } else if (g.proxy) {
+        badges = '<br/><span style="display:inline-flex;align-items:center;gap:3px;margin-top:2px"><span style="background:#FEF3C7;color:#92400E;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:600">VPN / Proxy</span></span>';
+    } else if (g.hosting) {
+        badges = '<br/><span style="display:inline-flex;align-items:center;gap:3px;margin-top:2px"><span style="background:#EDE9FE;color:#5B21B6;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:600">Hosting / Datacenter</span></span>';
+    }
+    let altInfo = '';
+    if (g.alt_cities && g.alt_cities.length > 1) {
+        altInfo = `<br/><span style="color:#9CA3AF;font-size:9px;font-style:italic" title="Different providers report different cities">Also reported: ${g.alt_cities.filter(c => c !== g.city).map(c => escHtml(c)).join(', ')}</span>`;
+    }
+    return `${flag}<span style="color:#374151">${escHtml(loc)}</span>${isp}${badges}${altInfo}`;
 }
 
 async function saveUserEdit() {

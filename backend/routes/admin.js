@@ -1287,6 +1287,86 @@ router.post('/admin/notifications/mark-read', authenticate, requireAdmin(), asyn
   }
 });
 
+async function geoFetchWithTimeout(url, ms = 4000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+    clearTimeout(t);
+    return await r.json();
+  } catch { clearTimeout(t); return null; }
+}
+
+async function multiProviderGeoLookup(cleanIp) {
+  const results = await Promise.allSettled([
+    geoFetchWithTimeout(`https://ipwhois.app/json/${encodeURIComponent(cleanIp)}`),
+    geoFetchWithTimeout(`http://ip-api.com/json/${encodeURIComponent(cleanIp)}?fields=status,message,country,countryCode,regionName,city,isp,lat,lon,timezone,proxy,hosting,query`),
+    geoFetchWithTimeout(`https://freeipapi.com/api/json/${encodeURIComponent(cleanIp)}`),
+  ]);
+
+  const providers = [];
+
+  const d1 = results[0].status === 'fulfilled' ? results[0].value : null;
+  if (d1 && d1.success) {
+    const ispName = d1.isp || d1.connection?.org || d1.connection?.isp || 'Unknown';
+    const isHosting = /hosting|server|cloud|data.?cent|vps|dedicated|colocation/i.test(ispName);
+    providers.push({
+      source: 'ipwhois', country: d1.country || 'Unknown', country_code: d1.country_code || '--',
+      region: d1.region || 'Unknown', city: d1.city || 'Unknown', isp: ispName,
+      lat: d1.latitude || 0, lon: d1.longitude || 0,
+      timezone: (typeof d1.timezone === 'string' ? d1.timezone : d1.timezone?.id) || '',
+      proxy: !!(d1.security?.proxy || d1.security?.vpn || d1.security?.tor),
+      hosting: isHosting
+    });
+  }
+
+  const d2 = results[1].status === 'fulfilled' ? results[1].value : null;
+  if (d2 && d2.status === 'success') {
+    providers.push({
+      source: 'ip-api', country: d2.country || 'Unknown', country_code: d2.countryCode || '--',
+      region: d2.regionName || 'Unknown', city: d2.city || 'Unknown', isp: d2.isp || 'Unknown',
+      lat: d2.lat || 0, lon: d2.lon || 0, timezone: d2.timezone || '',
+      proxy: !!d2.proxy, hosting: !!d2.hosting
+    });
+  }
+
+  const d3 = results[2].status === 'fulfilled' ? results[2].value : null;
+  if (d3 && d3.countryName) {
+    const ispName3 = d3.isp || 'Unknown';
+    const isHosting3 = /hosting|server|cloud|data.?cent|vps|dedicated|colocation/i.test(ispName3);
+    providers.push({
+      source: 'freeipapi', country: d3.countryName || 'Unknown', country_code: d3.countryCode || '--',
+      region: d3.regionName || 'Unknown', city: d3.cityName || 'Unknown', isp: ispName3,
+      lat: d3.latitude || 0, lon: d3.longitude || 0,
+      timezone: (Array.isArray(d3.timeZones) ? d3.timeZones[0] : d3.timeZone) || '',
+      proxy: !!d3.isProxy, hosting: isHosting3
+    });
+  }
+
+  if (!providers.length) return null;
+
+  const proxyVotes = providers.filter(p => p.proxy).length;
+  const hostingVotes = providers.filter(p => p.hosting).length;
+  const isProxy = proxyVotes >= 1;
+  const isHosting = hostingVotes >= 1;
+
+  const primary = providers[0];
+  const geo = {
+    country: primary.country, country_code: primary.country_code,
+    region: primary.region, city: primary.city, isp: primary.isp,
+    lat: primary.lat, lon: primary.lon, timezone: primary.timezone,
+    proxy: isProxy,
+    hosting: isHosting
+  };
+
+  if (providers.length > 1) {
+    const cities = [...new Set(providers.map(p => p.city).filter(c => c && c !== 'Unknown'))];
+    if (cities.length > 1) geo.alt_cities = cities;
+  }
+
+  return geo;
+}
+
 router.post('/geo_lookup', authenticate, requireAdmin(), async (req, res) => {
   try {
     const { ip } = req.body;
@@ -1296,26 +1376,20 @@ router.post('/geo_lookup', authenticate, requireAdmin(), async (req, res) => {
     if (cached) {
       const age = Date.now() - new Date(cached.lookedUpAt).getTime();
       if (age < 72 * 60 * 60 * 1000) {
-        return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, cached: true } });
+        return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, proxy: !!cached.proxy, hosting: !!cached.hosting, cached: true } });
       }
     }
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    try {
-      const apiRes = await fetch(`https://ipwhois.app/json/${encodeURIComponent(cleanIp)}`, { signal: controller.signal });
-      clearTimeout(timeout);
-      const data = await apiRes.json();
-      if (data.success) {
-        const geo = { country: data.country || 'Unknown', country_code: data.country_code || '--', region: data.region || 'Unknown', city: data.city || 'Unknown', isp: data.isp || data.connection?.org || data.connection?.isp || 'Unknown', lat: data.latitude || 0, lon: data.longitude || 0, timezone: (typeof data.timezone === 'string' ? data.timezone : data.timezone?.id) || '', proxy: !!(data.security?.proxy || data.security?.vpn || data.security?.tor) };
-        await prisma.ipGeoCache.upsert({ where: { ipAddress: cleanIp }, update: { country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() }, create: { ipAddress: cleanIp, country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() } });
-        return res.json({ success: true, geo: { ...geo, cached: false } });
-      }
-      return res.json({ success: false, message: data.message || 'Lookup failed' });
-    } catch (fetchErr) {
-      clearTimeout(timeout);
-      if (cached) return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, cached: true } });
-      return res.json({ success: false, message: 'Geo lookup unavailable' });
+    const geo = await multiProviderGeoLookup(cleanIp);
+    if (geo) {
+      await prisma.ipGeoCache.upsert({
+        where: { ipAddress: cleanIp },
+        update: { country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, proxy: geo.proxy ? 1 : 0, hosting: geo.hosting ? 1 : 0, lookedUpAt: new Date().toISOString() },
+        create: { ipAddress: cleanIp, country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, proxy: geo.proxy ? 1 : 0, hosting: geo.hosting ? 1 : 0, lookedUpAt: new Date().toISOString() }
+      });
+      return res.json({ success: true, geo: { ...geo, cached: false } });
     }
+    if (cached) return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, proxy: !!cached.proxy, hosting: !!cached.hosting, cached: true } });
+    return res.json({ success: false, message: 'All geo providers failed' });
   } catch (err) { res.status(500).json({ success: false, message: 'Server error' }); }
 });
 
