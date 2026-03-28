@@ -36,18 +36,32 @@
         .msg-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);padding:1rem}
         .msg-modal-overlay.active{opacity:1;visibility:visible}
         .msg-modal{background:#fff;border-radius:1.125rem;box-shadow:0 25px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);width:100%;max-width:560px;max-height:85vh;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-        .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:3px 0;font-size:10px;font-weight:600;border-radius:5px;border:1px solid var(--bc);background:var(--bg);color:var(--c);cursor:pointer;transition:all .15s;line-height:1}
-        .slot-action-btn:hover{filter:brightness(.95);box-shadow:0 1px 3px rgba(0,0,0,.1)}
-        .slot-action-btn:active{transform:scale(.96)}
-        .slot-action-btn:disabled{opacity:.5;pointer-events:none}
+        .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:4px 0;font-size:10px;font-weight:600;border-radius:6px;border:1px solid var(--bc,#E5E7EB);background:var(--bg,#F9FAFB);color:var(--c,#374151);cursor:pointer;transition:all .15s;line-height:1;min-height:22px}
+        .slot-action-btn:hover{filter:brightness(.93);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+        .slot-action-btn:active{transform:scale(.97)}
+        .slot-action-btn:disabled{opacity:.45;pointer-events:none;filter:grayscale(.3)}
+        .slot-action-btn:focus-visible{outline:2px solid #6366F1;outline-offset:1px}
+        .slot-card{position:relative;transition:box-shadow .15s,border-color .15s}
+        .slot-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)!important}
+        .slot-card.is-selected{border-color:#818CF8!important;box-shadow:0 0 0 2px rgba(99,102,241,.18)!important}
+        .slot-card.is-loading{opacity:.7;pointer-events:none}
+        .slot-card.is-loading::after{content:'';position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.4);z-index:1}
         .compact-modal{background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.15),0 0 0 1px rgba(0,0,0,.04);width:100%;max-height:85vh;overflow-y:auto;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
         .msg-modal-overlay.active .compact-modal{transform:translateY(0) scale(1)}
-        .compact-modal .cm-header{padding:14px 18px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
-        .compact-modal .cm-body{padding:14px 18px}
-        .compact-modal .cm-footer{padding:10px 18px;border-top:1px solid #F3F4F6;display:flex;gap:8px;justify-content:flex-end}
-        .compact-modal .cm-label{display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
-        .compact-modal .cm-input{width:100%;padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:13px;transition:border-color .15s;outline:none;background:#FAFAFA}
-        .compact-modal .cm-input:focus{border-color:#6366F1;background:#fff;box-shadow:0 0 0 2px rgba(99,102,241,.1)}
+        .compact-modal .cm-header{padding:12px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
+        .compact-modal .cm-body{padding:12px 16px}
+        .compact-modal .cm-footer{padding:10px 16px;border-top:1px solid #F3F4F6;display:flex;gap:8px;justify-content:flex-end}
+        .compact-modal .cm-label{display:block;font-size:10px;font-weight:600;color:#6B7280;margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px}
+        .compact-modal .cm-input{width:100%;padding:6px 10px;border:1px solid #D1D5DB;border-radius:6px;font-size:13px;transition:border-color .15s,box-shadow .15s;outline:none;background:#FAFAFA;box-sizing:border-box}
+        .compact-modal .cm-input:focus{border-color:#6366F1;background:#fff;box-shadow:0 0 0 2px rgba(99,102,241,.12)}
+        .compact-modal .cm-input.cm-error{border-color:#EF4444;box-shadow:0 0 0 2px rgba(239,68,68,.1)}
+        .compact-modal .cm-btn{padding:6px 16px;font-size:12px;font-weight:600;border-radius:6px;border:none;cursor:pointer;transition:all .15s;line-height:1.4}
+        .compact-modal .cm-btn:focus-visible{outline:2px solid #6366F1;outline-offset:1px}
+        .compact-modal .cm-btn:disabled{opacity:.5;pointer-events:none}
+        .compact-modal .cm-btn-secondary{background:#F3F4F6;color:#4B5563}
+        .compact-modal .cm-btn-secondary:hover{background:#E5E7EB}
+        .compact-modal .cm-btn-primary{color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+        .compact-modal .cm-btn-primary:hover{filter:brightness(.93);box-shadow:0 2px 6px rgba(0,0,0,.15)}
         .msg-modal-overlay.active .msg-modal{transform:translateY(0) scale(1)}
         .table-responsive{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#D1D5DB transparent}
         .table-responsive::-webkit-scrollbar{height:6px}
@@ -956,112 +970,113 @@
                             <span class="text-gray-400">Fallback when cookie has no expiry</span>
                         </div>
                     </div>
-                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                    <div style="padding:10px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
                         <div>
-                            <h3 class="font-semibold text-gray-900 text-sm">Slot Capacity Overview</h3>
-                            <p class="text-xs text-gray-400 mt-0.5">Real-time slot usage per platform</p>
+                            <h3 class="font-semibold text-gray-900 text-[13px]">Slot Capacity Overview</h3>
+                            <p class="text-[10px] text-gray-400" style="margin-top:1px">Real-time slot usage per platform</p>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <input id="acctSlotSearch" type="text" class="input text-xs py-1.5 w-36" placeholder="Search slots..." oninput="filterAccountSlots()">
-                            <select id="acctSlotFilterPlatform" class="input text-sm py-1.5 w-40" onchange="loadAccountSlots()">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <input id="acctSlotSearch" type="text" class="cm-input" style="width:120px;padding:4px 8px;font-size:11px;border-radius:6px" placeholder="Search..." oninput="filterAccountSlots()">
+                            <select id="acctSlotFilterPlatform" class="cm-input" style="width:130px;padding:4px 8px;font-size:11px;border-radius:6px" onchange="loadAccountSlots()">
                                 <option value="0">All Platforms</option>
                             </select>
-                            <select id="acctSlotFilterStatus" class="input text-xs py-1.5 w-28" onchange="filterAccountSlots()">
+                            <select id="acctSlotFilterStatus" class="cm-input" style="width:100px;padding:4px 8px;font-size:11px;border-radius:6px" onchange="filterAccountSlots()">
                                 <option value="">All Status</option>
                                 <option value="VALID">Valid</option>
                                 <option value="EXPIRED">Expired</option>
                                 <option value="DEAD">Dead</option>
                                 <option value="WEAK">Weak</option>
                             </select>
-                            <button onclick="recheckAllCookies()" class="btn btn-sm" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Recheck All
+                            <button onclick="recheckAllCookies()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:4px 10px;font-size:10px" title="Recheck all cookies">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Recheck
                             </button>
-                            <button onclick="loadAccountSlots()" class="btn btn-secondary btn-sm">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <button onclick="loadAccountSlots()" class="slot-action-btn" style="--c:#4B5563;--bg:#F3F4F6;--bc:#D1D5DB;flex:none;padding:4px 10px;font-size:10px" title="Refresh slots">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 Refresh
                             </button>
-                            <span id="autoRecheckStatus" class="text-[10px] text-gray-400 ml-1 hidden sm:inline-block"></span>
+                            <span id="autoRecheckStatus" class="text-[9px] text-gray-400 hidden sm:inline-block"></span>
                         </div>
                     </div>
-                    <div id="bulkActionsBar" class="hidden px-5 py-2.5 border-b border-gray-100 bg-indigo-50 flex items-center justify-between">
-                        <span class="text-sm font-medium text-indigo-700"><span id="bulkSelectedCount">0</span> slot(s) selected</span>
-                        <div class="flex items-center gap-2">
-                            <button onclick="bulkVerifySlots()" class="btn btn-sm text-xs py-1" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;">Verify Selected</button>
-                            <button onclick="bulkRecheckSlots()" class="btn btn-sm text-xs py-1" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;">Recheck Selected</button>
-                            <button onclick="bulkDeleteSlots()" class="btn btn-sm text-xs py-1" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;">Delete Selected</button>
-                            <button onclick="clearSlotSelection()" class="btn btn-secondary btn-sm text-xs py-1">Clear</button>
+                    <div id="bulkActionsBar" class="hidden" style="padding:6px 16px;border-bottom:1px solid #E0E7FF;background:#EEF2FF;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                        <span class="text-[11px] font-semibold text-indigo-700"><span id="bulkSelectedCount">0</span> selected</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="bulkVerifySlots()" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0;flex:none;padding:3px 8px;font-size:9px">Verify</button>
+                            <button onclick="bulkRecheckSlots()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:3px 8px;font-size:9px">Recheck</button>
+                            <button onclick="bulkDeleteSlots()" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:3px 8px;font-size:9px">Delete</button>
+                            <button onclick="clearSlotSelection()" class="slot-action-btn" style="--c:#4B5563;--bg:#F3F4F6;--bc:#D1D5DB;flex:none;padding:3px 8px;font-size:9px">Clear</button>
                         </div>
                     </div>
-                    <div id="accountSlotsContainer" class="p-5">
+                    <div id="accountSlotsContainer" style="padding:12px 16px">
                         <div class="text-center text-gray-400 text-sm py-4">Loading slot capacity...</div>
                     </div>
                 </div>
 
-                <div id="editAccountModal" class="msg-modal-overlay" onclick="if(event.target===this)closeEditAccountModal()" style="z-index:80">
-                    <div class="compact-modal" style="max-width:420px;">
+                <div id="editAccountModal" class="msg-modal-overlay" onclick="if(event.target===this)closeEditAccountModal()" style="z-index:80" role="dialog" aria-modal="true" aria-label="Edit Slot">
+                    <div class="compact-modal" style="max-width:400px;">
                         <div class="cm-header">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">
-                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <div style="width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4F46E5,#6366F1)">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </div>
-                                <h3 class="font-semibold text-gray-900 text-sm">Edit Slot</h3>
+                                <span class="font-semibold text-gray-900 text-[13px]">Edit Slot</span>
                             </div>
-                            <button onclick="closeEditAccountModal()" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg">&times;</button>
+                            <button onclick="closeEditAccountModal()" class="w-6 h-6 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-sm" aria-label="Close">&times;</button>
                         </div>
                         <input type="hidden" id="editAcctId"/>
                         <div class="cm-body">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-2 gap-x-3 gap-y-2">
                                 <div class="col-span-2">
-                                    <label class="cm-label">Slot Name</label>
+                                    <label class="cm-label" for="editAcctName">Slot Name</label>
                                     <input id="editAcctName" class="cm-input" placeholder="e.g. Netflix-Slot-1"/>
                                 </div>
                                 <div>
-                                    <label class="cm-label">Max Users</label>
+                                    <label class="cm-label" for="editAcctMaxUsers">Max Users</label>
                                     <input id="editAcctMaxUsers" type="number" class="cm-input" min="1" max="50" placeholder="5"/>
                                 </div>
                                 <div>
-                                    <label class="cm-label">Status</label>
+                                    <label class="cm-label" for="editAcctStatus">Status</label>
                                     <select id="editAcctStatus" class="cm-input">
                                         <option value="1">Active</option>
                                         <option value="0">Disabled</option>
                                     </select>
                                 </div>
                                 <div class="col-span-2">
-                                    <label class="cm-label">Expiry Date</label>
+                                    <label class="cm-label" for="editAcctExpiry">Expiry Date</label>
                                     <input id="editAcctExpiry" type="date" class="cm-input"/>
                                 </div>
                             </div>
                         </div>
                         <div class="cm-footer">
-                            <button onclick="closeEditAccountModal()" class="px-4 py-[7px] text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-                            <button id="editAccountSaveBtn" onclick="saveEditAccount()" class="px-5 py-[7px] text-xs font-semibold text-white rounded-lg transition-all hover:shadow-md" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">Save Changes</button>
+                            <button onclick="closeEditAccountModal()" class="cm-btn cm-btn-secondary">Cancel</button>
+                            <button id="editAccountSaveBtn" onclick="saveEditAccount()" class="cm-btn cm-btn-primary" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">Save Changes</button>
                         </div>
                     </div>
                 </div>
 
-                <div id="replaceCookieModal" class="msg-modal-overlay" onclick="if(event.target===this)closeReplaceCookieModal()" style="z-index:80">
-                    <div class="compact-modal" style="max-width:460px;">
+                <div id="replaceCookieModal" class="msg-modal-overlay" onclick="if(event.target===this)closeReplaceCookieModal()" style="z-index:80" role="dialog" aria-modal="true" aria-label="Replace Cookie">
+                    <div class="compact-modal" style="max-width:440px;">
                         <div class="cm-header">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
-                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                <div style="width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#7C3AED,#6D28D9)">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 </div>
-                                <h3 class="font-semibold text-gray-900 text-sm">Replace Cookie</h3>
+                                <span class="font-semibold text-gray-900 text-[13px]">Replace Cookie</span>
                             </div>
-                            <button onclick="closeReplaceCookieModal()" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg">&times;</button>
+                            <button onclick="closeReplaceCookieModal()" class="w-6 h-6 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-sm" aria-label="Close">&times;</button>
                         </div>
                         <input type="hidden" id="replaceCookieAccountId"/>
                         <div class="cm-body">
-                            <p id="replaceCookieNote" class="text-[11px] text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 mb-3 leading-relaxed"></p>
-                            <label class="cm-label">New Cookie Data</label>
+                            <p id="replaceCookieNote" class="text-[10px] text-violet-700 bg-violet-50 border border-violet-200 rounded-md px-2.5 py-1.5 leading-relaxed" style="margin-bottom:8px"></p>
+                            <label class="cm-label" for="replaceCookieInput">New Cookie Data</label>
                             <textarea id="replaceCookieInput" class="cm-input" rows="5" style="font-family:'JetBrains Mono',monospace;font-size:11px;resize:vertical" placeholder='Paste JSON cookie array or plain cookie string...'></textarea>
-                            <div id="replaceCookieStatus" class="mt-2 hidden"></div>
+                            <div id="replaceCookieParseInfo" class="hidden" style="margin-top:4px;font-size:10px;color:#6B7280"></div>
+                            <div id="replaceCookieStatus" class="mt-1.5 hidden"></div>
                         </div>
                         <div class="cm-footer">
-                            <button onclick="closeReplaceCookieModal()" class="px-4 py-[7px] text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-                            <button id="replaceCookieSaveBtn" onclick="saveReplaceCookie()" class="px-5 py-[7px] text-xs font-semibold text-white rounded-lg transition-all hover:shadow-md flex items-center gap-1.5" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <button onclick="closeReplaceCookieModal()" class="cm-btn cm-btn-secondary">Cancel</button>
+                            <button id="replaceCookieSaveBtn" onclick="saveReplaceCookie()" class="cm-btn cm-btn-primary flex items-center gap-1.5" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 <span id="replaceCookieBtnLabel">Replace &amp; Cascade</span>
                             </button>
                         </div>
@@ -2451,7 +2466,7 @@ async function loadFilteredEvents() {
     if (type !== 'all') params.set('type', type);
     if (time !== 'all') params.set('time_range', time);
     try {
-        const res = await fetch('api/get_activity_logs?' + params.toString(), {credentials:'same-origin'});
+        const res = await fetch('api/get_activity_logs?' + params.toString(), {credentials:'include'});
         if (!res.ok) return;
         const d = await res.json();
         if (d.success) {
@@ -2722,7 +2737,7 @@ async function forceLogoutUser(userId, username) {
 
 async function viewUserHistory(userId, username) {
     try {
-        const res = await fetch('api/user_intelligence?action=user_history&user_id=' + userId, {credentials:'same-origin'});
+        const res = await fetch('api/user_intelligence?action=user_history&user_id=' + userId, {credentials:'include'});
         const d = await res.json();
         if (!d.success) { showToast(d.message || 'Failed', 'error'); return; }
         let html = `<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem" onclick="if(event.target===this)this.remove()">
@@ -2776,7 +2791,7 @@ async function viewUserHistory(userId, username) {
 
 async function loadFullIntelligence() {
     try {
-        const res = await fetch('api/user_intelligence?action=live_sessions', {credentials:'same-origin'});
+        const res = await fetch('api/user_intelligence?action=live_sessions', {credentials:'include'});
         const d = await res.json();
         if (!d.success) { showToast(d.message || 'Failed', 'error'); return; }
 
@@ -5124,33 +5139,36 @@ function renderSlotCardHtml(a) {
         sessInfo = parts.join(' ');
     }
 
-    return `<div class="slot-card" style="background:${cardBg};border:1px solid ${borderCol};border-radius:10px;padding:10px 12px;transition:box-shadow .15s" onmouseenter="this.style.boxShadow='0 2px 8px rgba(0,0,0,.08)'" onmouseleave="this.style.boxShadow='none'">
-  <div class="flex items-center justify-between gap-1" style="margin-bottom:6px">
-    <div class="flex items-center gap-1.5 min-w-0">
-      <input type="checkbox" id="slot-cb-${slotId}" class="w-3 h-3 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="toggleSlotSelection(${slotId})"${SELECTED_SLOT_IDS.has(slotId) ? ' checked' : ''}>
-      <span class="font-semibold text-gray-900 text-[13px] truncate" title="${escHtml(a.slot_name)}">${escHtml(a.slot_name)}</span>
+    const selectedCls = SELECTED_SLOT_IDS.has(slotId) ? ' is-selected' : '';
+    const checkedAgo = a.last_checked_at ? _timeAgo(a.last_checked_at) : '';
+
+    return `<div class="slot-card${selectedCls}" data-slot-id="${slotId}" style="background:${cardBg};border:1px solid ${borderCol};border-radius:8px;padding:8px 10px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:4px;min-width:0">
+      <input type="checkbox" id="slot-cb-${slotId}" class="w-3 h-3 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="toggleSlotSelection(${slotId})"${SELECTED_SLOT_IDS.has(slotId) ? ' checked' : ''} aria-label="Select ${escHtml(a.slot_name)}">
+      <span style="font-weight:600;color:#111827;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(a.slot_name)}">${escHtml(a.slot_name)}</span>
       ${inCooldown ? _chip('CD','#DBEAFE','#2563EB') : ''}
     </div>
-    <div class="flex items-center gap-[3px] flex-shrink-0">${stabChip}${statusChip}</div>
+    <div style="display:flex;align-items:center;gap:2px;flex-shrink:0">${stabChip}${statusChip}</div>
   </div>
-  <div class="flex items-center gap-1.5" style="margin-bottom:5px">
-    <div class="flex-1 h-[5px] rounded-full overflow-hidden" style="background:#E5E7EB"><div class="h-full rounded-full" style="width:${pct}%;background:${usageCol};transition:width .3s"></div></div>
-    <span class="text-[10px] font-bold" style="color:${usageCol}">${a.active_users}/${a.max_users}</span>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+    <div style="flex:1;height:4px;border-radius:2px;overflow:hidden;background:#E5E7EB"><div style="height:100%;border-radius:2px;width:${pct}%;background:${usageCol};transition:width .3s"></div></div>
+    <span style="font-size:9px;font-weight:700;color:${usageCol};white-space:nowrap">${a.active_users}/${a.max_users}</span>
   </div>
-  <div class="grid gap-x-3 gap-y-[2px] text-[10px]" style="grid-template-columns:1fr 1fr;margin-bottom:5px">
-    <div class="flex items-center justify-between"><span class="text-gray-400">Cookie</span>${cookieChip}</div>
-    <div class="flex items-center justify-between"><span class="text-gray-400">Login</span>${loginChip}</div>
-    <div class="flex items-center justify-between"><span class="text-gray-400">IQ</span><span class="font-bold" style="color:${barCol}">${iScore}</span></div>
-    <div class="flex items-center justify-between"><span class="text-gray-400">Expiry</span>${expStr}</div>
-    <div class="flex items-center justify-between"><span class="text-gray-400">Rate</span><span class="font-semibold ${sRate>=80?'text-emerald-600':sRate>=50?'text-amber-600':'text-red-500'}">${sRate}%</span></div>
-    <div class="flex items-center justify-between"><span class="text-gray-400">Sessions</span><span class="font-medium">${sessInfo || '—'}</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font-size:10px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">Cookie</span>${cookieChip}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">Login</span>${loginChip}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">IQ</span><span style="font-weight:700;font-size:10px;color:${barCol}">${iScore}</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">Expiry</span>${expStr}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">Rate</span><span style="font-weight:600;color:${sRate>=80?'#059669':sRate>=50?'#D97706':'#DC2626'}">${sRate}%</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#9CA3AF">Sess</span><span style="font-weight:500">${sessInfo || '—'}</span></div>
   </div>
-  <div class="flex items-center gap-1.5" style="margin-bottom:5px">
-    <div class="flex-1 h-[3px] rounded-full overflow-hidden" style="background:#E5E7EB" title="IQ: ${iScore}%"><div class="h-full rounded-full" style="width:${Math.max(0,Math.min(100,iScore))}%;background:${barCol}"></div></div>
-    <span class="text-[9px] font-bold" style="color:${barCol}">${iScore}%</span>
+  <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+    <div style="flex:1;height:3px;border-radius:2px;overflow:hidden;background:#E5E7EB" title="Health: ${iScore}%"><div style="height:100%;border-radius:2px;width:${Math.max(0,Math.min(100,iScore))}%;background:${barCol}"></div></div>
+    <span style="font-size:9px;font-weight:700;color:${barCol}">${iScore}%</span>
+    ${checkedAgo ? `<span style="font-size:8px;color:#9CA3AF;white-space:nowrap" title="Last checked">${checkedAgo}</span>` : ''}
   </div>
-  ${a.last_checked_at ? '<div class="text-[9px] text-gray-400" style="margin-bottom:4px">Checked ' + _timeAgo(a.last_checked_at) + '</div>' : ''}
-  <div class="flex gap-1" style="margin-top:4px">
+  <div style="display:flex;gap:3px">
     <button onclick="checkSlot(${a.id},${JSON.stringify(a.slot_name)})" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0" title="Verify cookies & login">Check</button>
     <button onclick="openEditAccountModal(${a.id})" class="slot-action-btn" style="--c:#4F46E5;--bg:#EEF2FF;--bc:#C7D2FE" title="Edit slot settings">Edit</button>
     <button onclick="openReplaceCookieModal(${a.id},${JSON.stringify(a.slot_name)},${a.cookie_id||0})" class="slot-action-btn" style="--c:#7C3AED;--bg:#F5F3FF;--bc:#DDD6FE" title="Replace cookies">Replace</button>
@@ -5160,17 +5178,18 @@ function renderSlotCardHtml(a) {
 }
 
 function renderPlatformGroup(platformName, platformId, slots, totalActive, totalCap) {
-    let html = `<div style="margin-bottom:16px">
-        <div class="flex items-center justify-between" style="margin-bottom:8px;padding:6px 10px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="plat-cb-${platformId}" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all">
-                <span class="font-semibold text-gray-800 text-[13px]">${escHtml(platformName)}</span>
-                <span class="text-[10px] font-bold px-1.5 py-[1px] rounded" style="background:rgba(99,102,241,.1);color:#4F46E5">${totalActive}/${totalCap}</span>
-                <span class="text-[10px] text-gray-400">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
+    const usagePct = totalCap > 0 ? Math.round((totalActive / totalCap) * 100) : 0;
+    let html = `<div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:5px 10px;background:#F8FAFC;border-radius:6px;border:1px solid #E2E8F0">
+            <div style="display:flex;align-items:center;gap:6px">
+                <input type="checkbox" id="plat-cb-${platformId}" class="w-3 h-3 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all" aria-label="Select all ${escHtml(platformName)} slots">
+                <span style="font-weight:600;color:#1F2937;font-size:12px">${escHtml(platformName)}</span>
+                <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(99,102,241,.1);color:#4F46E5">${totalActive}/${totalCap}</span>
+                <span style="font-size:9px;color:#9CA3AF">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
             </div>
-            <button onclick="deleteAllPlatformSlots(${platformId},'${escHtml(platformName).replace(/'/g, "\\'")}')" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:2px 8px;font-size:9px" title="Delete all ${escHtml(platformName)} slots">Delete All</button>
+            <button onclick="deleteAllPlatformSlots(${platformId},'${escHtml(platformName).replace(/'/g, "\\'")}')" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:2px 8px;font-size:9px" title="Delete all">Del All</button>
         </div>
-        <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">`;
+        <div style="display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">`;
     slots.forEach(a => { html += renderSlotCardHtml(a); });
     html += '</div></div>';
     return html;
@@ -5962,6 +5981,18 @@ function uaRenderHistory() {
 
 
 
+function _cardEl(slotId) {
+    const cb = document.getElementById('slot-cb-' + slotId);
+    return cb ? cb.closest('.slot-card') : null;
+}
+function _setCardLoading(slotId, loading) {
+    const card = _cardEl(slotId);
+    if (card) { if (loading) card.classList.add('is-loading'); else card.classList.remove('is-loading'); }
+}
+function _setCardSelected(slotId, selected) {
+    const card = _cardEl(slotId);
+    if (card) { if (selected) card.classList.add('is-selected'); else card.classList.remove('is-selected'); }
+}
 function toggleSlotSelection(slotId) {
     if (SELECTED_SLOT_IDS.has(slotId)) {
         SELECTED_SLOT_IDS.delete(slotId);
@@ -5971,6 +6002,7 @@ function toggleSlotSelection(slotId) {
     updateBulkBar();
     const cb = document.getElementById('slot-cb-' + slotId);
     if (cb) cb.checked = SELECTED_SLOT_IDS.has(slotId);
+    _setCardSelected(slotId, SELECTED_SLOT_IDS.has(slotId));
 }
 
 function togglePlatformSelection(platformId) {
@@ -6250,10 +6282,44 @@ function openEditAccountModal(accountId) {
     document.getElementById('editAcctStatus').value = acct.is_active ? '1' : '0';
     document.getElementById('editAcctExpiry').value = acct.expires_at ? acct.expires_at.split(' ')[0].split('T')[0] : '';
     document.getElementById('editAccountModal').classList.add('active');
+    setTimeout(() => document.getElementById('editAcctName').focus(), 150);
 }
 function closeEditAccountModal() {
     document.getElementById('editAccountModal').classList.remove('active');
 }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('editAccountModal').classList.contains('active')) closeEditAccountModal();
+        if (document.getElementById('replaceCookieModal').classList.contains('active')) closeReplaceCookieModal();
+    }
+    if (e.key === 'Enter' && !e.shiftKey) {
+        const editModal = document.getElementById('editAccountModal');
+        if (editModal.classList.contains('active') && document.activeElement?.closest('#editAccountModal') && document.activeElement.tagName !== 'SELECT') {
+            e.preventDefault();
+            saveEditAccount();
+        }
+    }
+});
+
+document.getElementById('replaceCookieInput')?.addEventListener('input', function() {
+    const parseInfo = document.getElementById('replaceCookieParseInfo');
+    if (!parseInfo) return;
+    const val = this.value.trim();
+    if (!val) { parseInfo.classList.add('hidden'); this.classList.remove('cm-error'); return; }
+    const v = _validateCookieInput(val);
+    if (v.valid) {
+        parseInfo.textContent = `Parsed: ${v.count} ${v.format} cookie(s)`;
+        parseInfo.style.color = '#059669';
+        parseInfo.classList.remove('hidden');
+        this.classList.remove('cm-error');
+    } else {
+        parseInfo.textContent = v.error;
+        parseInfo.style.color = '#DC2626';
+        parseInfo.classList.remove('hidden');
+        this.classList.add('cm-error');
+    }
+});
 async function saveEditAccount() {
     const btn = document.getElementById('editAccountSaveBtn');
     if (btn && btn.disabled) return;
@@ -6440,22 +6506,39 @@ function showSmartAlert(deadCount, expiredCount, total) {
 async function deleteAccountSlot(accountId, slotName, activeUsers) {
     if (_slotBusy.has('del-'+accountId)) return;
     const impactMsg = activeUsers > 0
-        ? `⚠️ "${slotName}" has ${activeUsers} active user(s) who will be disconnected.\n\nDelete anyway?`
-        : `Delete account slot "${slotName}"? This will remove all associated sessions.`;
+        ? `"${slotName}" has ${activeUsers} active user(s) who will be disconnected.\n\nAre you sure you want to delete?`
+        : `Delete "${slotName}"? All associated sessions will be removed.`;
     if (!confirm(impactMsg)) return;
+    if (activeUsers > 0 && !confirm(`FINAL CONFIRMATION: ${activeUsers} user(s) will lose access immediately. Proceed?`)) return;
     _slotBusy.add('del-'+accountId);
     const btn = _slotBtn(accountId, 'deleteAccountSlot');
     _setBusy(btn, true, 'Deleting...');
+    _setCardLoading(accountId, true);
     try {
         const res = await fetch('api/manage_platform_accounts', {
             method: 'POST', headers: csrfHeaders(), credentials: 'include',
             body: JSON.stringify({ action: 'delete', account_id: accountId })
         });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) _refreshAll();
+        if (!res.ok) {
+            showAlert(res.status === 401 ? 'Session expired.' : `Server error (${res.status}).`, true);
+        } else {
+            const data = await res.json();
+            showAlert(data.message, !data.success);
+            if (data.success) {
+                const card = _cardEl(accountId);
+                if (card) {
+                    card.style.transition = 'opacity .25s,transform .25s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(.95)';
+                    setTimeout(() => _refreshAll(), 280);
+                } else { _refreshAll(); }
+                return;
+            }
+        }
     } catch (e) { showAlert('Network error.', true); }
-    _slotBusy.delete('del-'+accountId); _setBusy(btn, false, 'Delete');
+    _slotBusy.delete('del-'+accountId);
+    _setCardLoading(accountId, false);
+    _setBusy(btn, false, 'Del');
 }
 
 function toggleExtendMenu(slotId) {
@@ -6539,70 +6622,147 @@ async function checkSlot(accountId, slotName) {
     if (_slotBusy.has('ck-'+accountId)) return; _slotBusy.add('ck-'+accountId);
     const btn = _slotBtn(accountId, 'checkSlot');
     _setBusy(btn, true, 'Checking...');
+    _setCardLoading(accountId, true);
+    const card = _cardEl(accountId);
+    if (card) card.querySelectorAll('.slot-action-btn').forEach(b => { if (b !== btn) b.disabled = true; });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
     try {
         const [recheckRes, verifyRes] = await Promise.all([
-            fetch('api/validate_cookie', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'recheck',account_id:accountId}) }),
-            fetch('api/verify_login', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_single',account_id:accountId}) })
+            fetch('api/validate_cookie', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'recheck',account_id:accountId}), signal:controller.signal }),
+            fetch('api/verify_login', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_single',account_id:accountId}), signal:controller.signal })
         ]);
-        const [recheckData, verifyData] = await Promise.all([recheckRes.json(), verifyRes.json()]);
-        const cs = recheckData.cookie_status || 'UNKNOWN';
-        const ls = verifyData.login_status || 'PENDING';
-        const csEmoji = cs === 'VALID' ? '✅' : cs === 'RISKY' ? '⚠️' : '❌';
-        const lsEmoji = ls === 'VALID' ? '✅' : ls === 'PARTIAL' ? '⚠️' : ls === 'PENDING' ? '⏳' : '❌';
-        showAlert(`${slotName} — Cookie: ${csEmoji} ${cs}  |  Login: ${lsEmoji} ${ls}`, cs === 'DEAD' || cs === 'EXPIRED');
-        try { await fetch('api/account_intelligence',{method:'POST',headers:csrfHeaders(),credentials:'include',body:JSON.stringify({action:'verify_and_score',account_id:accountId})}); } catch(_){}
-        _refreshAll();
-    } catch(e) { showAlert('Network error during check.', true); }
-    _slotBusy.delete('ck-'+accountId); _setBusy(btn, false, 'Check');
+        clearTimeout(timeout);
+        if (!recheckRes.ok || !verifyRes.ok) {
+            const code = recheckRes.status || verifyRes.status;
+            showAlert(code === 401 ? 'Session expired — please log in again.' : code === 403 ? 'Permission denied.' : `Server error (${code}).`, true);
+        } else {
+            const [recheckData, verifyData] = await Promise.all([recheckRes.json(), verifyRes.json()]);
+            const cs = recheckData.cookie_status || 'UNKNOWN';
+            const ls = verifyData.login_status || 'PENDING';
+            const csEmoji = cs === 'VALID' ? '✅' : cs === 'RISKY' ? '⚠️' : '❌';
+            const lsEmoji = ls === 'VALID' ? '✅' : ls === 'PARTIAL' ? '⚠️' : ls === 'PENDING' ? '⏳' : '❌';
+            showAlert(`${slotName} — Cookie: ${csEmoji} ${cs}  |  Login: ${lsEmoji} ${ls}`, cs === 'DEAD' || cs === 'EXPIRED');
+            try { await fetch('api/account_intelligence',{method:'POST',headers:csrfHeaders(),credentials:'include',body:JSON.stringify({action:'verify_and_score',account_id:accountId})}); } catch(_){}
+            _refreshAll();
+        }
+    } catch(e) {
+        clearTimeout(timeout);
+        showAlert(e.name === 'AbortError' ? `Check timed out for "${slotName}". Try again.` : 'Network error during check.', true);
+    }
+    _slotBusy.delete('ck-'+accountId);
+    _setCardLoading(accountId, false);
+    _setBusy(btn, false, 'Check');
+    if (card) card.querySelectorAll('.slot-action-btn').forEach(b => b.disabled = false);
+}
+
+function _validateCookieInput(raw) {
+    if (!raw || !raw.trim()) return { valid: false, error: 'Please paste cookie data.', count: 0 };
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+            const parsed = JSON.parse(trimmed.startsWith('{') ? '[' + trimmed + ']' : trimmed);
+            if (!Array.isArray(parsed) || parsed.length === 0) return { valid: false, error: 'JSON parsed but contains no cookies.', count: 0 };
+            const missing = parsed.filter(c => !c.name || !c.value);
+            if (missing.length > 0) return { valid: false, error: `${missing.length} cookie(s) missing name/value fields.`, count: 0 };
+            return { valid: true, count: parsed.length, format: 'json' };
+        } catch (e) { return { valid: false, error: 'Invalid JSON format: ' + e.message.substring(0, 60), count: 0 }; }
+    }
+    const pairs = trimmed.split(';').filter(p => p.trim().includes('='));
+    if (pairs.length === 0) return { valid: false, error: 'No valid cookie pairs found.', count: 0 };
+    return { valid: true, count: pairs.length, format: 'string' };
 }
 
 function openReplaceCookieModal(accountId, slotName, vaultId) {
     document.getElementById('replaceCookieAccountId').value = accountId;
-    document.getElementById('replaceCookieInput').value = '';
+    const textarea = document.getElementById('replaceCookieInput');
+    textarea.value = '';
+    textarea.classList.remove('cm-error');
     const statusEl = document.getElementById('replaceCookieStatus');
     statusEl.classList.add('hidden'); statusEl.textContent = '';
+    const parseInfo = document.getElementById('replaceCookieParseInfo');
+    if (parseInfo) { parseInfo.classList.add('hidden'); parseInfo.textContent = ''; }
     const note = document.getElementById('replaceCookieNote');
     if (vaultId > 0) {
-        note.textContent = `Vault-managed cookie (Vault ID: ${vaultId}). Replacing will update the vault and cascade to all linked slots for "${slotName}".`;
+        note.textContent = `Vault-managed (ID: ${vaultId}). Replacing will update the vault and cascade to all linked slots for "${slotName}".`;
     } else {
-        note.textContent = `Replacing the cookie for "${slotName}". The new cookie will be stored in the vault and linked to this slot.`;
+        note.textContent = `Replacing cookie for "${slotName}". New cookie stored in vault and linked to this slot.`;
     }
     document.getElementById('replaceCookieBtnLabel').textContent = 'Replace & Cascade';
     document.getElementById('replaceCookieModal').classList.add('active');
+    setTimeout(() => textarea.focus(), 150);
 }
 
 function closeReplaceCookieModal() {
     document.getElementById('replaceCookieModal').classList.remove('active');
     document.getElementById('replaceCookieInput').value = '';
+    document.getElementById('replaceCookieInput').classList.remove('cm-error');
     document.getElementById('replaceCookieStatus').classList.add('hidden');
+    const parseInfo = document.getElementById('replaceCookieParseInfo');
+    if (parseInfo) parseInfo.classList.add('hidden');
     const btn = document.getElementById('replaceCookieSaveBtn');
     if (btn) _setBusy(btn, false, 'Replace & Cascade');
 }
 
 async function saveReplaceCookie() {
     const accountId = parseInt(document.getElementById('replaceCookieAccountId').value);
-    const cookieString = document.getElementById('replaceCookieInput').value.trim();
+    const textarea = document.getElementById('replaceCookieInput');
+    const cookieString = textarea.value.trim();
     const statusEl = document.getElementById('replaceCookieStatus');
-    if (!cookieString) { statusEl.textContent = 'Please paste cookie data.'; statusEl.className = 'mt-2 text-xs text-red-500'; statusEl.classList.remove('hidden'); return; }
+    const parseInfo = document.getElementById('replaceCookieParseInfo');
+
+    const validation = _validateCookieInput(cookieString);
+    if (!validation.valid) {
+        textarea.classList.add('cm-error');
+        statusEl.textContent = validation.error;
+        statusEl.className = 'text-[10px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5';
+        statusEl.style.marginTop = '4px';
+        statusEl.classList.remove('hidden');
+        return;
+    }
+    textarea.classList.remove('cm-error');
+    statusEl.classList.add('hidden');
+
+    if (!confirm(`Replace cookie with ${validation.count} ${validation.format} cookie(s)? This will cascade to all linked slots.`)) return;
+
     const btn = document.getElementById('replaceCookieSaveBtn');
     _setBusy(btn, true, 'Replacing...');
-    statusEl.classList.add('hidden');
     try {
         const res = await fetch('api/manage_platform_accounts', {
             method:'POST', headers:csrfHeaders(), credentials:'include',
             body: JSON.stringify({ action:'replace_cookie', account_id:accountId, cookie_data:cookieString })
         });
+        if (!res.ok) {
+            const code = res.status;
+            statusEl.textContent = code === 401 ? 'Session expired — please log in again.' : code === 403 ? 'Permission denied.' : `Server error (${code}).`;
+            statusEl.className = 'text-[10px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5';
+            statusEl.style.marginTop = '4px';
+            statusEl.classList.remove('hidden');
+            _setBusy(btn, false, 'Replace & Cascade');
+            return;
+        }
         const data = await res.json();
         if (data.success) {
             showAlert(data.message, false);
             closeReplaceCookieModal();
+            showAlert(`Auto-verifying slot after replace...`);
+            try {
+                await fetch('api/validate_cookie', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'recheck',account_id:accountId}) });
+                await fetch('api/account_intelligence',{method:'POST',headers:csrfHeaders(),credentials:'include',body:JSON.stringify({action:'verify_and_score',account_id:accountId})});
+            } catch(_){}
             _refreshAll();
         } else {
             statusEl.textContent = data.message || 'Replace failed.';
-            statusEl.className = 'mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2';
+            statusEl.className = 'text-[10px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5';
+            statusEl.style.marginTop = '4px';
             statusEl.classList.remove('hidden');
         }
-    } catch(e) { statusEl.textContent = 'Network error.'; statusEl.className = 'mt-2 text-xs text-red-500'; statusEl.classList.remove('hidden'); }
+    } catch(e) {
+        statusEl.textContent = 'Network error — check your connection.';
+        statusEl.className = 'text-[10px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5';
+        statusEl.style.marginTop = '4px';
+        statusEl.classList.remove('hidden');
+    }
     _setBusy(btn, false, 'Replace & Cascade');
 }
 

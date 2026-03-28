@@ -1,0 +1,201 @@
+Good progress. The core root causes were identified and main broken handlers were fixed.
+
+Now I want you to continue as a senior full-stack engineer and do the final production polish phase for the Account Manager / Slot Manager.
+
+Current state:
+- Check button fixed by changing credentials from same-origin to include
+- Replace button fixed by changing credentials from same-origin to include
+- Delete was already working
+- Edit modal redesigned
+- Slot cards made more compact
+- Modals improved
+- Grid improved
+- Tests are passing
+
+Now do NOT stop here.
+
+==================================================
+NEXT PHASE: PROFESSIONAL FINISHING + HARDENING
+==================================================
+
+I want you to improve the module from “working” to “production-grade premium SaaS”.
+
+Focus on these areas:
+
+1. WHITESPACE / DENSITY / LAYOUT POLISH
+The UI is improved, but I still want you to carefully inspect for:
+- extra whitespace
+- uneven spacing
+- oversized gaps between cards, headers, controls, and sections
+- inconsistent padding/margins
+- cards still taking more room than necessary
+- poor visual density for admin scanning
+
+Make the layout tighter, cleaner, and more professional without making it cramped.
+
+Requirements:
+- reduce unnecessary vertical space
+- make platform sections tighter
+- make action rows more compact
+- align labels, chips, metrics, and bars more cleanly
+- ensure spacing is consistent everywhere
+- improve visual balance
+- optimize for admins viewing many slots at once
+
+2. SLOT CARD FINAL REDESIGN
+I want the slot cards to feel premium and highly scannable.
+
+Improve:
+- hierarchy of title / badges / usage / health
+- metric grouping
+- spacing between rows
+- alignment of percentage, IQ, expiry, rate, session counts
+- consistency of tiny action buttons
+- hover state
+- selected state
+- loading state
+- unhealthy/risky visual emphasis
+- badge consistency
+
+Also:
+- make sure cards do not feel cluttered
+- keep compactness, but improve readability
+- make them feel like a premium operations dashboard
+
+3. EDIT / REPLACE MODAL FINAL POLISH
+The new modals are better, but I want a final professional pass.
+
+Inspect and improve:
+- header spacing
+- close button alignment
+- field spacing
+- footer alignment
+- button hierarchy
+- modal width/height balance
+- mobile responsiveness
+- keyboard accessibility
+- focus states
+- inline validation style
+- sticky footer behavior if content grows
+
+Make them feel like polished production admin modals, not custom rough forms.
+
+4. CHECK FLOW HARDENING
+Now that Check works, improve it further:
+- prevent duplicate clicks on same slot while running
+- show per-card loading indicator
+- disable action buttons during check
+- show last result more clearly
+- handle timeout gracefully
+- handle 401/403/500 with proper messages
+- make UI recover cleanly after failure
+- ensure score, heartbeat, checked_at, and badges always refresh consistently
+
+5. REPLACE FLOW HARDENING
+Even if Replace now works, make it safer:
+- validate pasted cookie format before submit
+- show parsing errors clearly
+- detect duplicate cookie imports
+- detect platform mismatch
+- show confirmation before overwrite
+- save old cookie backup before replace
+- support rollback-ready history structure
+- re-run check automatically after successful replace
+- refresh only changed slot, not full page if possible
+
+6. DELETE FLOW HARDENING
+Even if Delete works, make it safer and more professional:
+- confirmation modal with slot/account name
+- show affected sessions/users count if available
+- block delete when active users exist, unless explicit force flow exists
+- prefer soft delete if architecture supports it
+- show success/error toast
+- remove from UI cleanly with no stale state
+
+7. VISUAL CONSISTENCY
+Perform a final design-system consistency sweep:
+- same border radius scale
+- same chip height
+- same button height for compact actions
+- same label style
+- same font sizing rules
+- same muted text colors
+- same section spacing
+- consistent shadows and borders
+- no random spacing values
+
+8. RESPONSIVENESS
+Ensure the final UI works cleanly on:
+- wide desktop
+- laptop
+- tablet
+- narrow admin panels
+- smaller browser widths
+
+Optimize:
+- responsive card columns
+- modal sizing
+- action wrapping
+- chip wrapping
+- readable metric layout on smaller widths
+
+9. ACCESSIBILITY / UX QUALITY
+Add production-quality UX improvements:
+- keyboard navigation
+- proper focus ring
+- aria labels where needed
+- ESC close for modals
+- Enter submit where appropriate
+- disabled/loading button states
+- tooltips for ambiguous badges or metrics
+- accessible contrast for risky/warning states
+
+10. CODE CLEANUP
+Do a final refactor pass:
+- remove dead CSS
+- remove duplicate modal styles
+- remove obsolete handlers
+- centralize repeated fetch/action logic if possible
+- make the Account Manager code cleaner and easier to maintain
+- ensure naming consistency
+
+==================================================
+OUTPUT I WANT
+==================================================
+
+After this pass, give me:
+
+1. FINAL POLISH REPORT
+- what whitespace/layout problems were found
+- what was improved
+- what UX polish was added
+- what hardening was added
+
+2. FILE-BY-FILE SUMMARY
+- exact files changed
+- what changed in each
+
+3. FINAL QA CHECKLIST
+Verify:
+- Check works
+- Edit works
+- Replace works
+- Delete works
+- modals look professional
+- cards are compact and clean
+- spacing is consistent
+- responsive layout works
+- no stale state issues
+
+4. FINAL UI/UX RESULT
+Describe the final admin experience and why it is now production-grade.
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not break working functionality
+- Improve polish without regressing behavior
+- Be detail-oriented about spacing and consistency
+- Keep the UI compact, premium, and scalable
+- Think like a lead engineer shipping a professional SaaS admin dashboard
