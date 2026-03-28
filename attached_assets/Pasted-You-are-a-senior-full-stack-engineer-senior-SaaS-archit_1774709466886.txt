@@ -1,0 +1,281 @@
+You are a senior full-stack engineer, senior SaaS architect, senior product designer, senior alerting/monitoring engineer, and senior admin-dashboard specialist.
+
+The Platform Intelligence module is already significantly improved.
+Now I want the NEXT PHASE focused on DEAD PLATFORM ALERTS, operational warnings, and admin action workflows.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do not add wasteful polling, heavy repeated full refreshes, or expensive alert logic on every render.
+All alerting and warning behavior must be lightweight, fast, and production-safe.
+
+==================================================
+MAIN GOAL
+==================================================
+
+When a platform becomes DEAD, the admin must clearly know it and be guided on what action to take.
+
+I want a professional alerting and warning system for Platform Intelligence.
+
+This should include:
+- clear visual alert when a platform becomes Dead
+- top-level dashboard warning summary
+- platform-level alert state
+- actionable recommendations
+- optional toast/banner when status changes to Dead
+- support for dismissing/muting informational alerts if needed
+- no dangerous spammy behavior
+- no performance regression for 1000+ users
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the current real implementation first.
+
+Audit:
+- how platform status transitions are computed
+- where "Dead" is assigned
+- whether status changes are stored historically
+- whether any alerting mechanism already exists
+- how often platform data refreshes
+- whether WebSocket/SSE or lightweight polling already exists
+- whether health checks update platforms in bulk
+- whether the UI already has banners/toasts/warning cards that can be reused
+- whether audit logs already capture dead transitions
+- what current recommendation labels exist for Dead platforms
+
+Then clearly report:
+1. what currently happens when a platform becomes Dead
+2. what is missing
+3. what alerting already exists if any
+4. what is the best lightweight architecture for alerting
+5. what could become slow for 1000+ users
+
+==================================================
+PHASE 2 — PRODUCT DESIGN FOR DEAD PLATFORM ALERTS
+==================================================
+
+Design a proper dead-platform alert system.
+
+I want the final behavior to answer:
+- which platform just became Dead?
+- how many platforms are currently Dead?
+- what should the admin do next?
+- is this a newly dead platform or an already-known dead platform?
+- is this critical enough to escalate visually?
+
+Implement a product model like this:
+
+1. DEAD STATUS CARD / BANNER
+- if one or more platforms are Dead, show a clear warning banner or alert summary near the top of Platform Intelligence
+- include count of dead platforms
+- include quick action like:
+  - View Dead Platforms
+  - Run Health Check
+  - Review Dead Platforms
+
+2. PLATFORM CARD ALERT STATE
+- dead platform cards should be visually stronger than just a small red badge
+- show:
+  - critical icon
+  - reason text
+  - recommended action
+  - last checked time
+  - optional “newly dead” label if recently changed
+
+3. TABLE ALERT SUPPORT
+- dead rows in registry table should be visually clearer
+- allow filtering to dead only
+- include recommended action / reason / stale warning if useful
+
+4. NEW STATUS-CHANGE ALERTS
+- when a platform transitions from non-dead to dead, show a non-spammy alert:
+  - toast
+  - banner
+  - or activity alert card
+- this should happen only on actual transition, not every refresh
+
+==================================================
+PHASE 3 — ALERT TYPES TO ADD
+==================================================
+
+I want you to design and implement the best alert layers.
+
+A. PERSISTENT DASHBOARD ALERT
+Show a persistent warning if there are dead platforms.
+
+Example:
+- 1 platform is Dead — review immediately
+- 3 platforms are Dead — operational attention required
+
+B. TRANSITION ALERT
+If a platform newly becomes Dead after a health check or refresh:
+- show a one-time toast or inline alert
+- mention platform name
+- do not repeat endlessly on every refresh
+
+C. PLATFORM RECOMMENDATION
+For each dead platform, show recommended action like:
+- Remove or re-import credentials
+- Review linked accounts
+- Run health check again
+- Disable platform if intentionally unused
+
+D. OPTIONAL MUTE / DISMISS
+For informational alert banners:
+- allow dismissing the banner for the current session if useful
+- do NOT hide the actual dead status itself
+- the dead state must remain visible in cards/table
+
+==================================================
+PHASE 4 — UI / UX IMPROVEMENTS
+==================================================
+
+Implement dead-platform alerts in a premium admin-dashboard way.
+
+Improve:
+1. top warning banner
+2. dead summary card behavior
+3. dead platform card style
+4. dead row style in registry table
+5. filter dead platforms quickly
+6. add “new” / “critical” chip if useful
+7. add better iconography
+8. add action CTA buttons
+9. add hover tooltips with reason and timestamps
+
+Keep it compact, premium, and operationally useful.
+
+Do NOT make it noisy.
+Do NOT make it look like consumer notifications.
+This is an admin operations dashboard.
+
+==================================================
+PHASE 5 — BACKEND / DATA SUPPORT
+==================================================
+
+Add the backend/data support needed.
+
+I want:
+- ability to detect status transitions to Dead
+- store previous status if needed
+- expose dead-platform counts cleanly
+- expose “newly_dead” or “status_changed_at” if needed
+- support filtering dead platforms efficiently
+- support reason text and timestamps
+
+If needed:
+- add fields like:
+  - previous_status
+  - status_changed_at
+  - alert_dismissed_at (if appropriate)
+  - last_dead_at
+- but only if genuinely useful and scalable
+
+Use the safest minimal schema changes necessary.
+
+==================================================
+PHASE 6 — ALERTING LOGIC / RULES
+==================================================
+
+Be precise about alert rules.
+
+Examples:
+- If platform status changes from Healthy/Degraded/Unused/Inactive to Dead → raise transition alert
+- If platform is already Dead and remains Dead → do not keep showing a new toast every refresh
+- If multiple platforms become Dead in one health run → summarize them cleanly
+- If platform recovers from Dead → clear “newly dead” transition state and optionally show recovery info if useful
+
+Make sure this logic is deterministic and not spammy.
+
+==================================================
+PHASE 7 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+The alert system must remain fast for 1000+ concurrent users.
+
+Requirements:
+- no expensive full page reloads
+- no repeated recomputation on every frontend render
+- compute transition state efficiently on backend or cached data
+- use lightweight UI updates
+- avoid notification spam
+- support incremental refresh only
+- cache dashboard status if appropriate
+- keep alert banners cheap to render
+
+If a health check is already async, integrate alerting into its completion flow efficiently.
+
+==================================================
+PHASE 8 — HIGH-VALUE EXTRA IMPROVEMENTS
+==================================================
+
+Also consider adding:
+- “View Dead Only” quick filter button
+- dead platform summary panel
+- dead platforms section sorted first
+- last dead transition timestamp
+- recommendation chip
+- audit log entry when platform becomes Dead
+- optional recovery note when platform comes back healthy
+
+Only add what improves real admin value without making the platform heavy.
+
+==================================================
+PHASE 9 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what currently happens when a platform becomes dead
+- what was missing
+- why admins could miss it
+
+2. PRODUCT DECISION SUMMARY
+- final dead alert model
+- final banner/toast/card/table behavior
+- final transition rules
+- final recommendation model
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how performance is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- dead-platform alerting
+- top warning banner
+- transition detection
+- improved card/table dead state
+- recommendation/action workflow
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- admin sees dead platforms clearly
+- newly dead platforms trigger one-time alert
+- no spammy repeat alerts
+- top-level warning appears correctly
+- dead filtering works
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Add real alerting logic, not fake UI only
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve existing working functionality
+- Keep the UI compact, premium, and operationally useful
+- Think like a lead engineer + product designer shipping this to production

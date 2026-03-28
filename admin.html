@@ -88,6 +88,20 @@
         .plat-edit-color-preview{display:inline-block;width:20px;height:20px;border-radius:6px;border:1px solid #E5E7EB;vertical-align:middle;margin-left:6px}
         .plat-edit-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         .plat-edit-warning{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;margin-bottom:14px}
+        .plat-dead-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,#FEF2F2 0%,#FEE2E2 100%);border:1px solid #FECACA;border-left:4px solid #EF4444;border-radius:10px;margin-bottom:14px;transition:opacity .3s}
+        .plat-dead-banner-icon{width:28px;height:28px;border-radius:8px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .plat-dead-banner-icon svg{width:16px;height:16px;color:#DC2626}
+        .plat-dead-banner-text{flex:1;min-width:0}
+        .plat-dead-banner-title{font-size:12px;font-weight:700;color:#991B1B}
+        .plat-dead-banner-sub{font-size:10px;color:#B91C1C;margin-top:1px}
+        .plat-dead-banner-actions{display:flex;gap:6px;flex-shrink:0}
+        .plat-dead-banner .plat-action-btn{font-size:10px;padding:4px 10px}
+        .plat-card-dead{border-color:#FECACA !important;background:linear-gradient(135deg,#FFFBFB 0%,#FEF2F2 100%) !important;position:relative}
+        .plat-card-dead::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#EF4444,#DC2626);border-radius:12px 12px 0 0}
+        .plat-row-dead{background:#FEF2F2 !important}
+        .plat-row-dead td{border-bottom-color:#FECACA !important}
+        .plat-newly-dead-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:4px;background:#DC2626;color:#fff;font-size:8px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;animation:platDeadPulse 2s ease-in-out 3}
+        @keyframes platDeadPulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes platShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:4px 0;font-size:10px;font-weight:600;border-radius:6px;border:1px solid var(--bc,#E5E7EB);background:var(--bg,#F9FAFB);color:var(--c,#374151);cursor:pointer;transition:all .15s;line-height:1;min-height:22px}
         .slot-action-btn:hover{filter:brightness(.93);box-shadow:0 1px 4px rgba(0,0,0,.1)}
@@ -1204,6 +1218,7 @@
                         </div>
                     </div>
                     <div class="p-5">
+                        <div id="platDeadBanner" style="display:none"></div>
                         <div id="platSummaryCards" class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-5"></div>
                         <div id="platIntelGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="text-center text-gray-400 text-sm py-8 col-span-full">Loading platform data...</div>
@@ -1211,7 +1226,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card" id="platRegistrySection">
                     <div class="px-5 py-4 border-b border-gray-100">
                         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                             <div class="flex items-center gap-2">
@@ -3559,9 +3574,80 @@ function _platRecommendation(status) {
         degraded: '<div class="plat-recommendation warn">Recommended: Run health check to verify</div>',
         unused: '<div class="plat-recommendation muted">Tip: Import cookies to activate this platform</div>',
         inactive: '<div class="plat-recommendation info">Action: Enable platform when ready</div>',
-        dead: '<div class="plat-recommendation danger">Action: Remove or re-import credentials</div>',
+        dead: '<div class="plat-recommendation danger"><svg style="width:10px;height:10px;vertical-align:-1px;margin-right:2px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.068 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>Critical: Remove or re-import credentials immediately</div>',
     };
     return map[status] || '';
+}
+
+let _platPreviousDeadIds = null;
+
+function _platRenderDeadBanner(platforms) {
+    const banner = document.getElementById('platDeadBanner');
+    if (!banner) return;
+    const deadPlatforms = platforms.filter(p => p.health_status === 'dead');
+    if (deadPlatforms.length === 0) { banner.style.display = 'none'; return; }
+
+    const names = deadPlatforms.slice(0, 3).map(p => p.name).join(', ') + (deadPlatforms.length > 3 ? ` +${deadPlatforms.length - 3} more` : '');
+    const severity = deadPlatforms.length >= 3 ? 'Operational attention required' : 'Review immediately';
+    const dismissKey = 'platDeadBannerDismissed_' + deadPlatforms.map(p => p.id).sort().join(',');
+    const dismissed = sessionStorage.getItem(dismissKey);
+    if (dismissed) { banner.style.display = 'none'; return; }
+
+    banner.style.display = '';
+    banner.innerHTML = `
+        <div class="plat-dead-banner">
+            <div class="plat-dead-banner-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.068 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            </div>
+            <div class="plat-dead-banner-text">
+                <div class="plat-dead-banner-title">${deadPlatforms.length} platform${deadPlatforms.length > 1 ? 's' : ''} ${deadPlatforms.length > 1 ? 'are' : 'is'} Dead — ${severity}</div>
+                <div class="plat-dead-banner-sub">${escHtml(names)}</div>
+            </div>
+            <div class="plat-dead-banner-actions">
+                <button onclick="document.getElementById('platStatusFilter').value='dead';_platPage=1;filterPlatformRegistry();document.getElementById('platRegistrySection')?.scrollIntoView({behavior:'smooth'})" class="plat-action-btn danger" style="font-size:10px;padding:4px 10px">View Dead</button>
+                <button onclick="runPlatformHealthCheck()" class="plat-action-btn primary" style="font-size:10px;padding:4px 10px">Re-check</button>
+                <button onclick="sessionStorage.setItem('${dismissKey}','1');document.getElementById('platDeadBanner').style.display='none'" class="plat-action-btn" style="font-size:10px;padding:4px 8px" title="Dismiss for this session">
+                    <svg style="width:10px;height:10px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>`;
+}
+
+function _platDetectTransitions(platforms) {
+    const currentDeadIds = new Set(platforms.filter(p => p.health_status === 'dead').map(p => p.id));
+    if (_platPreviousDeadIds === null) {
+        _platPreviousDeadIds = currentDeadIds;
+        return;
+    }
+    const newlyDead = [];
+    for (const id of currentDeadIds) {
+        if (!_platPreviousDeadIds.has(id)) {
+            const p = platforms.find(x => x.id === id);
+            if (p) newlyDead.push(p);
+        }
+    }
+    const recovered = [];
+    for (const id of _platPreviousDeadIds) {
+        if (!currentDeadIds.has(id)) {
+            const p = platforms.find(x => x.id === id);
+            if (p) recovered.push(p);
+        }
+    }
+    if (newlyDead.length > 0) {
+        const alertKey = 'platDeadAlert_' + newlyDead.map(p => p.id).sort().join(',');
+        if (!sessionStorage.getItem(alertKey)) {
+            sessionStorage.setItem(alertKey, '1');
+            if (newlyDead.length === 1) {
+                showAlert(`⚠ "${newlyDead[0].name}" just became Dead (score: ${newlyDead[0].health_score}%)`, true);
+            } else {
+                showAlert(`⚠ ${newlyDead.length} platforms just became Dead: ${newlyDead.map(p => p.name).join(', ')}`, true);
+            }
+        }
+    }
+    if (recovered.length > 0) {
+        showAlert(`${recovered.length} platform${recovered.length > 1 ? 's' : ''} recovered from Dead: ${recovered.map(p => p.name).join(', ')}`);
+    }
+    _platPreviousDeadIds = currentDeadIds;
 }
 
 function _platDebouncedSearch() {
@@ -3603,10 +3689,14 @@ async function loadPlatformIntelligence() {
                 <div style="font-size:9px;color:#6B7280;font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.3px">${c.label}</div>
             </div>`).join('');
 
+        _platRenderDeadBanner(platforms);
+        _platDetectTransitions(platforms);
+
         document.getElementById('platIntelGrid').innerHTML = platforms.length ? platforms.map(p => {
             const hs = p.health_status || 'unused';
             const score = p.health_score ?? 0;
             const cfg = _platStatusConfig[hs] || _platStatusConfig.unused;
+            const isDead = hs === 'dead';
             const lastChecked = _platTimeAgo(p.last_health_check);
             const lastCheckedAbs = _platAbsoluteTime(p.last_health_check);
             const logoInitial = escHtml((p.name||'?')[0].toUpperCase());
@@ -3615,7 +3705,7 @@ async function loadPlatformIntelligence() {
                 ? `<img src="${escHtml(p.logo_url)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover" alt="${escHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div style="display:none;width:36px;height:36px;border-radius:10px;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;background:${logoBg}">${logoInitial}</div>`
                 : `<div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;background:${logoBg}">${logoInitial}</div>`;
             return `
-            <div style="border-radius:12px;border:1px solid #E5E7EB;padding:14px;cursor:pointer;transition:all .15s;position:relative" onmouseenter="this.style.borderColor='${cfg.color}';this.style.boxShadow='0 4px 12px ${cfg.color}18'" onmouseleave="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'" onclick="openPlatDetailModal(${p.id})">
+            <div class="${isDead ? 'plat-card-dead' : ''}" style="border-radius:12px;border:1px solid #E5E7EB;padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='${cfg.color}';this.style.boxShadow='0 4px 12px ${cfg.color}18'" onmouseleave="this.style.borderColor='${isDead ? '#FECACA' : '#E5E7EB'}';this.style.boxShadow='none'" onclick="openPlatDetailModal(${p.id})">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
                     ${logoImg}
                     <div style="flex:1;min-width:0">
@@ -3625,9 +3715,9 @@ async function loadPlatformIntelligence() {
                     ${_platStatusBadge(hs)}
                 </div>
                 ${healthScoreBar(score)}
-                ${p.status_reason ? `<div style="font-size:10px;color:#9CA3AF;margin-top:6px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.status_reason)}</div>` : ''}
+                ${p.status_reason ? `<div style="font-size:10px;color:${isDead ? '#DC2626' : '#9CA3AF'};margin-top:6px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.status_reason)}</div>` : ''}
                 ${_platRecommendation(hs)}
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #F3F4F6;font-size:10px;color:#9CA3AF">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid ${isDead ? '#FECACA' : '#F3F4F6'};font-size:10px;color:#9CA3AF">
                     <span>${p.active_accounts || 0}/${p.slot_count || 0} active</span>
                     ${lastChecked !== '—' ? `<span class="plat-ts" title="${escHtml(lastCheckedAbs)}" style="border-bottom:none">${lastChecked}${_platStaleHtml(p.last_health_check)}</span>` : ''}
                 </div>
@@ -3706,7 +3796,7 @@ function renderPlatRows(platforms) {
         const lastAbs = _platAbsoluteTime(p.last_health_check);
         const stale = _platStaleHtml(p.last_health_check);
         return `
-        <tr data-plat-id="${p.id}" data-plat-status="${hs}" style="transition:opacity .3s,transform .3s">
+        <tr data-plat-id="${p.id}" data-plat-status="${hs}" class="${hs === 'dead' ? 'plat-row-dead' : ''}" style="transition:opacity .3s,transform .3s">
             <td><input type="checkbox" class="platRowCb rounded" value="${p.id}" onchange="updatePlatSelectionUI()"/></td>
             <td><div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openPlatDetailModal(${p.id})">${logoCell}<span style="font-weight:500;font-size:13px;color:#111827">${escHtml(p.name)}</span></div></td>
             <td style="font-size:12px;color:#6B7280">${escHtml(p.cookie_domain || '—')}</td>

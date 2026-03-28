@@ -866,6 +866,7 @@ router.post('/platform_health', authenticate, requireAdmin(), async (req, res) =
       }
 
       const jobId = platformHealthQueue.add('platform_health_check', async (data, updateProgress) => {
+        const _userId = (data && data.userId) || 0;
         const platforms = await prisma.platform.findMany({
           include: {
             platformAccounts: {
@@ -879,9 +880,17 @@ router.post('/platform_health', authenticate, requireAdmin(), async (req, res) =
         const total = platforms.length;
         const updates = [];
 
+        const transitions = [];
+
         for (const p of platforms) {
           const { score, activeCount } = computePlatformHealth(p.platformAccounts);
           const status = classifyPlatformStatus(p, activeCount, score);
+          const oldStatus = p.healthStatus || 'active';
+
+          if (status !== oldStatus) {
+            transitions.push({ id: p.id, name: p.name, from: oldStatus, to: status, score });
+          }
+
           updates.push({ id: p.id, score, status });
 
           if (updates.length >= BATCH_SIZE || processed + 1 === total) {
@@ -898,11 +907,27 @@ router.post('/platform_health', authenticate, requireAdmin(), async (req, res) =
           updateProgress(Math.round((processed / total) * 100));
         }
 
+        const newlyDead = transitions.filter(t => t.to === 'dead');
+        if (newlyDead.length > 0) {
+          const names = newlyDead.map(t => `"${t.name}"`).join(', ');
+          await prisma.activityLog.create({
+            data: { userId: _userId, action: `Platform health check: ${newlyDead.length} platform(s) became Dead — ${names}`, ipAddress: null, createdAt: now },
+          });
+        }
+
+        const recovered = transitions.filter(t => t.from === 'dead' && t.to !== 'dead');
+        if (recovered.length > 0) {
+          const names = recovered.map(t => `"${t.name}" → ${t.to}`).join(', ');
+          await prisma.activityLog.create({
+            data: { userId: _userId, action: `Platform health check: ${recovered.length} platform(s) recovered from Dead — ${names}`, ipAddress: null, createdAt: now },
+          });
+        }
+
         platformCache.invalidate('platform:dashboard');
-        emitAdminEvent('platform_health_complete', { total: platforms.length });
+        emitAdminEvent('platform_health_complete', { total: platforms.length, transitions, newly_dead: newlyDead.length, recovered: recovered.length });
 
         return { total: platforms.length };
-      });
+      }, { userId: req.user.id });
 
       await prisma.activityLog.create({
         data: { userId: req.user.id, action: 'Started platform health check', ipAddress: req.ip || null, createdAt: nowISO() },
