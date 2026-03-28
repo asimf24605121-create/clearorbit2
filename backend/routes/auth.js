@@ -181,6 +181,10 @@ router.post('/heartbeat', authenticate, async (req, res) => {
   res.json({ success: true, timestamp: nowISO() });
 });
 
+router.get('/session/validate', authenticate, (req, res) => {
+  res.json({ valid: true, userId: req.user.id, timestamp: Date.now() });
+});
+
 router.get('/keep_alive', authenticate, (req, res) => {
   res.json({ success: true });
 });

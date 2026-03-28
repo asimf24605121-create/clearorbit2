@@ -207,13 +207,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-fetch(CLEARORBIT_BASE + "/api/heartbeat.php", { credentials: "include" })
+fetch(CLEARORBIT_BASE + "/api/heartbeat", { credentials: "include" })
   .then(res => res.json())
   .then(data => {
     chrome.runtime.sendMessage({
       action: "heartbeat_result",
-      active: data.active || false,
-      status: data.status || "unknown"
+      active: data.success || false,
+      status: data.success ? "active" : "inactive"
     });
   })
   .catch(() => {});

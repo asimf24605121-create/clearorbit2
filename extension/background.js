@@ -1,4 +1,4 @@
-const EXTENSION_VERSION = "2.5.0";
+const EXTENSION_VERSION = "2.6.1";
 const UPDATE_CHECK_URL = null;
 const UPDATE_CHECK_INTERVAL_HOURS = 6;
 
@@ -166,6 +166,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: true, message: "Injected cookies cleared." });
       })
       .catch(e => sendResponse({ success: false, message: e.message }));
+    return true;
+  }
+
+  if (message.action === "check_website_session") {
+    validateWebsiteSession().then((result) => {
+      sendResponse({ valid: result.valid !== false });
+    });
     return true;
   }
 
@@ -710,17 +717,61 @@ function startHeartbeat() {
   });
 }
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "clearorbit_heartbeat") {
-    chrome.storage.local.set({
-      lastHeartbeat: new Date().toISOString(),
-      heartbeatStatus: "pending"
-    });
+    await validateWebsiteSession();
   }
   if (alarm.name === "clearorbit_update_check") {
     checkForUpdates();
   }
 });
+
+async function validateWebsiteSession() {
+  const stored = await chrome.storage.local.get(["clearorbit_server_url"]);
+  const serverUrl = stored.clearorbit_server_url || _serverBaseUrl;
+
+  if (!serverUrl) {
+    storeLog("warn", "session", "No server URL stored — skipping session validation");
+    await chrome.storage.local.set({ lastHeartbeat: new Date().toISOString(), heartbeatStatus: "no_url" });
+    return { valid: null };
+  }
+
+  try {
+    const res = await fetch(serverUrl + "/api/session/validate", {
+      credentials: "include",
+      cache: "no-store"
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.valid) {
+        await chrome.storage.local.set({
+          lastHeartbeat: new Date().toISOString(),
+          heartbeatStatus: "active",
+          sessionValid: true
+        });
+        storeLog("info", "session", "Website session validated OK");
+        return { valid: true };
+      }
+    }
+
+    const statusCode = res.status;
+    storeLog("warn", "session", "Website session invalid — revoking all platform access", { status: statusCode });
+    await chrome.storage.local.set({
+      heartbeatStatus: "revoked",
+      sessionValid: false,
+      lastHeartbeat: new Date().toISOString()
+    });
+
+    await clearAllPlatformCookiesAndRefresh();
+    return { valid: false };
+
+  } catch (e) {
+    storeLog("warn", "session", "Session validation network error: " + e.message);
+    await chrome.storage.local.set({ lastHeartbeat: new Date().toISOString(), heartbeatStatus: "error" });
+    return { valid: null };
+  }
+}
 
 async function handleHeartbeatResult(message) {
   if (!message.active) {

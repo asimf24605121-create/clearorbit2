@@ -1845,10 +1845,28 @@ async function submitReport() {
 }
 
 let _dashHeartbeatTimer = null;
+let _heartbeatFailCount = 0;
+const HEARTBEAT_MAX_FAILURES = 2;
+
 async function dashboardHeartbeat() {
     try {
         const res = await fetch('api/heartbeat', { credentials: 'include' });
-        if (res.status === 401) return;
+        if (res.status === 401 || res.status === 403) {
+            _heartbeatFailCount++;
+            if (_heartbeatFailCount >= HEARTBEAT_MAX_FAILURES) {
+                clearInterval(_dashHeartbeatTimer);
+                for (const pid of Object.keys(HEARTBEAT_INTERVALS)) {
+                    if (HEARTBEAT_INTERVALS[pid]) clearInterval(HEARTBEAT_INTERVALS[pid]);
+                }
+                ACTIVE_SESSIONS = {};
+                window.postMessage({ type: "CLEARORBIT_LOGOUT", action: "CLEAR_ALL_COOKIES" }, "*");
+                sessionStorage.clear();
+                showToast('Your session has expired — platform access revoked', 'error');
+                setTimeout(() => { window.location.href = 'index.html?reason=session_expired'; }, 2500);
+            }
+            return;
+        }
+        _heartbeatFailCount = 0;
         const d = await res.json();
         if (!d.success) return;
         const bar = document.getElementById('sessionInfoBar');
@@ -2009,5 +2027,6 @@ fetch('api/check_session', { credentials: 'include' }).then(res => {
 }).catch(() => { sessionStorage.clear(); window.location.href = 'index.html'; });
 </script>
 <script src="js/whatsapp-float.js"></script>
+<script src="js/session-enforcer.js"></script>
 </body>
 </html>

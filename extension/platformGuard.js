@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const GUARD_VERSION = "2.1.0";
+  const GUARD_VERSION = "2.2.0";
   const GUARD_SIGNATURE = "__clearorbit_guard_" + Math.random().toString(36).slice(2);
   const RECHECK_INTERVAL = 3000;
   const MAX_REINJECT_RETRIES = 3;
@@ -360,7 +360,7 @@
 
   function setupSessionWatcher() {
     let retryCount = 0;
-    const checkSession = () => {
+    const checkExtensionAlive = () => {
       try {
         chrome.runtime.sendMessage({ action: "ping" }, (response) => {
           if (chrome.runtime.lastError || !response || !response.success) {
@@ -374,7 +374,62 @@
         });
       } catch (e) {}
     };
-    setInterval(checkSession, 30000);
+    setInterval(checkExtensionAlive, 30000);
+  }
+
+  const MASTER_SESSION_CHECK_INTERVAL = 30000;
+  let masterSessionCheckTimer = null;
+
+  function showSessionExpiredOverlay() {
+    const existing = document.getElementById("clearorbit-session-expired");
+    if (existing) return;
+
+    const overlay = document.createElement("div");
+    overlay.id = "clearorbit-session-expired";
+    overlay.setAttribute("data-guard", GUARD_SIGNATURE);
+    Object.assign(overlay.style, {
+      position: "fixed", inset: "0", zIndex: "2147483647",
+      background: "rgba(15,15,26,0.97)", backdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "Inter, -apple-system, sans-serif",
+      opacity: "0", transition: "opacity 0.3s ease"
+    });
+    overlay.innerHTML =
+      '<div style="text-align:center;color:#fff;max-width:400px;padding:40px">' +
+      '<div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#EF4444,#DC2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">' +
+      '<svg width="32" height="32" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div>' +
+      '<h2 style="font-size:22px;font-weight:800;margin-bottom:8px">Session Ended</h2>' +
+      '<p style="color:#94A3B8;font-size:14px;line-height:1.5;margin-bottom:24px">Your ClearOrbit session has ended. Platform access has been revoked. Please log in again.</p>' +
+      '<button id="clearorbit-session-close" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);color:#fff;border:none;padding:12px 32px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(108,92,231,0.3)">Close Tab</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => { overlay.style.opacity = "1"; });
+
+    const closeBtn = document.getElementById("clearorbit-session-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => { window.close(); });
+    }
+
+    warnLog("Session expired overlay shown — master session dead");
+  }
+
+  function setupMasterSessionEnforcement() {
+    if (masterSessionCheckTimer) clearInterval(masterSessionCheckTimer);
+
+    masterSessionCheckTimer = setInterval(() => {
+      try {
+        chrome.runtime.sendMessage({ action: "check_website_session" }, (response) => {
+          if (chrome.runtime.lastError) return;
+          if (response && response.valid === false) {
+            warnLog("Master session validation failed — revoking access on platform tab");
+            clearInterval(masterSessionCheckTimer);
+            showSessionExpiredOverlay();
+          }
+        });
+      } catch (e) {}
+    }, MASTER_SESSION_CHECK_INTERVAL);
+
+    warnLog("Master session enforcement active", { interval: MASTER_SESSION_CHECK_INTERVAL });
   }
 
   function init() {
@@ -389,6 +444,7 @@
     startIntegrityMonitor();
     detectDevToolsTampering();
     setupSessionWatcher();
+    setupMasterSessionEnforcement();
 
     if (isRestrictedUrl(location.href)) {
       showOverlay("You cannot access account settings on a shared account.");

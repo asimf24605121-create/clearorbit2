@@ -1,0 +1,387 @@
+Act as a senior full-stack architect, browser-session security engineer, and SaaS access-control specialist.
+
+I am building a website-based shared platform access system.
+
+Users should only be able to use the platform **while they are logged into my website**.
+
+The moment the user logs out of my website, the platform access must stop as well.
+
+This must work for:
+
+* **PC/Desktop browsers**
+* **Mobile users using Mises Browser**
+
+This is a production-grade task.
+Do NOT give generic advice.
+Design and implement the best practical architecture for both desktop and mobile.
+
+---
+
+# CORE BUSINESS RULE
+
+A user may access a platform (such as Coursera, Netflix, Spotify, etc.) **only while their website session is active**.
+
+If the website session ends for any reason, platform access must also end.
+
+That means:
+
+* Website login = platform access allowed
+* Website logout = platform access revoked
+* Website session expired = platform access revoked
+* Website session invalid = platform access revoked
+
+The platform must not continue working independently after website logout.
+
+---
+
+# MAIN GOAL
+
+Build a **Master Session Enforcement System** where:
+
+* the **website session is the master session**
+* the **platform session is a dependent session**
+* if the master session dies, the dependent platform session must die too
+
+---
+
+# ENVIRONMENTS TO SUPPORT
+
+## 1. Desktop / PC
+
+Desktop users may use:
+
+* Chrome
+* Edge
+* other Chromium browsers
+* extension-based access flow
+
+## 2. Mobile
+
+Mobile users will use:
+
+* **Mises Browser**
+* browser-based session/cookie flow
+* potentially extension-like capabilities through Mises Browser compatibility
+
+The architecture must be realistic and secure for mobile browser usage.
+
+---
+
+# REQUIRED BEHAVIOR
+
+## Rule 1 — Website login required
+
+A user must not access any platform unless they are actively logged into my website.
+
+## Rule 2 — Website logout kills platform access
+
+The moment the user logs out of my website:
+
+* platform session must become invalid
+* platform cookies/session/storage must be revoked if possible
+* the platform must become unusable
+
+## Rule 3 — Session expiry kills platform access
+
+If website session expires:
+
+* platform access must also stop
+
+## Rule 4 — Session check must continue after login
+
+Do not only check at login time.
+There must be continuous enforcement.
+
+## Rule 5 — Must work on mobile and desktop
+
+Design the best approach separately for:
+
+* desktop
+* mobile using Mises Browser
+
+---
+
+# WHAT I WANT YOU TO DESIGN
+
+Design the best final architecture for this system.
+
+I want the solution to combine:
+
+* backend master session validation
+* frontend real-time logout handling
+* WebSocket/session-revoke events
+* cookie/session/localStorage cleanup where possible
+* browser extension or browser integration where available
+* heartbeat / token revalidation fallback
+* mobile-friendly enforcement for Mises Browser
+
+---
+
+# TASK 1 — ROOT ARCHITECTURE
+
+Explain the best architecture for:
+
+## A. Desktop
+
+How desktop users should access the platform while their website session is active.
+
+## B. Mobile with Mises Browser
+
+How mobile users in Mises Browser should access the platform securely.
+
+Explain the practical differences between:
+
+* desktop extension control
+* mobile browser control
+
+Be honest about what can be enforced strongly and what must be enforced by short-lived session validation.
+
+---
+
+# TASK 2 — MASTER SESSION DESIGN
+
+Design a system where:
+
+* website login creates a **master session**
+* every platform access is tied to that master session
+* platform session must never outlive the website session
+
+I want exact architecture for:
+
+* session creation
+* session validation
+* session expiry
+* session revocation
+* session heartbeat
+* session cleanup
+
+---
+
+# TASK 3 — DESKTOP ACCESS CONTROL
+
+For desktop users, propose the best system using:
+
+* browser extension
+* platform tab tracking
+* storage/cookie cleanup
+* WebSocket revoke events
+* real-time logout propagation
+* session heartbeat fallback
+
+Required behavior:
+
+* if website logout happens, open platform tabs must become unusable
+* if possible, clear cookies / localStorage / sessionStorage
+* reload or redirect platform tab if needed
+* release any active slot/session
+
+Also explain:
+
+* how to bind desktop platform access to website session
+* how to prevent continuing access after logout
+
+---
+
+# TASK 4 — MOBILE ACCESS CONTROL (MISES BROWSER)
+
+This is critical.
+
+Users on mobile will use **Mises Browser**.
+
+Design the best enforcement model for mobile where the goal is still:
+
+**User can use the platform only while logged into my website**
+
+I want the best production-ready mobile design.
+
+Explain whether the best approach is:
+
+* short-lived access tokens
+* frequent revalidation
+* master session polling
+* injected cookie/session tied to website session
+* forced reload / redirect on invalid session
+* browser-supported extension or script approach if Mises allows it
+
+I want a realistic mobile enforcement strategy, not fantasy.
+
+If instant hard revoke is less reliable on mobile than desktop, explain the best fallback design to make it still strong and practical.
+
+---
+
+# TASK 5 — LOGOUT REVOKE FLOW
+
+Design the full logout flow.
+
+When website logout happens:
+
+## Backend must:
+
+* invalidate master session
+* invalidate related platform sessions
+* release active slots
+* emit logout/session-revoke events
+
+## Frontend/Desktop must:
+
+* receive revoke event
+* clear platform-related storage if possible
+* reload/redirect platform tabs
+* stop access immediately
+
+## Mobile/Mises must:
+
+* fail the next validation quickly
+* clear session data where possible
+* redirect user away or require re-auth
+* stop long-term continued use
+
+---
+
+# TASK 6 — CONTINUOUS VALIDATION
+
+Design ongoing validation so platform access stays dependent on website login.
+
+I want the best combination of:
+
+* WebSocket real-time revoke
+* heartbeat checks
+* periodic session validation
+* short-lived platform tokens
+* token rotation / refresh
+* slot/session sync
+
+Explain how often validation should happen on:
+
+* desktop
+* mobile
+
+---
+
+# TASK 7 — SECURITY FEATURES
+
+Add the best security features for this use case:
+
+* session binding to website login
+* browser/device session binding
+* logout-driven access revoke
+* token expiry enforcement
+* anti-sharing controls if relevant
+* device/session limit
+* active session list
+* force logout
+* audit logs
+* suspicious activity detection
+
+Only include features that practically improve this system.
+
+---
+
+# TASK 8 — USER EXPERIENCE FOR MOBILE + PC
+
+I want good UX too.
+
+For desktop and mobile, explain:
+
+* what user sees when access is valid
+* what happens when website logout occurs
+* what happens when session expires
+* how the platform tab/page should react
+* how to avoid confusing behavior
+
+I want secure but clean UX.
+
+---
+
+# TASK 9 — FILE-BY-FILE IMPLEMENTATION PLAN
+
+Give me an exact implementation plan for the codebase.
+
+Which files/modules should handle:
+
+* master session logic
+* platform access validation
+* logout revoke flow
+* WebSocket events
+* desktop extension control
+* mobile Mises Browser handling
+* cookie/storage cleanup
+* heartbeat/session validation
+* session expiry enforcement
+* slot release
+
+For each module, explain:
+
+* what it should do
+* why it is needed
+
+---
+
+# TASK 10 — FULL IMPLEMENTATION CODE
+
+Give practical implementation-level code for:
+
+* master session creation
+* platform session binding
+* logout revoke backend
+* session revoke WebSocket event
+* desktop tab/session revoke handler
+* mobile revalidation logic
+* access token validation
+* forced redirect/re-auth on invalid session
+* slot release on logout/session expiry
+
+Do NOT give only pseudo-code.
+Give realistic code architecture and examples.
+
+---
+
+# TASK 11 — FINAL RECOMMENDATION
+
+At the end, tell me the **best final recommended production strategy** for my use case:
+
+## Desktop best strategy
+
+## Mobile Mises Browser best strategy
+
+## Shared backend strategy
+
+## Best logout enforcement strategy
+
+## Best fallback strategy
+
+I want the strongest practical setup.
+
+---
+
+# IMPORTANT RULES
+
+* Do NOT give generic SaaS advice
+* Focus on: "user can only use platform while logged into my website"
+* Must cover both desktop and Mises Browser mobile
+* Must clearly separate desktop and mobile strategy
+* Be realistic about browser limitations
+* Prioritize strong logout enforcement
+* Prioritize master-session dependent platform access
+* Focus on practical production implementation
+
+---
+
+# FINAL OUTPUT FORMAT
+
+Return your answer in this exact order:
+
+1. Problem understanding
+2. Best overall architecture
+3. Desktop enforcement design
+4. Mobile Mises Browser enforcement design
+5. Logout revoke flow
+6. Continuous validation design
+7. Security features
+8. UX behavior
+9. File-by-file implementation plan
+10. Full implementation examples
+11. Final production recommendation
+
+This system must ensure:
+**If the user is not logged into my website, they must not be able to keep using the platform.**

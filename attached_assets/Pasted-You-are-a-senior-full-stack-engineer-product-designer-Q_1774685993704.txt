@@ -1,0 +1,344 @@
+You are a senior full-stack engineer, product designer, QA analyst, and system architect.
+
+I have an “Account Manager” dashboard screen for managing imported cookies, slots, platform access, health monitoring, replacements, and validation.
+
+I want you to fully analyze this Account Manager UI and explain EVERYTHING in a very professional way.
+
+Your job is to act like:
+1. Full-stack developer
+2. Product manager
+3. UI/UX auditor
+4. QA engineer
+5. Security reviewer
+6. Performance optimizer
+
+I want a complete audit and improvement plan for this screen.
+
+========================
+SCREEN CONTEXT
+========================
+This Account Manager page appears to do the following:
+- Import cookies
+- Manage slots
+- Monitor health
+- Replace cookies across linked slots
+- Show slot capacity usage per platform
+- Recheck platform/account health
+- Refresh state
+- Manage per-platform accounts like Coursera, Netflix, etc.
+- Show account status, score, IQ, heartbeat, cookies count, validity, success rate, availability
+- Provide actions like Check, Edit, Replace, Delete, Delete All
+
+The visible UI includes these elements:
+- Header: “Account Manager”
+- Subtitle: “Import cookies, manage slots, monitor health, and replace cookies across all linked slots”
+- Top-right menu icon and admin indicator
+- Default Expiry dropdown (currently 30 day)
+- “Fallback when cookie has no expiry” helper text
+- “Slot Capacity Overview” section
+- Platform filter dropdown (currently All Platforms)
+- “Recheck All” button
+- “Refresh” button
+- Auto-recheck status text: “just now · Next in 15m”
+- Platform groups like Coursera and Netflix
+- Per-platform counters like “0/1 users”, “1 slot”, “0/8 users”, “3 slots”
+- “Delete All” platform button
+- Individual account cards like “Coursera Login” and “Netflix Login”
+- Badges such as Vault, Unverified, VALID, Available, STABLE
+- Stats such as:
+  - 0 live 1 free
+  - 6 cookies
+  - Score: 91
+  - IQ: 91
+  - 400d left
+  - 30/04/2027
+  - 100% success (20✓ / 0x)
+  - No heartbeat
+  - Progress bar at 96%
+  - Slot usage 0/1
+- Card-level action buttons:
+  - Check
+  - Edit
+  - Replace
+  - Delete
+- Selection checkboxes at platform level and card level
+
+========================
+WHAT I WANT FROM YOU
+========================
+
+I want a complete professional analysis in the following structure:
+
+PART 1 — SCREEN PURPOSE
+Explain what this Account Manager module is supposed to do in a real SaaS system.
+Explain the likely business logic behind cookies, slots, linked accounts, platform grouping, health checks, replacement flow, and usage.
+
+PART 2 — EVERY SECTION EXPLANATION
+Explain the purpose of every visible section in simple but developer-level language:
+- Header
+- Admin status
+- Menu icon
+- Default expiry setting
+- Slot capacity overview
+- Platform filter dropdown
+- Recheck All
+- Refresh
+- Auto-recheck text
+- Platform group rows
+- User count badges
+- Slot count text
+- Delete All
+- Account card
+- Checkboxes
+- Status badges
+- Progress bar
+- Score / IQ / success / heartbeat / cookies / expiry / availability
+
+For each visible item, explain:
+1. What it likely means
+2. What user action it should perform
+3. What backend/API it likely needs
+4. What edge cases it should handle
+
+PART 3 — BUTTONS AND ACTIONS
+For every button/action, explain exact expected behavior:
+- Menu icon
+- Default Expiry dropdown
+- Platform filter dropdown
+- Recheck All
+- Refresh
+- Platform Delete All
+- Card checkbox
+- Platform checkbox
+- Check
+- Edit
+- Replace
+- Delete
+
+For each action, define:
+- frontend behavior
+- backend behavior
+- validation
+- loading state
+- success message
+- failure message
+- audit logging
+- permission checks
+- confirmation modal requirements
+
+PART 4 — STATUS BADGES AND METRICS
+Explain what these statuses should technically mean:
+- Vault
+- Unverified
+- VALID
+- Available
+- STABLE
+- Score
+- IQ
+- Success %
+- No heartbeat
+- cookies count
+- days left
+- expiry date
+- live/free counts
+- slot usage like 0/1
+- user counters like 0/8 users
+
+Then propose a consistent status system with:
+- clear rules
+- exact thresholds
+- colors
+- priority order
+- how multiple badges should coexist
+- when badge values should update
+
+PART 5 — MISSING LOGIC / POSSIBLE BUGS
+Identify all possible missing functionality or bugs from this UI.
+Examples:
+- What happens if heartbeat fails?
+- What if cookie expiry is unknown?
+- What if slot count exceeds limit?
+- What if account is valid but unavailable?
+- What if check is running twice?
+- What if Replace is clicked without backup?
+- What if Delete All is clicked accidentally?
+- What if platform has active users?
+- What if score is high but heartbeat missing?
+- What if expiry is far away but cookies are already invalid?
+- What if multiple admins edit same account?
+- What if auto-recheck conflicts with manual refresh?
+- What if cookies belong to wrong platform?
+- What if imported cookies are duplicated?
+
+I want a full bug-risk list.
+
+PART 6 — UI/UX IMPROVEMENTS
+Give a full UI/UX audit and recommend improvements for:
+- clarity
+- layout
+- hierarchy
+- spacing
+- labels
+- button naming
+- badge consistency
+- platform grouping
+- card readability
+- mobile responsiveness
+- destructive action safety
+- accessibility
+- admin efficiency
+- bulk actions
+- sorting / searching / filtering
+- table view vs card view
+- empty states
+- skeleton loaders
+- tooltips
+- status explanations
+- inline warnings
+- error states
+
+Be brutally honest and suggest a premium SaaS-quality redesign plan.
+
+PART 7 — BEST PRODUCT IMPROVEMENTS
+Suggest advanced product improvements such as:
+- bulk import cookies
+- bulk replace
+- account version history
+- cookie source tracking
+- validation logs
+- last checked by / checked at
+- health timeline
+- activity logs
+- rollback / restore
+- test login screenshots
+- proxy/IP metadata
+- device/browser fingerprint metadata
+- duplicate detection
+- auto-heal
+- auto-disable risky accounts
+- smart replacement recommendations
+- heartbeat recovery
+- per-platform templates
+- permission roles
+- alert system
+- expiry alerts
+- auto quarantine for failed accounts
+
+PART 8 — FRONTEND TECHNICAL PLAN
+Write how this screen should be implemented on the frontend:
+- component breakdown
+- state management
+- API integration
+- optimistic updates vs safe refresh
+- polling vs websocket
+- card rendering
+- bulk selection logic
+- filter logic
+- loading states
+- modal architecture
+- toast system
+- empty/error states
+
+Use modern best practices.
+
+PART 9 — BACKEND/API DESIGN
+Design the backend APIs needed for this screen.
+Include endpoints for:
+- list platforms
+- list accounts
+- filter accounts
+- recheck single account
+- recheck all accounts
+- refresh dashboard stats
+- edit account
+- replace account cookies
+- delete account
+- delete all platform accounts
+- bulk actions
+- import cookies
+- validate cookies
+- compute health
+- heartbeat tracking
+- activity logs
+- score calculation
+
+For each endpoint define:
+- method
+- route
+- request body
+- response shape
+- validations
+- permission rules
+- possible errors
+
+PART 10 — DATABASE DESIGN
+Propose a database schema for:
+- platforms
+- accounts
+- cookie_sets
+- slot_assignments
+- health_checks
+- heartbeat_logs
+- replacement_history
+- user_sessions
+- admins
+- activity_logs
+- account_metrics
+
+Define important fields, relations, indexes, and constraints.
+
+PART 11 — SECURITY & PERMISSIONS
+Review security risks and propose solutions:
+- admin-only actions
+- destructive action confirmation
+- CSRF protection
+- authz checks
+- platform ownership checks
+- audit logs
+- cookie encryption
+- secret handling
+- rate limits
+- replay protection
+- concurrency control
+- deletion safeguards
+- backup before replace/delete
+
+PART 12 — PERFORMANCE & SCALING
+Suggest performance improvements for handling many platforms/accounts:
+- caching
+- background jobs
+- batch health checks
+- queue-based recheck
+- pagination
+- virtualization
+- debounced refresh
+- lazy loading
+- metrics aggregation
+- websocket events
+
+PART 13 — FINAL IMPROVEMENT ROADMAP
+Give me:
+1. Quick fixes
+2. Medium improvements
+3. Advanced production upgrades
+4. Best final architecture
+
+PART 14 — OUTPUT FORMAT
+I want your answer in this exact style:
+- very clear headings
+- bullet points
+- technical depth
+- no vague guesses
+- if something is uncertain, say “likely meaning”
+- give practical recommendations
+- think like a production SaaS architect
+
+Also:
+At the end, create:
+A. “What each button does” summary table
+B. “What should be improved immediately” checklist
+C. “Best production-ready version of this screen” blueprint
+
+Do not give a short answer.
+Do a deep audit.
+Think carefully like a top-tier full-stack SaaS engineer.
