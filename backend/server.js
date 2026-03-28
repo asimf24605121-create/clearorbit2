@@ -195,6 +195,7 @@ async function autoRecheckJob(data, updateProgress) {
         { lastCheckedAt: { lt: staleThreshold } },
       ],
     },
+    include: { platform: { select: { name: true } } },
     take: 50,
   });
 
@@ -202,6 +203,9 @@ async function autoRecheckJob(data, updateProgress) {
 
   let updated = 0;
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const today = new Date().toISOString().substring(0, 10);
+  const deadTransitionPlatforms = new Map();
+
   for (let i = 0; i < accounts.length; i++) {
     const account = accounts[i];
     try {
@@ -211,12 +215,19 @@ async function autoRecheckJob(data, updateProgress) {
       const expiry = parsed.length > 0 ? extractCookieExpiry(parsed) : null;
       const isExpired = expiry ? new Date(expiry) < new Date() : false;
       const cookieStatus = parsed.length === 0 ? 'MISSING' : isExpired ? 'EXPIRED' : score >= 50 ? 'VALID' : 'WEAK';
+      const newStability = score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD';
+
+      if (newStability === 'DEAD' && account.stabilityStatus !== 'DEAD') {
+        if (!deadTransitionPlatforms.has(account.platformId)) {
+          deadTransitionPlatforms.set(account.platformId, account.platform?.name || `Platform ${account.platformId}`);
+        }
+      }
 
       await prisma.platformAccount.update({
         where: { id: account.id },
         data: {
           cookieStatus, intelligenceScore: score,
-          stabilityStatus: score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD',
+          stabilityStatus: newStability,
           healthStatus: score >= 50 ? 'healthy' : 'degraded',
           lastCheckedAt: now, updatedAt: now,
         },
@@ -226,6 +237,38 @@ async function autoRecheckJob(data, updateProgress) {
       console.error(`Auto-recheck error for account ${account.id}:`, e.message);
     }
     updateProgress(Math.round(((i + 1) / accounts.length) * 100));
+  }
+
+  for (const [platformId, platformName] of deadTransitionPlatforms) {
+    try {
+      const dedupeKey = `platform_dead_${platformId}_${today}`;
+      const existing = await prisma.adminNotification.findFirst({ where: { dedupeKey } });
+      if (!existing) {
+        const notif = await prisma.adminNotification.create({
+          data: {
+            type: 'platform_dead',
+            title: 'Platform Became Dead',
+            message: `${platformName} has transitioned to DEAD status — accounts are critically degraded.`,
+            platformId,
+            platformName,
+            severity: 'critical',
+            isRead: 0,
+            dedupeKey,
+            createdAt: now,
+          },
+        });
+        emitAdminEvent('platform_dead_alert', {
+          notificationId: notif.id,
+          platformId,
+          platformName,
+          message: notif.message,
+          severity: 'critical',
+          createdAt: now,
+        });
+      }
+    } catch (e) {
+      console.error(`Dead-platform notification error for platform ${platformId}:`, e.message);
+    }
   }
 
   if (updated > 0) {

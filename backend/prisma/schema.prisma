@@ -551,6 +551,23 @@ model SystemSettings {
   @@map("system_settings")
 }
 
+model AdminNotification {
+  id           Int     @id @default(autoincrement())
+  type         String  @default("platform_dead")
+  title        String
+  message      String
+  platformId   Int?    @map("platform_id")
+  platformName String? @map("platform_name")
+  severity     String  @default("critical")
+  isRead       Int     @default(0) @map("is_read")
+  dedupeKey    String? @map("dedupe_key")
+  createdAt    String  @default("") @map("created_at")
+
+  @@index([isRead, createdAt])
+  @@index([dedupeKey])
+  @@map("admin_notifications")
+}
+
 model AdminAuditLog {
   id         Int     @id @default(autoincrement())
   adminId    Int     @map("admin_id")

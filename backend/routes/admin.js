@@ -1025,4 +1025,31 @@ router.post('/delete_session', authenticate, requireAdmin('super_admin'), async 
   }
 });
 
+router.get('/admin/notifications', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const notifications = await prisma.adminNotification.findMany({
+      orderBy: { id: 'desc' },
+      take: 30,
+    });
+    const unreadCount = notifications.filter(n => n.isRead === 0).length;
+    res.json({ success: true, notifications, unreadCount });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/admin/notifications/mark-read', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (id) {
+      await prisma.adminNotification.updateMany({ where: { id: parseInt(id), isRead: 0 }, data: { isRead: 1 } });
+    } else {
+      await prisma.adminNotification.updateMany({ where: { isRead: 0 }, data: { isRead: 1 } });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 export default router;

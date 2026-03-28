@@ -1,0 +1,297 @@
+You are a senior full-stack engineer, senior SaaS architect, senior real-time systems engineer, senior admin-dashboard product designer, and senior performance engineer.
+
+The Platform Intelligence module already supports dead platform detection and in-page alerting.
+Now I want the NEXT PHASE to add GLOBAL CROSS-PAGE ADMIN NOTIFICATIONS when a platform becomes Dead.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT implement heavy polling on every page.
+Do NOT reload the full dashboard unnecessarily.
+All cross-page notifications must be lightweight, incremental, and production-safe.
+
+==================================================
+MAIN GOAL
+==================================================
+
+If a platform becomes Dead, and the admin is currently on some other page
+(for example WhatsApp, Payments, Users, Overview, etc.),
+the admin should still be notified globally.
+
+I want a proper cross-page notification system for dead-platform alerts.
+
+This should include:
+- unread red dot / badge
+- global admin notification item
+- optional one-time toast
+- notification center entry if appropriate
+- click to navigate directly to Platform Intelligence or the affected platform
+- no spammy repeated alerts
+- no performance regression for 1000+ concurrent users
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the real implementation first.
+
+Audit:
+- whether a global notification system already exists
+- whether there is a notification dropdown, badge, or notification API
+- whether activity logs / notification tables already exist
+- whether WebSocket / SSE / polling already exists in admin
+- how dead platform status transitions are currently detected
+- whether newly-dead state is currently tracked
+- whether there is a sidebar badge system already
+- whether admin pages share a common layout/header/sidebar where a notification badge can be shown
+- whether existing notification code can be reused safely
+
+Then clearly report:
+1. what current global notification capability already exists
+2. what is missing
+3. how dead-platform alerts are currently limited to the Platform Intelligence page
+4. what is the best architecture for cross-page alerts
+5. what could become slow for 1000+ concurrent users
+
+==================================================
+PHASE 2 — PRODUCT DESIGN FOR GLOBAL DEAD ALERTS
+==================================================
+
+Design a professional cross-page admin notification experience.
+
+I want the final behavior to work like this:
+
+1. PLATFORM BECOMES DEAD
+- if a platform transitions from non-dead to dead
+- create a global admin notification entry
+
+2. GLOBAL VISIBILITY
+Even if admin is on another page, show:
+- unread red dot or badge in the sidebar/header
+- optional one-time toast
+- notification item in the notification center/list
+
+3. CLICK ACTION
+When clicked, the notification should:
+- open Platform Intelligence page
+- optionally filter/highlight the affected dead platform
+- or open that platform’s detail modal if architecture supports it safely
+
+4. NON-SPAMMY BEHAVIOR
+- show alert only on actual transition to Dead
+- not on every refresh
+- not on every page change
+- if already unread, don’t create duplicate spam alerts repeatedly
+
+5. READ / DISMISSED STATE
+- support read/unread state
+- maybe support dismissing the notification entry
+- dead platform state itself must remain visible even if notification is read
+
+==================================================
+PHASE 3 — ALERT CHANNELS TO ADD
+==================================================
+
+I want these alert channels considered and implemented in the best combination:
+
+A. GLOBAL RED DOT / BADGE
+- on header bell if one exists
+- or sidebar notification item
+- or Platform Intelligence nav item badge
+- count unread dead-platform alerts
+
+B. TOAST
+- one-time toast when admin is online and a platform newly becomes dead
+- compact, professional, not annoying
+- clicking it should open the dead platform view
+
+C. NOTIFICATION CENTER ENTRY
+- add structured notification item:
+  - platform name
+  - message like “Netflix became Dead”
+  - time
+  - severity
+  - action CTA
+
+D. PLATFORM INTELLIGENCE PAGE STATE
+- if admin later opens Platform Intelligence page, the dead platform remains visibly highlighted
+- notification read state should not hide the actual issue
+
+==================================================
+PHASE 4 — BACKEND / DATA MODEL
+==================================================
+
+Add the right backend support.
+
+I want you to design and implement a safe notification model for this.
+
+Possible requirements:
+- notification table if not already present
+- type = platform_dead
+- related_platform_id
+- message/title/body
+- severity
+- read_at
+- dismissed_at if useful
+- created_at
+- dedupe key so repeated refreshes don’t create duplicates
+- status transition detection
+
+Rules:
+- create notification only when status changes into Dead
+- optionally create recovery notification if platform recovers from Dead
+- do not generate duplicates for the same unchanged dead state
+- audit log the transition if appropriate
+
+==================================================
+PHASE 5 — DELIVERY ARCHITECTURE
+==================================================
+
+Implement the best lightweight delivery model.
+
+I want you to choose the best real implementation based on the existing codebase:
+
+Option A:
+- WebSocket / SSE event to active admin pages if infrastructure already exists and is lightweight
+
+Option B:
+- lightweight notification polling endpoint if no real-time channel exists
+
+Whichever you choose:
+- must be fast
+- must be incremental
+- must not reload whole admin pages
+- must scale for 1000+ concurrent users
+- must not spam requests on every page
+
+If using polling:
+- keep it lightweight
+- fetch unread counts + latest notification IDs only
+- no huge payloads
+
+==================================================
+PHASE 6 — FRONTEND IMPLEMENTATION
+==================================================
+
+Implement the UI professionally.
+
+I want:
+1. global notification badge / red dot
+2. unread count if appropriate
+3. optional toast for newly dead platform
+4. click to open relevant page/state
+5. notification entry in existing notification UI if present
+6. mark-as-read behavior
+7. session-safe dedupe so the same event doesn’t keep re-toasting on navigation
+
+Also:
+- preserve badge state on page switches
+- update without full reload
+- keep layout consistent and compact
+- use strong but professional critical styling
+
+==================================================
+PHASE 7 — UX RULES
+==================================================
+
+Be smart about the UX.
+
+Rules:
+- Dead platform = critical severity
+- one-time toast per newly dead transition
+- unread badge remains until viewed/read
+- if multiple platforms become Dead together, summarize intelligently:
+  - “3 platforms became Dead”
+- if one platform becomes Dead, show its name
+- if admin is already on Platform Intelligence page and can see the alert there, global toast can be softer or skipped
+- avoid duplicate notifications across refreshes/tabs where possible
+
+==================================================
+PHASE 8 — HIGH-VALUE EXTRA IMPROVEMENTS
+==================================================
+
+Also consider adding:
+- “View Dead Only” quick action from notification
+- automatic highlight of dead platform after navigation
+- notification persistence in DB
+- recovery notification when Dead → Healthy
+- notification settings or mute only if useful and lightweight
+- sidebar badge on Platform Intelligence menu item
+
+Only add what provides real admin value without making the system heavy.
+
+==================================================
+PHASE 9 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+The notification system must stay fast for 1000+ concurrent users.
+
+Requirements:
+- no wasteful full-page refreshes
+- no repeated heavy queries
+- use indexed unread notification lookups
+- use deduped dead-transition events
+- lightweight payloads
+- cache unread counts if appropriate
+- minimal DOM patching
+- no toast spam
+- no duplicate notifications on every render
+
+==================================================
+PHASE 10 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- why dead alerts are currently page-limited
+- why admins can miss dead platforms while on other pages
+- what notification capability already exists
+
+2. PRODUCT DECISION SUMMARY
+- final cross-page alert model
+- final badge/toast/notification-center behavior
+- final transition rules
+- final dedupe/read rules
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how speed is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- global dead-platform notifications
+- unread red dot / badge
+- toast or alert entry
+- click-through to Platform Intelligence
+- read/unread handling
+- lightweight delivery model
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- admin gets notified even while on other pages
+- unread badge shows correctly
+- no duplicate spam alerts
+- click-through works
+- dead platform remains visible in Platform Intelligence
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Add real cross-page notification logic, not fake UI only
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve existing working functionality
+- Keep the UI compact, premium, and operationally useful
+- Think like a lead engineer + product designer shipping this to production
