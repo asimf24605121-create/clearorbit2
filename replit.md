@@ -86,8 +86,16 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 - **Run Intelligence**: `POST action=run_intelligence` — queued via `intelligenceQueue` background job (concurrency:1), prevents concurrent runs, returns `job_id` for progress polling
 - **Job Status Polling**: `POST action=job_status` — polls background job progress (0-100%), frontend uses `setInterval(2000)` to update live status
 - **Auto Clean Preview**: `POST action=auto_clean_preview` — dry-run mode showing impact (accounts/sessions/platforms affected) before destructive action
-- **Auto Clean Execute**: `POST action=auto_clean` — disables dead/expired/degraded accounts (isActive=1 only), frees active sessions
+- **Auto Clean Execute**: `POST action=auto_clean` — disables dead/expired/degraded accounts (isActive=1 only), frees active sessions, saves snapshot for undo
+- **Undo Clean**: `POST action=undo_clean` — restores accounts to pre-clean state (5-minute window), live countdown in UI
+- **Score Breakdown**: `GET action=score_breakdown&account_id=X` — full component-level decomposition (success_rate, recency, cookie_quality, expiry, login_status, base) with modifiers (confidence, anomaly, streak, recovery)
+- **Event Filtering**: `GET action=events&event_type=X&platform_id=X&page=N&limit=N` — paginated event query with type/platform filters
+- **Trend Analysis**: Dashboard includes 7-day score deltas per account and platform, trend direction (improving/declining/flat), platform utilization rates
+- **Priority Scoring**: Needs-action items ranked by priority = severity_weight + (active_sessions × 10) + recency_penalty
+- **Batched Intelligence**: `run_intelligence` uses BATCH_SIZE=20 with `$transaction` for scalable writes
 - **Score Formula**: Success Rate (35%) + Recency (20%) + Cookie Quality (15%) + Expiry (15%) + Login Status (10%) + Base (5%), with confidence multiplier, anomaly penalty, streak bonus, recovery bonus
 - **Score Bands**: Stable (70+), Risky (40-69), Dead (<40)
-- **Frontend Sections**: 7 summary cards, Platform Health table, Needs Action panel, Deteriorating panel, Recent Events timeline, Score Legend
+- **Frontend Sections**: 7 summary cards, Platform Health table (with trend arrows + utilization), Needs Action panel (priority-sorted, session-aware), Deteriorating panel (with 7d trends), Recent Events timeline (with filters + pagination + type labels), Score Breakdown modal, Undo Clean banner, Score Legend
 - **Auto Clean Modal**: `msg-modal-overlay` pattern with ESC dismiss, preview-before-execute safety
+- **Score Breakdown Modal**: `#scoreBreakdownModal` — click any score/account to see full breakdown with progress bars; ESC dismissible
+- **Incremental Refresh**: Intelligence operations reload only `loadIntelligenceDashboard()`, not full `_refreshAll()`

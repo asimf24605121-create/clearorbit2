@@ -20,6 +20,114 @@ function classifyStability(score) {
   return 'DEAD';
 }
 
+function computeScoreBreakdown(account) {
+  const total = (account.successCount || 0) + (account.failCount || 0);
+  const now = Date.now();
+
+  let successComponent = 50;
+  let successDetail = 'No usage data';
+  if (total > 0) {
+    successComponent = Math.round(((account.successCount || 0) / total) * 100);
+    successDetail = `${account.successCount || 0}/${total} successful`;
+  }
+
+  let recencyComponent = 50;
+  let recencyDetail = 'No success recorded';
+  if (account.lastSuccessAt) {
+    const hoursSinceSuccess = (now - new Date(account.lastSuccessAt).getTime()) / 3600000;
+    const decayFactor = Math.exp(-hoursSinceSuccess / 168);
+    recencyComponent = Math.round(100 * decayFactor);
+    recencyDetail = hoursSinceSuccess < 1 ? 'Active < 1h ago' : hoursSinceSuccess < 24 ? `Active ${Math.round(hoursSinceSuccess)}h ago` : `Active ${Math.round(hoursSinceSuccess / 24)}d ago`;
+  } else if (account.createdAt) {
+    const daysSinceCreation = (now - new Date(account.createdAt).getTime()) / 86400000;
+    recencyComponent = daysSinceCreation < 7 ? 70 : daysSinceCreation < 30 ? 40 : 20;
+    recencyDetail = `Created ${Math.round(daysSinceCreation)}d ago, never succeeded`;
+  }
+
+  let cookieComponent = 50;
+  let cookieDetail = `${account.cookieCount || 0} cookies`;
+  if (account.cookieCount >= 10) cookieComponent = 100;
+  else if (account.cookieCount >= 5) cookieComponent = 80;
+  else if (account.cookieCount >= 2) cookieComponent = 60;
+  else if (account.cookieCount >= 1) cookieComponent = 40;
+  else cookieComponent = 10;
+
+  let expiryComponent = 50;
+  let expiryDetail = 'No expiry set';
+  if (account.expiresAt) {
+    const daysLeft = (new Date(account.expiresAt).getTime() - now) / 86400000;
+    if (daysLeft <= 0) { expiryComponent = 0; expiryDetail = 'Expired'; }
+    else if (daysLeft <= 3) { expiryComponent = 20; expiryDetail = `Expires in ${Math.round(daysLeft * 24)}h`; }
+    else if (daysLeft <= 7) { expiryComponent = 40; expiryDetail = `Expires in ${Math.round(daysLeft)}d`; }
+    else if (daysLeft <= 30) { expiryComponent = 70; expiryDetail = `Expires in ${Math.round(daysLeft)}d`; }
+    else { expiryComponent = 100; expiryDetail = `Expires in ${Math.round(daysLeft)}d`; }
+  }
+
+  let loginComponent = 50;
+  const ls = (account.loginStatus || 'PENDING').toUpperCase();
+  if (ls === 'VALID') loginComponent = 100;
+  else if (ls === 'PARTIAL') loginComponent = 60;
+  else if (ls === 'INVALID') loginComponent = 0;
+
+  let confidenceMultiplier = 1.0;
+  let confidenceDetail = 'High confidence';
+  if (total < 3) { confidenceMultiplier = 0.6; confidenceDetail = `Low confidence (${total} samples)`; }
+  else if (total < 10) { confidenceMultiplier = 0.8; confidenceDetail = `Medium confidence (${total} samples)`; }
+  else if (total < 30) { confidenceMultiplier = 0.9; confidenceDetail = `Good confidence (${total} samples)`; }
+
+  let anomalyPenalty = 0;
+  if (account.failCount >= 3) {
+    const recentFailRatio = total > 0 ? (account.failCount / total) : 0;
+    if (recentFailRatio > 0.7) anomalyPenalty = 15;
+    else if (recentFailRatio > 0.5) anomalyPenalty = 10;
+    else if (recentFailRatio > 0.3) anomalyPenalty = 5;
+  }
+
+  let streakBonus = 0;
+  if (account.successCount >= 10 && (account.failCount || 0) === 0) streakBonus = 10;
+  else if (account.successCount >= 5 && account.failCount <= 1) streakBonus = 5;
+
+  let recoveryBonus = 0;
+  if (account.lastFailedAt && account.lastSuccessAt) {
+    const lastFail = new Date(account.lastFailedAt).getTime();
+    const lastSuccess = new Date(account.lastSuccessAt).getTime();
+    if (lastSuccess > lastFail) {
+      const hoursSinceRecovery = (now - lastSuccess) / 3600000;
+      if (hoursSinceRecovery < 24) recoveryBonus = 8;
+      else if (hoursSinceRecovery < 72) recoveryBonus = 4;
+    }
+  }
+
+  const rawScore = Math.round(
+    successComponent * 0.35 + recencyComponent * 0.20 + cookieComponent * 0.15 +
+    expiryComponent * 0.15 + loginComponent * 0.10 + (50 * 0.05)
+  );
+  const adjustedScore = Math.round(
+    (rawScore * confidenceMultiplier) - anomalyPenalty + streakBonus + recoveryBonus
+  );
+  const finalScore = Math.max(0, Math.min(100, adjustedScore));
+
+  return {
+    final_score: finalScore,
+    raw_score: rawScore,
+    components: {
+      success_rate: { value: successComponent, weight: 0.35, weighted: Math.round(successComponent * 0.35), detail: successDetail },
+      recency: { value: recencyComponent, weight: 0.20, weighted: Math.round(recencyComponent * 0.20), detail: recencyDetail },
+      cookie_quality: { value: cookieComponent, weight: 0.15, weighted: Math.round(cookieComponent * 0.15), detail: cookieDetail },
+      expiry: { value: expiryComponent, weight: 0.15, weighted: Math.round(expiryComponent * 0.15), detail: expiryDetail },
+      login_status: { value: loginComponent, weight: 0.10, weighted: Math.round(loginComponent * 0.10), detail: ls },
+      base: { value: 50, weight: 0.05, weighted: 3, detail: 'Baseline' },
+    },
+    modifiers: {
+      confidence: { multiplier: confidenceMultiplier, detail: confidenceDetail },
+      anomaly_penalty: anomalyPenalty,
+      streak_bonus: streakBonus,
+      recovery_bonus: recoveryBonus,
+    },
+    stability: classifyStability(finalScore),
+  };
+}
+
 function computeIntelligenceScore(account) {
   const total = (account.successCount || 0) + (account.failCount || 0);
 
@@ -998,17 +1106,32 @@ router.post('/add_account_unified', authenticate, requireAdmin(), importLimiter,
   }
 });
 
+let _autoCleanSnapshot = null;
+let _autoCleanSnapshotTime = null;
+
 router.get('/account_intelligence', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { action, account_id, platform_id } = req.query;
+    const { action, account_id, platform_id, event_type, page, limit } = req.query;
 
     if (action === 'dashboard') {
       const cached = intelligenceCache.get('intel:dashboard');
       if (cached) return res.json(cached);
 
-      const accounts = await prisma.platformAccount.findMany({
-        include: { platform: { select: { name: true } } },
-      });
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+
+      const [accounts, trendLogs] = await Promise.all([
+        prisma.platformAccount.findMany({
+          include: {
+            platform: { select: { name: true } },
+            _count: { select: { accountSessions: { where: { status: 'active' } } } },
+          },
+        }),
+        prisma.accountIntelligenceLog.findMany({
+          where: { createdAt: { gte: sevenDaysAgo } },
+          orderBy: { createdAt: 'asc' },
+          select: { accountId: true, platformId: true, oldScore: true, newScore: true, createdAt: true },
+        }),
+      ]);
 
       const totalAccounts = accounts.length;
       const totalScore = accounts.reduce((s, a) => s + (a.intelligenceScore || 0), 0);
@@ -1037,10 +1160,24 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
       const lastRunTimes = accounts.map(a => a.lastIntelligenceRun).filter(Boolean).sort();
       const lastRunAt = lastRunTimes.length > 0 ? lastRunTimes[lastRunTimes.length - 1] : null;
 
+      const accountTrends = {};
+      const platformTrendMap = {};
+      for (const log of trendLogs) {
+        const delta = log.newScore - log.oldScore;
+        if (!accountTrends[log.accountId]) accountTrends[log.accountId] = { delta: 0, events: 0 };
+        accountTrends[log.accountId].delta += delta;
+        accountTrends[log.accountId].events++;
+        if (!platformTrendMap[log.platformId]) platformTrendMap[log.platformId] = { delta: 0, events: 0 };
+        platformTrendMap[log.platformId].delta += delta;
+        platformTrendMap[log.platformId].events++;
+      }
+
       const platformStats = {};
+      const platformIdToName = {};
       accounts.forEach(a => {
         const pName = a.platform?.name || 'Unknown';
-        if (!platformStats[pName]) platformStats[pName] = { stable: 0, risky: 0, dead: 0, total_score: 0, count: 0, active: 0, total: 0 };
+        platformIdToName[a.platformId] = pName;
+        if (!platformStats[pName]) platformStats[pName] = { stable: 0, risky: 0, dead: 0, total_score: 0, count: 0, active: 0, total: 0, platform_id: a.platformId };
         const ps = platformStats[pName];
         ps.count++;
         ps.total++;
@@ -1051,19 +1188,46 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
       Object.keys(platformStats).forEach(k => {
         const ps = platformStats[k];
         ps.avg_score = ps.count > 0 ? Math.round(ps.total_score / ps.count) : 0;
+        const pt = platformTrendMap[ps.platform_id];
+        ps.trend = pt ? (pt.delta > 2 ? 'improving' : pt.delta < -2 ? 'declining' : 'flat') : 'flat';
+        ps.trend_delta = pt ? pt.delta : 0;
+        ps.trend_events = pt ? pt.events : 0;
+        ps.utilization = ps.total > 0 ? Math.round((ps.active / ps.total) * 100) : 0;
         delete ps.total_score;
         delete ps.count;
+        delete ps.platform_id;
       });
 
       const deteriorating = accounts
         .filter(a => (a.stabilityStatus || '').toUpperCase() === 'RISKY' || ((a.intelligenceScore || 0) < 60 && (a.intelligenceScore || 0) >= 40))
         .sort((a, b) => (a.intelligenceScore || 0) - (b.intelligenceScore || 0))
-        .slice(0, 5)
-        .map(a => ({ id: a.id, slot_name: a.slotName, platform: a.platform?.name, score: a.intelligenceScore || 0, status: a.stabilityStatus }));
+        .slice(0, 8)
+        .map(a => {
+          const at = accountTrends[a.id];
+          return {
+            id: a.id, slot_name: a.slotName, platform: a.platform?.name, score: a.intelligenceScore || 0,
+            status: a.stabilityStatus,
+            trend_7d: at ? at.delta : 0,
+            trend_direction: at ? (at.delta > 2 ? 'improving' : at.delta < -2 ? 'declining' : 'flat') : 'flat',
+          };
+        });
 
       const needsAction = accounts
         .filter(a => classify(a) === 'dead' || (a.cookieStatus || '').toUpperCase() === 'EXPIRED' || (a.cookieStatus || '').toUpperCase() === 'DEAD')
-        .map(a => ({ id: a.id, slot_name: a.slotName, platform: a.platform?.name, score: a.intelligenceScore || 0, status: a.stabilityStatus, cookie_status: a.cookieStatus }));
+        .map(a => {
+          const activeSessions = a._count?.accountSessions || 0;
+          const severityWeight = classify(a) === 'dead' ? 30 : 15;
+          const sessionWeight = activeSessions * 10;
+          const recencyPenalty = a.lastSuccessAt ? Math.min(20, Math.round((Date.now() - new Date(a.lastSuccessAt).getTime()) / 86400000)) : 20;
+          const priorityScore = severityWeight + sessionWeight + recencyPenalty;
+          return {
+            id: a.id, slot_name: a.slotName, platform: a.platform?.name,
+            score: a.intelligenceScore || 0, status: a.stabilityStatus,
+            cookie_status: a.cookieStatus, active_sessions: activeSessions,
+            priority_score: priorityScore,
+          };
+        })
+        .sort((a, b) => b.priority_score - a.priority_score);
 
       const recentEvents = await prisma.accountIntelligenceLog.findMany({
         orderBy: { createdAt: 'desc' },
@@ -1074,6 +1238,8 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
       });
 
       const queueStatus = intelligenceQueue.getAll();
+
+      const canUndo = _autoCleanSnapshot && _autoCleanSnapshotTime && (Date.now() - _autoCleanSnapshotTime < 300000);
 
       const result = {
         success: true,
@@ -1088,6 +1254,8 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
         deteriorating,
         needs_action: needsAction,
         queue_status: queueStatus,
+        can_undo_clean: canUndo,
+        undo_expires_in: canUndo ? Math.round((300000 - (Date.now() - _autoCleanSnapshotTime)) / 1000) : 0,
         recent_events: recentEvents.map(e => ({
           id: e.id, account_id: e.accountId, platform_id: e.platformId,
           slot_name: e.account?.slotName || null,
@@ -1100,6 +1268,58 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
 
       intelligenceCache.set('intel:dashboard', result, 15000);
       return res.json(result);
+    }
+
+    if (action === 'events') {
+      const evtWhere = {};
+      if (account_id) evtWhere.accountId = parseInt(account_id);
+      if (platform_id) evtWhere.platformId = parseInt(platform_id);
+      if (event_type) evtWhere.eventType = event_type;
+
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const pageSize = Math.min(100, Math.max(5, parseInt(limit) || 30));
+
+      const [events, total] = await Promise.all([
+        prisma.accountIntelligenceLog.findMany({
+          where: evtWhere,
+          orderBy: { createdAt: 'desc' },
+          skip: (pageNum - 1) * pageSize,
+          take: pageSize,
+          include: {
+            account: { select: { slotName: true, platform: { select: { name: true } } } },
+          },
+        }),
+        prisma.accountIntelligenceLog.count({ where: evtWhere }),
+      ]);
+
+      return res.json({
+        success: true,
+        events: events.map(e => ({
+          id: e.id, account_id: e.accountId, platform_id: e.platformId,
+          slot_name: e.account?.slotName || null,
+          platform_name: e.account?.platform?.name || null,
+          event_type: e.eventType, old_score: e.oldScore, new_score: e.newScore,
+          old_stability: e.oldStability, new_stability: e.newStability,
+          reason: e.reason, created_at: e.createdAt,
+        })),
+        pagination: { page: pageNum, limit: pageSize, total, pages: Math.ceil(total / pageSize) },
+      });
+    }
+
+    if (action === 'score_breakdown' && account_id) {
+      const account = await prisma.platformAccount.findUnique({
+        where: { id: parseInt(account_id) },
+        include: { platform: { select: { name: true } } },
+      });
+      if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
+      const breakdown = computeScoreBreakdown(account);
+      return res.json({
+        success: true,
+        account_id: account.id,
+        slot_name: account.slotName,
+        platform: account.platform?.name,
+        breakdown,
+      });
     }
 
     const where = {};
@@ -1170,34 +1390,41 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
         const accounts = await prisma.platformAccount.findMany();
         let updated = 0;
         const total = accounts.length;
-        for (let i = 0; i < accounts.length; i++) {
-          const account = accounts[i];
-          const newScore = computeIntelligenceScore(account);
-          const newStability = classifyStability(newScore);
-          const oldStability = (account.stabilityStatus || 'UNKNOWN').toUpperCase();
-
-          if (newScore !== account.intelligenceScore || newStability !== oldStability) {
-            await prisma.platformAccount.update({
-              where: { id: account.id },
-              data: {
-                intelligenceScore: newScore, stabilityStatus: newStability,
-                healthStatus: newScore >= 50 ? 'healthy' : 'degraded',
-                lastIntelligenceRun: nowISO(),
-              },
-            });
-
-            await prisma.accountIntelligenceLog.create({
-              data: {
-                accountId: account.id, platformId: account.platformId,
-                eventType: 'intelligence_run',
-                oldScore: account.intelligenceScore || 0, newScore,
-                oldStability, newStability,
-                reason: 'Scheduled intelligence run', createdAt: nowISO(),
-              },
-            });
-            updated++;
+        const BATCH_SIZE = 20;
+        for (let i = 0; i < accounts.length; i += BATCH_SIZE) {
+          const batch = accounts.slice(i, i + BATCH_SIZE);
+          const updates = [];
+          const logEntries = [];
+          const ts = nowISO();
+          for (const account of batch) {
+            const newScore = computeIntelligenceScore(account);
+            const newStability = classifyStability(newScore);
+            const oldStability = (account.stabilityStatus || 'UNKNOWN').toUpperCase();
+            if (newScore !== account.intelligenceScore || newStability !== oldStability) {
+              updates.push(prisma.platformAccount.update({
+                where: { id: account.id },
+                data: {
+                  intelligenceScore: newScore, stabilityStatus: newStability,
+                  healthStatus: newScore >= 50 ? 'healthy' : 'degraded',
+                  lastIntelligenceRun: ts,
+                },
+              }));
+              logEntries.push(prisma.accountIntelligenceLog.create({
+                data: {
+                  accountId: account.id, platformId: account.platformId,
+                  eventType: 'intelligence_run',
+                  oldScore: account.intelligenceScore || 0, newScore,
+                  oldStability, newStability,
+                  reason: 'Scheduled intelligence run', createdAt: ts,
+                },
+              }));
+              updated++;
+            }
           }
-          updateProgress(Math.round(((i + 1) / total) * 100));
+          if (updates.length > 0) {
+            await prisma.$transaction([...updates, ...logEntries]);
+          }
+          updateProgress(Math.round(Math.min(i + BATCH_SIZE, total) / total * 100));
         }
         invalidateAccountCaches();
         emitAdminEvent('intelligence_run_complete', { updated, total });
@@ -1272,6 +1499,12 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
         },
       });
 
+      _autoCleanSnapshot = targets.map(a => ({
+        id: a.id, isActive: a.isActive, healthStatus: a.healthStatus,
+        stabilityStatus: a.stabilityStatus,
+      }));
+      _autoCleanSnapshotTime = Date.now();
+
       let cleaned = 0;
       let freedSessions = 0;
       for (const account of targets) {
@@ -1298,7 +1531,32 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
       }
       invalidateAccountCaches();
       emitAdminEvent('auto_clean_complete', { cleaned, freedSessions });
-      return res.json({ success: true, message: `Auto clean complete. ${cleaned} account(s) disabled, ${freedSessions} session(s) freed.` });
+      return res.json({ success: true, message: `Auto clean complete. ${cleaned} account(s) disabled, ${freedSessions} session(s) freed.`, can_undo: true, undo_window_seconds: 300 });
+    }
+
+    if (action === 'undo_clean') {
+      if (!_autoCleanSnapshot || !_autoCleanSnapshotTime) {
+        return res.json({ success: false, message: 'No auto clean to undo.' });
+      }
+      if (Date.now() - _autoCleanSnapshotTime > 300000) {
+        _autoCleanSnapshot = null;
+        _autoCleanSnapshotTime = null;
+        return res.json({ success: false, message: 'Undo window expired (5 minutes). Cannot undo.' });
+      }
+
+      let restored = 0;
+      for (const snap of _autoCleanSnapshot) {
+        await prisma.platformAccount.update({
+          where: { id: snap.id },
+          data: { isActive: snap.isActive, healthStatus: snap.healthStatus, stabilityStatus: snap.stabilityStatus, updatedAt: nowISO() },
+        });
+        restored++;
+      }
+      _autoCleanSnapshot = null;
+      _autoCleanSnapshotTime = null;
+      invalidateAccountCaches();
+      emitAdminEvent('auto_clean_undone', { restored });
+      return res.json({ success: true, message: `Undo complete. ${restored} account(s) restored to previous state.` });
     }
 
     return res.status(400).json({ success: false, message: 'Invalid action' });

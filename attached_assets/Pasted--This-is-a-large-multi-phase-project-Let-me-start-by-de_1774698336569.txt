@@ -1,0 +1,70 @@
+
+This is a large, multi-phase project. Let me start by deeply inspecting the current implementation before making any changes.
+
+Good, I have the explorer results. Let me now read the key implementation files directly to understand what needs to change:
+
+Now let me read the backend intelligence routes in full:
+
+Now let me check the scoring function and see how it works with the Node backend:
+
+Now I have a complete picture of the current implementation. Let me create a session plan and begin building:
+
+Good. Now let me start with T001 — the backend improvements. I'll enhance the Node.js dashboard endpoint with caching, richer data, and dry-run auto_clean:
+
+Now I have the full picture. Let me implement the backend improvements:
+
+Now let me update the run_intelligence to use the job queue, and add dry-run mode for auto_clean:
+
+Now update the auto_clean to support dry-run mode:
+
+Backend is done. Now let me build the comprehensive frontend redesign. This is the big piece — I need to rewrite the entire intelligence dashboard UI:
+
+Now let me rewrite the entire loadIntelligenceDashboard function and the action functions:
+
+Now let me also add a cm-btn-danger style if it doesn't already exist, and restart the server:
+
+I need to add the cm-btn-danger CSS. Let me find where the .cm-btn styles are:
+
+Now let me restart the server and test:
+
+Server is running. Let me run the e2e test:
+
+The modal close isn't working because the compact-modal needs display:flex instead of just the active class. Let me check the modal display logic and fix:
+
+The issue is that the Auto Clean modal uses compact-modal class but needs the msg-modal-overlay wrapper for proper show/hide behavior. The existing modals use msg-modal-overlay.active for display. Let me fix the auto clean modal to match the existing pattern:
+
+I see — the existing modals use msg-modal-overlay with active class toggle. Let me rewrite the auto clean modal to use the same pattern:
+
+Now update the JS functions to use active class toggle instead of display:
+
+The ESC handler for the auto clean modal isn't wired up yet. The existing ESC keydown handler only handles the edit and replace modals. Let me add the auto clean modal to the ESC handler:
+
+All tests pass. Let me take a screenshot to see the visual result:
+
+That's the login screen — I need to be logged in to see the intelligence dashboard. The tests already confirmed everything works. Now let me do the code review:
+
+Let me update the replit.md and clean up:
+
+Let me clean up the session plan:
+
+Here's a summary of everything that was built:
+
+Account Intelligence Section — Complete Audit & Improvement
+
+Backend (backend/routes/accounts.js):
+
+Cached dashboard: 15-second cache on the dashboard endpoint eliminates redundant DB queries for concurrent admin sessions
+Background job queue: "Run Intelligence" now runs asynchronously via the intelligenceQueue (prevents blocking, supports progress tracking, rejects concurrent runs)
+Auto Clean preview (dry-run): New auto_clean_preview action shows exactly which accounts will be disabled, how many sessions will be freed, and which platforms are affected — before any destructive action
+Enriched data: Dashboard now returns active account count, last run timestamp, deteriorating accounts, needs-action accounts, and queue status
+Frontend (admin.html):
+
+7 summary cards (up from 6): Total Accounts (with active count), Avg Score (with band label), Stable/Risky/Dead (with percentage breakdown), Success Rate, Needs Action (with urgency highlight)
+Platform Health table: Full table with Total, Active, Stable, Risky, Dead columns, average score, and a visual health bar per platform. Warning indicators for degrading platforms.
+Needs Action panel: Orange-bordered section listing accounts requiring immediate admin intervention (dead cookies, expired)
+Deteriorating panel: Amber-bordered section showing accounts trending downward toward failure
+Enhanced event timeline: Delta indicators (+/-), reason tags, severity coloring, relative timestamps
+Score legend: Bottom bar explaining score bands (Stable 70+, Risky 40-69, Dead <40) and the scoring formula
+Auto Clean preview modal: Shows impact summary before execution — accounts to disable, sessions to free, platforms affected — with confirm/cancel buttons
+Live progress tracking: Run Intelligence shows real-time progress polling (2s interval) with percentage in the header
+Last run timestamp: Shown in the ALIE subtitle
