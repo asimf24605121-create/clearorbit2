@@ -35,7 +35,35 @@
         .msg-view-btn:hover{color:#fff;background:#4F46E5}
         .msg-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);padding:1rem}
         .msg-modal-overlay.active{opacity:1;visibility:visible}
-        .msg-modal{background:#fff;border-radius:1.125rem;box-shadow:0 25px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);width:100%;max-width:560px;max-height:85vh;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        .msg-modal{background:#fff;border-radius:1.125rem;box-shadow:0 25px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);width:100%;max-width:560px;max-height:85vh;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+        .msg-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #F3F4F6;flex-shrink:0}
+        .msg-modal-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:#F3F4F6;color:#6B7280;border-radius:8px;font-size:16px;cursor:pointer;transition:all .15s;flex-shrink:0;line-height:1}
+        .msg-modal-close:hover{background:#E5E7EB;color:#1F2937}
+        .msg-modal-close:focus-visible{outline:2px solid #6366F1;outline-offset:1px}
+        .msg-modal-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid #F3F4F6;gap:8px;flex-wrap:wrap;flex-shrink:0;background:#FAFAFA}
+        .plat-logo-wrap{position:relative;cursor:pointer;flex-shrink:0}
+        .plat-logo-wrap .plat-logo-overlay{position:absolute;inset:0;border-radius:12px;background:rgba(0,0,0,.45);opacity:0;transition:opacity .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+        .plat-logo-wrap:hover .plat-logo-overlay{opacity:1}
+        .plat-detail-stat{text-align:center;padding:12px 8px;border-radius:10px;border:1px solid;transition:box-shadow .15s}
+        .plat-detail-stat:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+        .plat-slots-table{width:100%;font-size:12px;border-collapse:separate;border-spacing:0}
+        .plat-slots-table thead th{padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#9CA3AF;background:#FAFAFA;border-bottom:1px solid #F3F4F6;white-space:nowrap;text-align:left}
+        .plat-slots-table tbody td{padding:10px;border-bottom:1px solid #F9FAFB;vertical-align:middle}
+        .plat-slots-table tbody tr:last-child td{border-bottom:none}
+        .plat-slots-table tbody tr:hover{background:#FAFBFF}
+        .plat-slots-table tbody tr.slot-inactive{opacity:.5}
+        .plat-ts{cursor:help;border-bottom:1px dashed #D1D5DB}
+        .plat-action-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:11px;font-weight:600;border-radius:7px;border:1px solid #E5E7EB;background:#fff;color:#374151;cursor:pointer;transition:all .15s;white-space:nowrap}
+        .plat-action-btn:hover{background:#F9FAFB;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+        .plat-action-btn:disabled{opacity:.45;pointer-events:none}
+        .plat-action-btn.danger{background:#FEF2F2;color:#DC2626;border-color:#FECACA}
+        .plat-action-btn.danger:hover{background:#FEE2E2;box-shadow:0 1px 3px rgba(220,38,38,.12)}
+        .plat-action-btn.success{background:#F0FDF4;color:#16A34A;border-color:#BBF7D0}
+        .plat-action-btn.success:hover{background:#DCFCE7}
+        .plat-action-btn.primary{background:#EEF2FF;color:#4F46E5;border-color:#C7D2FE}
+        .plat-action-btn.primary:hover{background:#E0E7FF}
+        .plat-loading-skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:platShimmer 1.5s ease-in-out infinite;border-radius:8px}
+        @keyframes platShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:4px 0;font-size:10px;font-weight:600;border-radius:6px;border:1px solid var(--bc,#E5E7EB);background:var(--bg,#F9FAFB);color:var(--c,#374151);cursor:pointer;transition:all .15s;line-height:1;min-height:22px}
         .slot-action-btn:hover{filter:brightness(.93);box-shadow:0 1px 4px rgba(0,0,0,.1)}
         .slot-action-btn:active{transform:scale(.97)}
@@ -1201,35 +1229,45 @@
                 </div>
 
                 <div id="platDetailModal" class="msg-modal-overlay" onclick="if(event.target===this)closePlatDetailModal()">
-                    <div class="msg-modal" style="max-width:700px">
-                        <div class="msg-modal-header" style="background:linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%);">
-                            <div class="flex items-center gap-3 flex-1 min-w-0">
-                                <div id="platDetailLogo" class="relative group cursor-pointer" onclick="triggerLogoUpload()">
-                                    <div id="platDetailLogoInner" class="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center text-white text-sm font-bold" style="background:#4F46E5"></div>
-                                    <div class="absolute inset-0 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <div class="msg-modal" style="max-width:720px">
+                        <div class="msg-modal-header" style="background:linear-gradient(135deg,#F8F7FF 0%,#EEF2FF 100%);padding:14px 20px;border-bottom:1px solid #E5E7EB">
+                            <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
+                                <div class="plat-logo-wrap" onclick="triggerLogoUpload()" title="Click to change logo">
+                                    <div id="platDetailLogoInner" style="width:44px;height:44px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;background:#4F46E5;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.1)"></div>
+                                    <div class="plat-logo-overlay">
+                                        <svg style="width:14px;height:14px;color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <span style="font-size:8px;color:#fff;font-weight:600">Change</span>
                                     </div>
                                     <input type="file" id="platLogoFileInput" accept="image/jpeg,image/png,image/webp,image/svg+xml" class="hidden" onchange="handleLogoUpload(event)"/>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <h3 id="platDetailTitle" class="text-sm font-semibold text-gray-900 truncate">Platform Details</h3>
-                                    <div id="platDetailSubtitle" class="text-[10px] text-gray-400 truncate"></div>
+                                <div style="flex:1;min-width:0">
+                                    <h3 id="platDetailTitle" style="font-size:15px;font-weight:700;color:#111827;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Platform Details</h3>
+                                    <div id="platDetailSubtitle" style="font-size:11px;color:#9CA3AF;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
                                 </div>
+                                <div id="platDetailHeaderScore" style="text-align:right;flex-shrink:0"></div>
                             </div>
-                            <button onclick="closePlatDetailModal()" class="msg-modal-close">&times;</button>
+                            <button onclick="closePlatDetailModal()" class="msg-modal-close" style="margin-left:12px" aria-label="Close">
+                                <svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <div id="platDetailBody" class="p-5 max-h-[70vh] overflow-y-auto">
-                            <div class="text-center text-gray-400 py-8">Loading...</div>
-                        </div>
-                        <div id="platDetailFooter" class="hidden px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap">
-                            <div class="flex items-center gap-2">
-                                <button id="platDetailToggleBtn" class="btn btn-sm text-[10px]">Disable</button>
-                                <button id="platDetailDeleteBtn" class="btn btn-sm text-[10px]" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA">Delete</button>
+                        <div id="platDetailBody" style="padding:20px;overflow-y:auto;flex:1;min-height:0">
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0">
+                                <div class="plat-loading-skeleton" style="width:200px;height:16px"></div>
+                                <div class="plat-loading-skeleton" style="width:140px;height:12px"></div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button id="platDetailRemoveLogoBtn" class="btn btn-secondary btn-sm text-[10px] hidden">Remove Logo</button>
-                                <button onclick="triggerLogoUpload()" class="btn btn-secondary btn-sm text-[10px]">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div id="platDetailFooter" class="msg-modal-footer" style="display:none">
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <button id="platDetailToggleBtn" class="plat-action-btn">Disable</button>
+                                <button id="platDetailDeleteBtn" class="plat-action-btn danger">
+                                    <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Delete
+                                </button>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <button id="platDetailRemoveLogoBtn" class="plat-action-btn" style="display:none">Remove Logo</button>
+                                <button onclick="triggerLogoUpload()" class="plat-action-btn primary">
+                                    <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     Upload Logo
                                 </button>
                             </div>
@@ -3342,9 +3380,13 @@ function renderPlatformsList(platforms) {
     filterPlatformRegistry();
 }
 
-function healthScoreBar(score) {
+function healthScoreBar(score, opts) {
     const color = score >= 80 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444';
-    return `<div class="flex items-center gap-2"><div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${score}%;background:${color}"></div></div><span class="text-[10px] font-bold" style="color:${color}">${score}%</span></div>`;
+    const wide = opts && opts.wide;
+    const wClass = wide ? 'w-full' : 'w-16';
+    const hClass = wide ? 'h-2' : 'h-1.5';
+    const showLabel = !(opts && opts.noLabel);
+    return `<div class="flex items-center gap-2"><div class="${wClass} ${hClass} bg-gray-100 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${Math.max(score, 2)}%;background:${color};transition:width .3s"></div></div>${showLabel ? `<span class="text-[10px] font-bold" style="color:${color}">${score}%</span>` : ''}</div>`;
 }
 
 function healthStatusBadge(status) {
@@ -3395,17 +3437,6 @@ function _platAbsoluteTime(ts) {
     return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function _platLogoHtml(url, name, bgColor, size) {
-    const s = size || 10;
-    const cls = `w-${s} h-${s}`;
-    const initial = escHtml((name || '?')[0].toUpperCase());
-    const bg = escHtml(bgColor || '#4F46E5');
-    if (url) {
-        return `<img src="${escHtml(url)}" class="${cls} rounded-lg object-cover" alt="${escHtml(name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="${cls} rounded-lg flex items-center justify-center text-white text-sm font-bold" style="display:none;background:${bg}">${initial}</div>`;
-    }
-    return `<div class="${cls} rounded-lg flex items-center justify-center text-white text-sm font-bold" style="background:${bg}">${initial}</div>`;
-}
-
 async function loadPlatformIntelligence() {
     try {
         const res = await fetch('api/platform_health', { credentials: 'include' });
@@ -3420,17 +3451,18 @@ async function loadPlatformIntelligence() {
         const platforms = data.platforms || [];
         const s = data.summary || {};
 
-        document.getElementById('platSummaryCards').innerHTML = [
-            { val: s.total||0, label: 'Total', color: '#6366F1' },
-            { val: s.healthy||0, label: 'Healthy', color: '#10B981' },
-            { val: s.degraded||0, label: 'Degraded', color: '#F59E0B' },
-            { val: s.unused||0, label: 'Unused', color: '#6B7280' },
-            { val: s.inactive||0, label: 'Inactive', color: '#8B5CF6' },
-            { val: s.dead||0, label: 'Dead', color: '#EF4444' },
-        ].map(c => `
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold" style="color:${c.color}">${c.val}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">${c.label}</div>
+        const summaryItems = [
+            { val: s.total||0, label: 'Total', color: '#6366F1', bg: '#EEF2FF' },
+            { val: s.healthy||0, label: 'Healthy', color: '#10B981', bg: '#ECFDF5' },
+            { val: s.degraded||0, label: 'Degraded', color: '#F59E0B', bg: '#FFFBEB' },
+            { val: s.unused||0, label: 'Unused', color: '#6B7280', bg: '#F9FAFB' },
+            { val: s.inactive||0, label: 'Inactive', color: '#8B5CF6', bg: '#F5F3FF' },
+            { val: s.dead||0, label: 'Dead', color: '#EF4444', bg: '#FEF2F2' },
+        ];
+        document.getElementById('platSummaryCards').innerHTML = summaryItems.map(c => `
+            <div style="text-align:center;padding:10px 8px;border-radius:10px;background:${c.bg};border:1px solid ${c.color}15;transition:box-shadow .15s" onmouseenter="this.style.boxShadow='0 2px 8px ${c.color}15'" onmouseleave="this.style.boxShadow='none'">
+                <div style="font-size:18px;font-weight:700;color:${c.color}">${c.val}</div>
+                <div style="font-size:9px;color:#6B7280;font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.3px">${c.label}</div>
             </div>`).join('');
 
         document.getElementById('platIntelGrid').innerHTML = platforms.length ? platforms.map(p => {
@@ -3439,24 +3471,29 @@ async function loadPlatformIntelligence() {
             const cfg = _platStatusConfig[hs] || _platStatusConfig.unused;
             const lastChecked = _platTimeAgo(p.last_health_check);
             const lastCheckedAbs = _platAbsoluteTime(p.last_health_check);
+            const logoInitial = escHtml((p.name||'?')[0].toUpperCase());
+            const logoBg = escHtml(p.bg_color_hex||'#4F46E5');
+            const logoImg = p.logo_url
+                ? `<img src="${escHtml(p.logo_url)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover" alt="${escHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div style="display:none;width:36px;height:36px;border-radius:10px;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;background:${logoBg}">${logoInitial}</div>`
+                : `<div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;background:${logoBg}">${logoInitial}</div>`;
             return `
-            <div class="rounded-xl border-2 p-4 transition-all hover:shadow-md cursor-pointer" style="border-color:${cfg.bg}" onclick="openPlatDetailModal(${p.id})">
-                <div class="flex items-center gap-3 mb-3">
-                    ${_platLogoHtml(p.logo_url, p.name, p.bg_color_hex, 10)}
-                    <div class="flex-1 min-w-0">
-                        <div class="font-semibold text-sm text-gray-900 truncate">${escHtml(p.name)}</div>
-                        <div class="text-[10px] text-gray-400">${escHtml(p.cookie_domain || '—')}</div>
+            <div style="border-radius:12px;border:1px solid #E5E7EB;padding:14px;cursor:pointer;transition:all .15s;position:relative" onmouseenter="this.style.borderColor='${cfg.color}';this.style.boxShadow='0 4px 12px ${cfg.color}18'" onmouseleave="this.style.borderColor='#E5E7EB';this.style.boxShadow='none'" onclick="openPlatDetailModal(${p.id})">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                    ${logoImg}
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:13px;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.name)}</div>
+                        <div style="font-size:10px;color:#9CA3AF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.cookie_domain || '—')}</div>
                     </div>
                     ${_platStatusBadge(hs)}
                 </div>
                 ${healthScoreBar(score)}
-                <div class="text-[10px] text-gray-400 mt-2 italic">${escHtml(p.status_reason || '')}</div>
-                <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50 text-[10px] text-gray-400">
-                    <span>${p.slot_count || 0} slot(s) · ${p.active_accounts || 0} active</span>
-                    <span title="${escHtml(lastCheckedAbs)}">${lastChecked !== '—' ? lastChecked : ''}</span>
+                ${p.status_reason ? `<div style="font-size:10px;color:#9CA3AF;margin-top:6px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.status_reason)}</div>` : ''}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #F3F4F6;font-size:10px;color:#9CA3AF">
+                    <span>${p.active_accounts || 0}/${p.slot_count || 0} active</span>
+                    ${lastChecked !== '—' ? `<span class="plat-ts" title="${escHtml(lastCheckedAbs)}" style="border-bottom:none">${lastChecked}</span>` : ''}
                 </div>
             </div>`;
-        }).join('') : '<div class="text-center text-gray-400 text-sm py-8 col-span-full">No platforms detected yet. Import cookies in Account Manager to auto-detect platforms.</div>';
+        }).join('') : '<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:32px 0;grid-column:1/-1">No platforms detected yet. Import cookies in Account Manager to auto-detect platforms.</div>';
 
         const regCount = document.getElementById('platRegistryCount');
         if (regCount) regCount.textContent = platforms.length;
@@ -3506,31 +3543,32 @@ function renderPlatRows(platforms) {
         return;
     }
     tbody.innerHTML = platforms.map(p => {
-        const logoSrc = p.logo_url || '';
-        const logoCell = logoSrc
-            ? `<img src="${escHtml(logoSrc)}" alt="${escHtml(p.name)}" class="w-7 h-7 rounded object-cover" onerror="this.outerHTML='<div class=\\'w-7 h-7 rounded flex items-center justify-center text-white text-[10px] font-bold\\' style=\\'background:${escHtml(p.bg_color_hex||'#4F46E5')}\\'>${escHtml((p.name||'?')[0])}</div>'"/>`
-            : `<div class="w-7 h-7 rounded flex items-center justify-center text-white text-[10px] font-bold" style="background:${escHtml(p.bg_color_hex || '#4F46E5')}">${escHtml((p.name||'?')[0].toUpperCase())}</div>`;
+        const bg = escHtml(p.bg_color_hex||'#4F46E5');
+        const initial = escHtml((p.name||'?')[0].toUpperCase());
+        const logoCell = p.logo_url
+            ? `<img src="${escHtml(p.logo_url)}" alt="${escHtml(p.name)}" style="width:28px;height:28px;border-radius:8px;object-fit:cover" onerror="this.outerHTML='<div style=\\'width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;background:${bg}\\'>${initial}</div>'"/>`
+            : `<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;background:${bg}">${initial}</div>`;
         const score = p.health_score ?? 0;
         const hs = p.health_status || 'unused';
         const lastAbs = _platAbsoluteTime(p.last_health_check);
         return `
         <tr data-plat-id="${p.id}" data-plat-status="${hs}" style="transition:opacity .3s,transform .3s">
             <td><input type="checkbox" class="platRowCb rounded" value="${p.id}" onchange="updatePlatSelectionUI()"/></td>
-            <td><div class="flex items-center gap-2 cursor-pointer" onclick="openPlatDetailModal(${p.id})">${logoCell}<span class="font-medium text-sm hover:text-indigo-600">${escHtml(p.name)}</span></div></td>
-            <td class="text-xs text-gray-500">${escHtml(p.cookie_domain || '—')}</td>
+            <td><div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="openPlatDetailModal(${p.id})">${logoCell}<span style="font-weight:500;font-size:13px;color:#111827">${escHtml(p.name)}</span></div></td>
+            <td style="font-size:12px;color:#6B7280">${escHtml(p.cookie_domain || '—')}</td>
             <td>${healthScoreBar(score)}</td>
-            <td class="text-center text-xs">${p.active_accounts || 0}<span class="text-gray-300">/</span>${p.slot_count || 0}</td>
-            <td class="text-center text-xs">${p.active_sessions || 0}</td>
+            <td style="text-align:center;font-size:12px"><span style="font-weight:600">${p.active_accounts || 0}</span><span style="color:#D1D5DB">/${p.slot_count || 0}</span></td>
+            <td style="text-align:center;font-size:12px">${p.active_sessions || 0}</td>
             <td>${_platStatusBadge(hs)}</td>
-            <td class="text-[10px] text-gray-400" title="${escHtml(lastAbs)}">${_platTimeAgo(p.last_health_check)}</td>
+            <td><span class="plat-ts" style="font-size:10px;color:#9CA3AF" title="${escHtml(lastAbs)}">${_platTimeAgo(p.last_health_check)}</span></td>
             <td>
-                <div class="flex gap-1">
-                    <button onclick="openPlatDetailModal(${p.id})" class="btn btn-secondary btn-sm text-[10px]" title="Details">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <div style="display:flex;gap:4px">
+                    <button onclick="openPlatDetailModal(${p.id})" class="plat-action-btn" style="padding:4px 8px" title="Details">
+                        <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
-                    <button onclick="togglePlatformIntel(${p.id},'${escHtml(p.name)}',${p.is_active?1:0})" class="btn ${p.is_active ? 'btn-danger' : 'btn-success'} btn-sm text-[10px]">${p.is_active ? 'Disable' : 'Enable'}</button>
-                    <button onclick="deleteSinglePlatform(${p.id},'${escHtml(p.name)}')" class="btn btn-sm text-[10px]" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA" title="Delete">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <button onclick="togglePlatformIntel(${p.id},'${escHtml(p.name)}',${p.is_active?1:0})" class="plat-action-btn ${p.is_active ? 'danger' : 'success'}" style="padding:4px 8px;font-size:10px">${p.is_active ? 'Disable' : 'Enable'}</button>
+                    <button onclick="deleteSinglePlatform(${p.id},'${escHtml(p.name)}')" class="plat-action-btn danger" style="padding:4px 8px" title="Delete">
+                        <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
             </td>
@@ -3698,113 +3736,152 @@ async function openPlatDetailModal(platformId) {
     const body = document.getElementById('platDetailBody');
     const footer = document.getElementById('platDetailFooter');
     modal.classList.add('active');
-    footer.classList.add('hidden');
-    body.innerHTML = '<div class="text-center text-gray-400 py-8">Loading platform details...</div>';
+    footer.style.display = 'none';
     document.getElementById('platDetailLogoInner').innerHTML = '';
     document.getElementById('platDetailTitle').textContent = 'Loading...';
     document.getElementById('platDetailSubtitle').textContent = '';
+    document.getElementById('platDetailHeaderScore').innerHTML = '';
+    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0">
+        <div class="plat-loading-skeleton" style="width:260px;height:14px"></div>
+        <div class="plat-loading-skeleton" style="width:180px;height:10px"></div>
+        <div style="display:flex;gap:12px;margin-top:8px"><div class="plat-loading-skeleton" style="width:80px;height:60px"></div><div class="plat-loading-skeleton" style="width:80px;height:60px"></div><div class="plat-loading-skeleton" style="width:80px;height:60px"></div><div class="plat-loading-skeleton" style="width:80px;height:60px"></div></div>
+    </div>`;
 
     try {
         const res = await fetch(`api/platform_health?action=detail&platform_id=${platformId}`, { credentials: 'include' });
         const data = await res.json();
-        if (!data.success || !data.platform) { body.innerHTML = '<div class="text-center text-red-400 py-8">Failed to load details.</div>'; return; }
+        if (!data.success || !data.platform) {
+            body.innerHTML = '<div style="text-align:center;color:#EF4444;padding:40px 0;font-size:13px">Failed to load platform details.</div>';
+            return;
+        }
         const p = data.platform;
 
         document.getElementById('platDetailTitle').textContent = p.name;
-        document.getElementById('platDetailSubtitle').textContent = p.cookie_domain || (p.auto_detected ? 'Auto-detected' : 'Manually added');
+        const domainText = p.cookie_domain || '';
+        document.getElementById('platDetailSubtitle').innerHTML = domainText
+            ? `<span style="cursor:pointer" onclick="navigator.clipboard.writeText('${escHtml(domainText)}');showAlert('Domain copied')" title="Click to copy">${escHtml(domainText)}</span>`
+            : (p.auto_detected ? 'Auto-detected' : 'Manual');
 
         const logoInner = document.getElementById('platDetailLogoInner');
+        const logoBg = p.bg_color_hex || '#4F46E5';
         if (p.logo_url) {
-            logoInner.innerHTML = `<img src="${escHtml(p.logo_url)}" class="w-11 h-11 rounded-xl object-cover" onerror="this.parentElement.innerHTML='${escHtml((p.name||'?')[0])}'"/>`;
+            logoInner.style.background = 'transparent';
+            logoInner.innerHTML = `<img src="${escHtml(p.logo_url)}?v=${Date.now()}" style="width:44px;height:44px;border-radius:12px;object-fit:cover" onerror="this.parentElement.style.background='${logoBg}';this.parentElement.textContent='${escHtml((p.name||'?')[0].toUpperCase())}'"/>`;
         } else {
-            logoInner.style.background = p.bg_color_hex || '#4F46E5';
-            logoInner.innerHTML = escHtml((p.name || '?')[0].toUpperCase());
+            logoInner.style.background = logoBg;
+            logoInner.textContent = (p.name || '?')[0].toUpperCase();
         }
 
         const cfg = _platStatusConfig[p.health_status] || _platStatusConfig.unused;
+        const score = p.health_score ?? 0;
+        document.getElementById('platDetailHeaderScore').innerHTML = `
+            <div style="font-size:24px;font-weight:800;color:${cfg.color};line-height:1">${score}<span style="font-size:13px;font-weight:600">%</span></div>
+            <div style="font-size:9px;color:#9CA3AF;margin-top:1px">Health Score</div>`;
+
         const lastCheckAbs = _platAbsoluteTime(p.last_health_check);
+        const lastCheckRel = _platTimeAgo(p.last_health_check);
+        const isStale = p.last_health_check && (Date.now() - (_alieParseUTC(p.last_health_check)?.getTime() || 0)) > 86400000;
+        const staleWarn = isStale ? '<span style="color:#F59E0B;font-weight:600" title="Data may be outdated. Run a health check to refresh."> (stale)</span>' : '';
 
         body.innerHTML = `
-            <div class="flex items-center gap-4 mb-4">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">${_platStatusBadge(p.health_status)}
-                        <span class="text-[10px] text-gray-400 italic">${escHtml(p.status_reason || '')}</span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <div class="text-3xl font-bold" style="color:${cfg.color}">${p.health_score}<span class="text-lg">%</span></div>
-                </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                ${_platStatusBadge(p.health_status)}
+                <span style="font-size:11px;color:#6B7280;font-style:italic;flex:1">${escHtml(p.status_reason || '')}</span>
             </div>
-            ${healthScoreBar(p.health_score)}
+            ${healthScoreBar(score, { wide: true, noLabel: true })}
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-5">
-                <div class="text-center py-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                    <div class="text-lg font-bold text-gray-900">${p.total_accounts||0}</div>
-                    <div class="text-[9px] text-gray-400 mt-0.5">Total Accounts</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 20px">
+                <div class="plat-detail-stat" style="background:#F9FAFB;border-color:#E5E7EB">
+                    <div style="font-size:20px;font-weight:700;color:#111827">${p.total_accounts||0}</div>
+                    <div style="font-size:9px;color:#9CA3AF;margin-top:2px">Total Slots</div>
                 </div>
-                <div class="text-center py-2.5 rounded-lg bg-emerald-50 border border-emerald-100">
-                    <div class="text-lg font-bold text-emerald-600">${p.active_accounts||0}</div>
-                    <div class="text-[9px] text-gray-400 mt-0.5">Active</div>
+                <div class="plat-detail-stat" style="background:#F0FDF4;border-color:#BBF7D0">
+                    <div style="font-size:20px;font-weight:700;color:#16A34A">${p.active_accounts||0}</div>
+                    <div style="font-size:9px;color:#9CA3AF;margin-top:2px">Active</div>
                 </div>
-                <div class="text-center py-2.5 rounded-lg bg-blue-50 border border-blue-100">
-                    <div class="text-lg font-bold text-blue-600">${p.active_sessions||0}</div>
-                    <div class="text-[9px] text-gray-400 mt-0.5">Live Sessions</div>
+                <div class="plat-detail-stat" style="background:#EFF6FF;border-color:#BFDBFE">
+                    <div style="font-size:20px;font-weight:700;color:#2563EB">${p.active_sessions||0}</div>
+                    <div style="font-size:9px;color:#9CA3AF;margin-top:2px">Live Sessions</div>
                 </div>
-                <div class="text-center py-2.5 rounded-lg bg-violet-50 border border-violet-100">
-                    <div class="text-lg font-bold text-violet-600">${p.active_subscribers||0}</div>
-                    <div class="text-[9px] text-gray-400 mt-0.5">Subscribers</div>
+                <div class="plat-detail-stat" style="background:#F5F3FF;border-color:#DDD6FE">
+                    <div style="font-size:20px;font-weight:700;color:#7C3AED">${p.active_subscribers||0}</div>
+                    <div style="font-size:9px;color:#9CA3AF;margin-top:2px">Subscribers</div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mb-2">
-                <h4 class="text-xs font-semibold text-gray-700">Account Slots</h4>
-                <span class="text-[10px] text-gray-400" title="${escHtml(lastCheckAbs)}">Last checked: ${_platTimeAgo(p.last_health_check)}</span>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:12px;font-weight:600;color:#374151">Account Slots</div>
+                <div style="font-size:10px;color:#9CA3AF">
+                    <span class="plat-ts" title="${escHtml(lastCheckAbs)}">Last health check: ${escHtml(lastCheckRel)}</span>${staleWarn}
+                </div>
             </div>
             ${p.accounts && p.accounts.length ? `
-            <div class="overflow-x-auto border border-gray-100 rounded-lg">
-                <table class="data-table text-xs" style="margin:0">
+            <div style="overflow-x:auto;border:1px solid #E5E7EB;border-radius:10px">
+                <table class="plat-slots-table">
                     <thead><tr>
-                        <th>Slot</th><th>Score</th><th>Status</th><th>Cookie</th><th class="text-center">Success / Fail</th><th>Last Activity</th>
+                        <th>Slot</th><th>Score</th><th>Status</th><th>Cookie</th><th style="text-align:center">Pass / Fail</th><th>Last Verified</th>
                     </tr></thead>
                     <tbody>
                         ${p.accounts.map(a => {
                             const aScore = a.intelligence_score || 0;
                             const aStatus = a.health_status || 'unknown';
-                            const lastAct = a.last_success || a.last_failed || a.last_verified;
-                            const lastActAbs = _platAbsoluteTime(lastAct);
+                            const mappedStatus = aStatus === 'healthy' ? 'healthy' : aStatus === 'degraded' ? 'degraded' : aStatus === 'inactive' ? 'inactive' : 'dead';
                             const cks = (a.cookie_status||'').toLowerCase();
-                            return `<tr style="${a.is_active ? '' : 'opacity:0.45'}">
-                                <td class="font-medium">${escHtml(a.slot_name||'Slot')}${a.is_active ? '' : ' <span class="text-[9px] text-gray-400">(off)</span>'}</td>
+                            const cookieBadgeStyle = cks === 'valid'
+                                ? 'background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0'
+                                : cks === 'expired'
+                                ? 'background:#FEF2F2;color:#DC2626;border:1px solid #FECACA'
+                                : 'background:#FEF9C3;color:#A16207;border:1px solid #FDE68A';
+                            const lastVerTs = a.last_success || a.last_verified;
+                            const lastFailTs = a.last_failed;
+                            const lastVerAbs = _platAbsoluteTime(lastVerTs);
+                            const lastFailAbs = _platAbsoluteTime(lastFailTs);
+                            return `<tr class="${a.is_active ? '' : 'slot-inactive'}">
+                                <td>
+                                    <div style="font-weight:600;color:#111827;font-size:12px">${escHtml(a.slot_name||'Slot')}</div>
+                                    ${!a.is_active ? '<div style="font-size:9px;color:#9CA3AF">Disabled</div>' : ''}
+                                </td>
                                 <td>${healthScoreBar(aScore)}</td>
-                                <td>${_platStatusBadge(aStatus === 'healthy' ? 'healthy' : aStatus === 'degraded' ? 'degraded' : 'dead')}</td>
-                                <td><span class="badge ${cks==='valid'?'badge-green':cks==='expired'?'badge-red':'badge-yellow'}">${escHtml(a.cookie_status||'—')}</span></td>
-                                <td class="text-center"><span class="text-emerald-600 font-medium">${a.success_count||0}</span> <span class="text-gray-300">/</span> <span class="text-red-500 font-medium">${a.fail_count||0}</span></td>
-                                <td class="text-gray-400" title="${escHtml(lastActAbs)}">${lastAct ? _platTimeAgo(lastAct) : '—'}</td>
+                                <td>${_platStatusBadge(mappedStatus)}</td>
+                                <td><span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;${cookieBadgeStyle}">${escHtml(a.cookie_status||'—')}</span></td>
+                                <td style="text-align:center">
+                                    <span style="color:#16A34A;font-weight:600">${a.success_count||0}</span>
+                                    <span style="color:#D1D5DB;margin:0 2px">/</span>
+                                    <span style="color:#DC2626;font-weight:600">${a.fail_count||0}</span>
+                                </td>
+                                <td style="font-size:11px;color:#6B7280">
+                                    ${lastVerTs ? `<span class="plat-ts" title="${escHtml(lastVerAbs)}">${_platTimeAgo(lastVerTs)}</span>` : '<span style="color:#D1D5DB">—</span>'}
+                                    ${lastFailTs ? `<div style="font-size:9px;color:#EF4444;margin-top:1px" class="plat-ts" title="${escHtml(lastFailAbs)}">Failed ${_platTimeAgo(lastFailTs)}</div>` : ''}
+                                </td>
                             </tr>`;
                         }).join('')}
                     </tbody>
                 </table>
-            </div>` : '<div class="text-center text-gray-400 text-sm py-6 bg-gray-50 rounded-lg">No accounts linked to this platform.</div>'}
+            </div>` : `<div style="text-align:center;padding:32px 16px;background:#F9FAFB;border-radius:10px;border:1px solid #E5E7EB">
+                <div style="font-size:13px;color:#9CA3AF">No accounts linked to this platform</div>
+                <div style="font-size:11px;color:#D1D5DB;margin-top:4px">Import cookies in Account Manager to populate slots</div>
+            </div>`}
         `;
 
-        footer.classList.remove('hidden');
+        footer.style.display = '';
         const toggleBtn = document.getElementById('platDetailToggleBtn');
-        toggleBtn.className = `btn ${p.is_active ? 'btn-danger' : 'btn-success'} btn-sm text-[10px]`;
-        toggleBtn.textContent = p.is_active ? 'Disable Platform' : 'Enable Platform';
+        toggleBtn.className = `plat-action-btn ${p.is_active ? 'danger' : 'success'}`;
+        toggleBtn.innerHTML = p.is_active
+            ? '<svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg> Disable'
+            : '<svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Enable';
         toggleBtn.onclick = () => { closePlatDetailModal(); togglePlatformIntel(p.id, p.name, p.is_active ? 1 : 0); };
 
-        const deleteBtn = document.getElementById('platDetailDeleteBtn');
-        deleteBtn.onclick = () => { closePlatDetailModal(); deleteSinglePlatform(p.id, p.name); };
+        document.getElementById('platDetailDeleteBtn').onclick = () => { closePlatDetailModal(); deleteSinglePlatform(p.id, p.name); };
 
         const removeLogoBtn = document.getElementById('platDetailRemoveLogoBtn');
         if (p.logo_url) {
-            removeLogoBtn.classList.remove('hidden');
+            removeLogoBtn.style.display = '';
             removeLogoBtn.onclick = () => removePlatLogo(p.id);
         } else {
-            removeLogoBtn.classList.add('hidden');
+            removeLogoBtn.style.display = 'none';
         }
     } catch(e) {
-        body.innerHTML = '<div class="text-center text-red-400 py-8">Error loading platform details.</div>';
+        body.innerHTML = '<div style="text-align:center;color:#EF4444;padding:40px 0;font-size:13px">Error loading platform details.</div>';
     }
 }
 
@@ -3823,6 +3900,13 @@ async function handleLogoUpload(event) {
     if (!file || !_platDetailPlatformId) return;
     if (file.size > 2 * 1024 * 1024) { showAlert('File too large. Maximum size is 2MB.', true); event.target.value = ''; return; }
 
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+    if (!allowed.includes(file.type)) { showAlert('Only JPG, PNG, WebP, and SVG files are allowed.', true); event.target.value = ''; return; }
+
+    const logoInner = document.getElementById('platDetailLogoInner');
+    const origHTML = logoInner.innerHTML;
+    logoInner.innerHTML = '<div class="plat-loading-skeleton" style="width:44px;height:44px;border-radius:12px"></div>';
+
     const formData = new FormData();
     formData.append('logo', file);
     formData.append('platform_id', _platDetailPlatformId);
@@ -3836,28 +3920,50 @@ async function handleLogoUpload(event) {
             method: 'POST', credentials: 'include', headers, body: formData,
         });
         const data = await res.json();
-        if (data.success) {
-            showAlert('Logo updated successfully');
-            openPlatDetailModal(_platDetailPlatformId);
+        if (data.success && data.logo_url) {
+            showAlert('Logo updated');
+            logoInner.style.background = 'transparent';
+            logoInner.innerHTML = `<img src="${escHtml(data.logo_url)}?v=${Date.now()}" style="width:44px;height:44px;border-radius:12px;object-fit:cover" onerror="this.parentElement.textContent='?'"/>`;
+            const removeBtn = document.getElementById('platDetailRemoveLogoBtn');
+            removeBtn.style.display = '';
+            removeBtn.onclick = () => removePlatLogo(_platDetailPlatformId);
             loadPlatformIntelligence();
         } else {
             showAlert(data.message || 'Upload failed', true);
+            logoInner.innerHTML = origHTML;
         }
-    } catch(e) { showAlert('Logo upload failed.', true); }
+    } catch(e) {
+        showAlert('Logo upload failed.', true);
+        logoInner.innerHTML = origHTML;
+    }
     event.target.value = '';
 }
 
 async function removePlatLogo(platformId) {
-    if (!confirm('Remove the logo for this platform? It will revert to the initial letter.')) return;
+    if (!confirm('Remove the logo? It will revert to the default initial letter.')) return;
+    const logoInner = document.getElementById('platDetailLogoInner');
+    const origHTML = logoInner.innerHTML;
+    logoInner.innerHTML = '<div class="plat-loading-skeleton" style="width:44px;height:44px;border-radius:12px"></div>';
     try {
         const res = await fetch('api/remove_logo', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: platformId }) });
         const data = await res.json();
         if (data.success) {
             showAlert('Logo removed');
-            openPlatDetailModal(platformId);
+            const cached = _platRegistryData.find(p => p.id === platformId);
+            const bg = cached?.bg_color_hex || '#4F46E5';
+            const initial = (cached?.name || '?')[0].toUpperCase();
+            logoInner.style.background = bg;
+            logoInner.textContent = initial;
+            document.getElementById('platDetailRemoveLogoBtn').style.display = 'none';
             loadPlatformIntelligence();
-        } else { showAlert(data.message, true); }
-    } catch(e) { showAlert('Failed to remove logo.', true); }
+        } else {
+            showAlert(data.message, true);
+            logoInner.innerHTML = origHTML;
+        }
+    } catch(e) {
+        showAlert('Failed to remove logo.', true);
+        logoInner.innerHTML = origHTML;
+    }
 }
 
 function renderCookiesTable(cookies) {

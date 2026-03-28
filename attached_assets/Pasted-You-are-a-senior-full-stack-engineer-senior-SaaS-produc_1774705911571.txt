@@ -1,0 +1,327 @@
+You are a senior full-stack engineer, senior SaaS product designer, senior UI/UX architect, and senior performance engineer.
+
+The Platform Intelligence module has already been significantly improved.
+Now I want you to do the NEXT PHASE focused on making the Platform Detail Modal and related Platform Intelligence UI feel premium, polished, and production-grade.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do not add heavy UI logic, bloated frontend rendering, unnecessary polling, or expensive repeated requests.
+Every improvement must preserve speed and responsiveness.
+
+==================================================
+CURRENT PROBLEM
+==================================================
+
+The feature is working, but the Platform Detail Modal and surrounding Platform Intelligence UI still do not feel polished enough.
+
+Visible issues:
+- modal layout feels basic / not premium enough
+- close button looks weak / misplaced / visually poor
+- header hierarchy is not strong enough
+- footer actions feel plain and not enterprise-grade
+- logo area exists, but the upload/remove experience can be cleaner
+- stats cards inside modal can be more refined
+- account slots table can look more premium and easier to scan
+- timestamps still need clearer semantics and better presentation
+- the modal feels functional, but not like a top-tier admin operations dashboard
+
+I want this next phase to focus on polish, clarity, usability, and premium admin quality.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Take the current Platform Intelligence detail experience and improve it to a truly professional level.
+
+I want:
+- better modal UX
+- better visual hierarchy
+- cleaner header
+- better close button
+- stronger logo management UX
+- clearer timing display
+- more premium cards/table styling
+- more trustworthy admin actions
+- no performance regression for 1000+ concurrent users
+
+==================================================
+PHASE 1 — REAL AUDIT BEFORE CHANGES
+==================================================
+
+Inspect the actual current implementation of:
+- Platform cards
+- Registry table
+- Platform detail modal
+- Logo upload/remove flow
+- Timestamp display in modal/cards/table
+- Action footer buttons
+- Account slots table
+- spacing, alignment, typography, states
+- loading/error states
+
+Then clearly report:
+1. what currently works
+2. what looks weak
+3. what feels unfinished
+4. what is visually unbalanced
+5. what is semantically unclear
+6. what still risks confusion for admins
+7. what could become slow if redesigned badly
+
+==================================================
+PHASE 2 — MODAL UI PREMIUM REDESIGN
+==================================================
+
+Redesign the Platform Detail Modal to feel like a premium SaaS admin panel.
+
+Improve:
+
+1. HEADER
+- stronger visual hierarchy
+- clean close button in the top-right
+- better spacing/alignment
+- platform logo + name + domain grouped professionally
+- status badge and score placement improved
+- make the header feel clean, premium, and intentional
+
+2. LOGO AREA
+- make logo block more polished
+- improve hover state for upload/change
+- better affordance for logo editing
+- support:
+  - upload logo
+  - replace logo
+  - remove logo
+  - reset to default/fallback
+- make the interaction feel smooth and professional
+
+3. HEALTH SCORE AREA
+- improve score prominence
+- clarify relationship between score and status
+- add reason text or mini helper tooltip if useful
+- visually separate “health score” from “admin status”
+
+4. METRIC CARDS
+Current metric cards should be more polished.
+Improve:
+- spacing
+- color consistency
+- typography
+- hierarchy
+- scanability
+- responsive layout
+- hover/active/focus states if useful
+
+5. ACCOUNT SLOTS TABLE
+Improve:
+- row density
+- column readability
+- status badge styling
+- score bar design
+- cookie badge clarity
+- success/fail visual readability
+- last activity readability
+- hover state
+- empty state
+- loading state
+
+6. FOOTER ACTIONS
+Improve buttons for:
+- Enable / Disable
+- Delete
+- Upload Logo
+- Remove Logo
+
+Make them:
+- visually clearer
+- grouped properly
+- safer for destructive actions
+- aligned cleanly
+- consistent with the design system
+- professional, not plain/basic
+
+==================================================
+PHASE 3 — TIMING / SEMANTICS IMPROVEMENT
+==================================================
+
+Timing still needs to feel more correct and clearer.
+
+I want you to improve and standardize:
+
+- last checked
+- last verified
+- last failed
+- last activity
+- health run time if relevant
+
+Requirements:
+1. Distinguish these clearly in UI
+2. Do not mix business meanings
+3. Show relative time in the main UI
+4. Show exact absolute timestamp on hover
+5. Use consistent format rules
+6. Make modal, cards, and table semantically aligned
+7. If “Just now” is misleading after a global health check, make that clearer in the UI
+
+Also improve the wording if needed:
+- “Last checked”
+- “Last activity”
+- “Last successful verification”
+- “Last failed verification”
+
+==================================================
+PHASE 4 — LOGO MANAGEMENT UX IMPROVEMENT
+==================================================
+
+The logo upload feature exists, but now I want the UX improved.
+
+Add/improve:
+- upload preview before save if feasible
+- replace action
+- remove action
+- reset to default
+- validation feedback
+- loading state
+- success/error toasts
+- cache-busting/version refresh after logo change
+- fallback logo/initials if no logo exists
+- consistent rendering in cards/table/modal
+
+Make sure:
+- image changes do not require heavy full-page refresh
+- delivery remains fast for 1000+ users
+- file handling remains safe and validated
+
+==================================================
+PHASE 5 — PLATFORM INTELLIGENCE FINAL POLISH
+==================================================
+
+Also refine the surrounding Platform Intelligence page:
+
+1. PLATFORM CARDS
+- cleaner spacing
+- better reason text
+- stronger footer row
+- better logo rendering
+- clearer slot/account/user/session relationship
+- improve hover/click affordance
+
+2. REGISTRY TABLE
+- better alignment
+- stronger action buttons
+- cleaner sort indicators
+- status clarity
+- time tooltip support
+- logo consistency with modal/cards
+
+3. GLOBAL CONSISTENCY
+- border radius consistency
+- chip/badge consistency
+- button system consistency
+- spacing scale consistency
+- muted text consistency
+- loading skeleton consistency
+- better empty states
+
+==================================================
+PHASE 6 — HIGH-VALUE MISSING FEATURES
+==================================================
+
+Identify and implement the most valuable missing features for this next phase, such as:
+- reset logo to default
+- better status explanation tooltip
+- health reason tooltip
+- stale data warning
+- better modal loading state
+- copy domain button
+- quick open platform detail from cards/table
+- recommended action label
+- platform notes/metadata if useful
+- audit log entries for logo updates and detail actions
+
+Only add what gives real value without making the module heavy or slow.
+
+==================================================
+PHASE 7 — PERFORMANCE & 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+Keep everything fast for 1000+ concurrent users.
+
+Improve:
+- lightweight modal data loading
+- cache invalidation after logo update/remove
+- no unnecessary full module reload
+- efficient DOM patching
+- minimal repainting after small changes
+- image cache friendliness
+- timestamp UI updates without expensive refreshes
+- keep detail fetch on demand, not eager
+
+Explicitly avoid:
+- huge frontend rerenders
+- repeated heavy detail calls
+- wasteful polling
+- large image payloads
+- slow modal open experience
+
+==================================================
+PHASE 8 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what still looked weak
+- what was confusing
+- what felt unfinished
+- what timing issue remained
+- what logo UX issue remained
+
+2. PRODUCT DECISION SUMMARY
+- final modal UX model
+- final time semantics
+- final logo management model
+- final action behavior
+- final performance approach for 1000+ users
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files modified
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how speed is preserved
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- modal premium redesign
+- timing clarity improvements
+- logo UX improvements
+- footer action improvements
+- final Platform Intelligence page polish
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- modal looks premium and professional
+- close button is fixed and clean
+- timing is clearer and more trustworthy
+- logo upload/remove/reset UX works
+- cards/table/modal feel consistent
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Improve semantics before cosmetic polish
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Make the result compact, premium, and admin-friendly
+- Think like a lead engineer + product designer shipping this to production
