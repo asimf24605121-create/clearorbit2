@@ -7,22 +7,52 @@ const router = Router();
 
 router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page, platform_id, status } = req.query;
+    const { page, per_page, platform_id, status, search, sort, user_id } = req.query;
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
+    const today = todayISO();
 
     const where = {};
     if (platform_id) where.platformId = parseInt(platform_id);
-    if (status === 'active') where.isActive = 1;
-    else if (status === 'expired') where.isActive = 0;
+    if (user_id) where.userId = parseInt(user_id);
+    if (search) {
+      where.user = {
+        OR: [
+          { username: { contains: search } },
+          { name: { contains: search } },
+        ],
+      };
+    }
+
+    if (status === 'active') {
+      where.isActive = 1;
+      where.endDate = { gte: today };
+    } else if (status === 'expired') {
+      where.OR = [{ isActive: 0 }, { endDate: { lt: today } }];
+    } else if (status === 'expiring_soon') {
+      const weekFromNow = futureDate(7);
+      where.isActive = 1;
+      where.endDate = { gte: today, lte: weekFromNow };
+    } else if (status === 'revoked') {
+      where.isActive = 0;
+      where.endDate = { gte: today };
+    }
+
+    let orderBy = { endDate: 'desc' };
+    if (sort === 'expiry_asc') orderBy = { endDate: 'asc' };
+    else if (sort === 'expiry_desc') orderBy = { endDate: 'desc' };
+    else if (sort === 'newest') orderBy = { id: 'desc' };
+    else if (sort === 'oldest') orderBy = { id: 'asc' };
+    else if (sort === 'user') orderBy = { user: { username: 'asc' } };
+    else if (sort === 'platform') orderBy = { platform: { name: 'asc' } };
 
     const [subs, total] = await Promise.all([
       prisma.userSubscription.findMany({
         where,
         include: {
-          user: { select: { username: true, name: true } },
-          platform: { select: { name: true, logoUrl: true } },
+          user: { select: { username: true, name: true, profileImage: true } },
+          platform: { select: { name: true, logoUrl: true, bgColorHex: true } },
         },
-        orderBy: { endDate: 'desc' },
+        orderBy,
         skip, take,
       }),
       prisma.userSubscription.count({ where }),
@@ -30,12 +60,23 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
 
     res.json({
       success: true,
-      subscriptions: subs.map(s => ({
-        id: s.id, user_id: s.userId, username: s.user?.username,
-        user_name: s.user?.name, platform_id: s.platformId,
-        platform_name: s.platform?.name, platform_logo: s.platform?.logoUrl,
-        start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
-      })),
+      subscriptions: subs.map(s => {
+        const daysLeft = Math.ceil((new Date(s.endDate) - new Date(today)) / 86400000);
+        let computedStatus = 'active';
+        if (!s.isActive && daysLeft > 0) computedStatus = 'revoked';
+        else if (daysLeft <= 0) computedStatus = 'expired';
+        else if (daysLeft <= 7) computedStatus = 'expiring';
+
+        return {
+          id: s.id, user_id: s.userId, username: s.user?.username,
+          user_name: s.user?.name, user_avatar: s.user?.profileImage,
+          platform_id: s.platformId,
+          platform_name: s.platform?.name, platform_logo: s.platform?.logoUrl,
+          platform_color: s.platform?.bgColorHex,
+          start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
+          days_left: daysLeft, status: computedStatus,
+        };
+      }),
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
@@ -44,9 +85,71 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
   }
 });
 
+router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { subscription_ids, days } = req.body;
+    if (!Array.isArray(subscription_ids) || !subscription_ids.length || !days) {
+      return res.status(400).json({ success: false, message: 'subscription_ids array and days required' });
+    }
+    const d = parseInt(days);
+    if (d < 1 || d > 3650) return res.status(400).json({ success: false, message: 'Days must be 1-3650' });
+
+    const subs = await prisma.userSubscription.findMany({
+      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
+    });
+
+    let updated = 0;
+    for (const sub of subs) {
+      const currentEnd = new Date(sub.endDate);
+      const baseDate = currentEnd > new Date() ? currentEnd : new Date();
+      baseDate.setDate(baseDate.getDate() + d);
+      await prisma.userSubscription.update({
+        where: { id: sub.id },
+        data: { endDate: baseDate.toISOString().substring(0, 10), isActive: 1 },
+      });
+      updated++;
+    }
+
+    await prisma.activityLog.create({
+      data: { userId: req.user.id, action: `Bulk extended ${updated} subscriptions by ${d} days`, ipAddress: req.ip || null, createdAt: nowISO() },
+    });
+
+    res.json({ success: true, message: `${updated} subscription(s) extended by ${d} days` });
+  } catch (err) {
+    console.error('bulk_extend error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/bulk_revoke_subscriptions', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { subscription_ids } = req.body;
+    if (!Array.isArray(subscription_ids) || !subscription_ids.length) {
+      return res.status(400).json({ success: false, message: 'subscription_ids array required' });
+    }
+
+    const result = await prisma.userSubscription.updateMany({
+      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
+      data: { isActive: 0 },
+    });
+
+    await prisma.activityLog.create({
+      data: { userId: req.user.id, action: `Bulk revoked ${result.count} subscriptions`, ipAddress: req.ip || null, createdAt: nowISO() },
+    });
+
+    res.json({ success: true, message: `${result.count} subscription(s) revoked` });
+  } catch (err) {
+    console.error('bulk_revoke error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 router.get('/get_user_subscriptions', authenticate, async (req, res) => {
   try {
-    const userId = req.query.user_id ? parseInt(req.query.user_id) : req.user.id;
+    let userId = req.user.id;
+    if (req.query.user_id && req.user.role && (req.user.role === 'super_admin' || req.user.role === 'admin' || req.user.role === 'manager')) {
+      userId = parseInt(req.query.user_id);
+    }
 
     const subs = await prisma.userSubscription.findMany({
       where: { userId },

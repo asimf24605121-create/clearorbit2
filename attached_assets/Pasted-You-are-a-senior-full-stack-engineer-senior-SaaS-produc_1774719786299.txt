@@ -1,0 +1,334 @@
+You are a senior full-stack engineer, senior SaaS product designer, senior UX architect, senior admin-dashboard specialist, and senior performance engineer.
+
+The Users module backend and core logic have already been significantly rebuilt and improved.
+Now I want the NEXT PHASE to focus on INFORMATION ARCHITECTURE and FRONTEND UX:
+
+I want the User Management page and the Subscription / Access Management page to be separated properly.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT break the improved backend architecture.
+Do NOT reintroduce heavy client-side arrays or full-page refreshes.
+All UX improvements must preserve lightweight rendering, server-side pagination, and minimal DOM churn.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Right now the Users module still feels too combined.
+
+I want:
+1. Users page = user account management only
+2. Subscriptions / Access page = user-platform subscription management only
+
+The frontend must feel premium, organized, powerful, and clear.
+
+I want a professional SaaS admin experience where:
+- user identity/profile management is separate
+- subscription/platform access management is separate
+- each page has a strong purpose
+- modals/pages are cleaner
+- the GUI looks more “dabang” / premium / enterprise-grade
+- admin actions are easier and safer
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the real implementation first.
+
+Audit:
+- current Users page structure
+- create user form
+- users table
+- view user modal
+- edit user modal
+- subscription assignment inside edit/view flows
+- revoke/extend actions
+- current backend routes used by frontend
+- navigation/sidebar structure
+- whether there is already a subscription-related page or if one should be created
+- what data is user metadata vs subscription/access metadata
+- what can be separated without breaking the logic
+
+Then clearly report:
+1. what currently belongs on the Users page
+2. what should be moved to a separate Subscriptions / Access page
+3. what is currently mixed together and causing UX confusion
+4. what can be reused safely
+5. what would become slow if redesigned badly
+
+==================================================
+PHASE 2 — FINAL PRODUCT STRUCTURE
+==================================================
+
+Design the module with clear separation.
+
+I want the final structure like this:
+
+A. USERS PAGE
+Purpose:
+- create users
+- edit profile/account details
+- view user identity/basic info
+- disable/enable user
+- delete user
+- basic user status
+- maybe last login / last activity / account state
+
+This page should NOT be overloaded with deep subscription management.
+
+B. SUBSCRIPTIONS / ACCESS PAGE
+Purpose:
+- manage user-platform access
+- assign subscriptions
+- extend subscriptions
+- revoke subscriptions
+- filter by platform/user/status/expiry
+- see per-platform expiry/access state
+- manage subscription lifecycle clearly
+
+If naming “Subscriptions” is better than “Access Management,” choose the best product label.
+
+==================================================
+PHASE 3 — USERS PAGE FRONTEND REDESIGN
+==================================================
+
+Redesign the Users page to focus on user identity/account management.
+
+Keep on Users page:
+- create user
+- username/email/password
+- basic account profile
+- user list
+- status
+- join date
+- maybe nearest expiry summary only
+- actions: view, edit, disable, delete
+
+Remove or reduce from Users page:
+- deep per-platform subscription clutter
+- too much access assignment inside the same edit modal if it causes confusion
+
+Improve:
+1. create user section hierarchy
+2. user table clarity
+3. status badge semantics
+4. actions column
+5. view modal design
+6. edit modal design
+7. safer delete/disable confirmations
+8. loading/empty/error states
+9. premium visual quality
+
+==================================================
+PHASE 4 — NEW SUBSCRIPTIONS / ACCESS PAGE
+==================================================
+
+Create or redesign a separate page for subscription/access management.
+
+This page should be focused on:
+- user subscriptions
+- per-platform assignments
+- expiry timelines
+- revoke / extend
+- partial access states
+- access health / dead platform warnings if useful
+- filters and bulk actions
+
+Recommended features:
+- search by user
+- search by platform
+- filter by:
+  - active
+  - expiring soon
+  - expired
+  - revoked
+  - partial access
+- sort by expiry / user / platform / status
+- bulk extend
+- bulk revoke
+- view subscription details
+- inline actions for +7 / +30 / revoke
+- safer destructive confirmations
+- premium table/list layout
+
+This should become the main operational page for managing subscriptions.
+
+==================================================
+PHASE 5 — MODAL / PAGE RESPONSIBILITY CLEANUP
+==================================================
+
+Clean up responsibilities clearly.
+
+I want:
+- User View modal = profile/account summary
+- User Edit modal = profile/account editing
+- Subscription details / subscription actions = separate access page or separate access modal from that page
+- avoid one modal trying to do everything
+
+If needed:
+- keep a lightweight “View Access” shortcut from Users page
+- but the heavy subscription management should live elsewhere
+
+==================================================
+PHASE 6 — GUI / UX QUALITY TARGET
+==================================================
+
+I want the final frontend to feel:
+- premium
+- compact
+- powerful
+- admin-friendly
+- enterprise-grade
+- “dabang” and polished
+
+Improve:
+1. page hierarchy
+2. section titles/subtitles
+3. spacing consistency
+4. badge consistency
+5. card/table consistency
+6. icon usage
+7. action button clarity
+8. modal headers/footers
+9. sticky filters if useful
+10. stronger empty states
+11. stronger success states
+12. responsive layout
+13. keyboard accessibility
+
+==================================================
+PHASE 7 — SUBSCRIPTION PAGE DATA MODEL / FRONTEND RULES
+==================================================
+
+Use the improved backend semantics and keep it accurate.
+
+Requirements:
+- use the backend-derived subscription truth
+- show expiry clearly:
+  - relative
+  - exact on hover
+- show status clearly:
+  - active
+  - expiring soon
+  - expired
+  - revoked
+  - partial access
+- show platform name/logo/user identity cleanly
+- no stale inline JSON payloads in HTML
+- use lightweight server-side pagination/search/filter/sort
+- no heavy client-side data loading
+
+==================================================
+PHASE 8 — ACTIONS / SAFETY
+==================================================
+
+Make actions safer and clearer on both pages.
+
+Users page:
+- disable user
+- enable user
+- delete user
+- edit user
+
+Subscriptions page:
+- assign access
+- extend access
+- revoke access
+- bulk extend
+- bulk revoke
+
+Each must have:
+- clear loading state
+- disabled state
+- success feedback
+- error feedback
+- impact warning if destructive
+- premium confirmation UX
+
+==================================================
+PHASE 9 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+All frontend changes must preserve performance for 1000+ concurrent users.
+
+Requirements:
+- keep server-side pagination
+- keep server-side search/filter/sort
+- no full loadStats-style refreshes after every mutation
+- use lightweight refresh for only the affected page/list
+- minimize rerenders
+- avoid oversized modals with too much data preloaded
+- load detailed subscription data only on demand
+- keep tables efficient and scalable
+
+==================================================
+PHASE 10 — WHAT I WANT IMPLEMENTED
+==================================================
+
+I want you to:
+1. separate Users and Subscriptions/Access frontend responsibilities
+2. create or redesign the Subscriptions page
+3. simplify and polish the Users page
+4. improve modals accordingly
+5. keep backend logic intact unless a small routing/data tweak is truly necessary
+6. make the whole UX feel premium and professional
+
+==================================================
+PHASE 11 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what is currently mixed together
+- why Users and Subscriptions should be separated
+- what frontend confusion exists
+
+2. PRODUCT DECISION SUMMARY
+- final Users page role
+- final Subscriptions/Access page role
+- final modal responsibilities
+- final UX model
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how speed is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- Users page cleanup
+- separate Subscriptions/Access page
+- frontend redesign
+- modal responsibility cleanup
+- premium GUI polish
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Users page is cleaner and focused
+- Subscriptions page is separate and useful
+- frontend looks premium and professional
+- workflows are clearer
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real frontend code first
+- Preserve the improved backend architecture
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI compact, premium, and admin-friendly
+- Think like a lead frontend engineer + product designer shipping to production
