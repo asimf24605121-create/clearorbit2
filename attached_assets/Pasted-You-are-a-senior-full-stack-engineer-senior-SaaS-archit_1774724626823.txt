@@ -1,0 +1,463 @@
+You are a senior full-stack engineer, senior SaaS architect, senior frontend UX architect, senior admin-dashboard product designer, and senior performance engineer.
+
+I want you to REWORK the current Users module into a single, profile-centered Users page workflow.
+
+IMPORTANT:
+The separate Subscriptions page that was added should be REMOVED from the visible admin flow.
+I do NOT want a separate Subscriptions page anymore.
+
+GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT break the improved backend logic that already exists.
+Do NOT reintroduce large client-side arrays or heavy full-page refreshes.
+Preserve server-side pagination/search/filter/sort and lightweight refresh patterns.
+
+==================================================
+FINAL PRODUCT DIRECTION
+==================================================
+
+I want the USERS PAGE to remain the main page.
+
+For every user, I want only these 3 clear frontend workflows:
+
+1. VIEW PROFILE
+- The profile/eye icon should be visually tied to the user identity/name area
+- Opens a dedicated User Profile modal/window
+- Read-only
+- Shows the full user profile and account/security details
+- Shows high-level subscription/access summary only
+- Shows login IP and LIVE LOCATION from IP
+- NO edit controls
+- NO subscription add/extend/revoke controls directly in this view state
+
+2. EDIT PROFILE
+- Opens a dedicated Edit Profile modal/window
+- Only for editing profile/account details
+- Full name
+- Email
+- Phone
+- Country
+- City
+- Gender
+- Password reset
+- Basic metadata only
+- NO Assign Platforms section here
+- NO subscription controls here
+
+3. MANAGE SUBSCRIPTION / ACCESS
+- Opens a dedicated Access / Subscription modal/window for that user
+- ONLY place where subscription/access is managed
+- Shows all active subscriptions
+- Shows expired/revoked subscriptions if useful
+- Allows:
+  - add new platform subscription
+  - extend time
+  - revoke/delete subscription
+  - see per-platform expiry
+  - see per-platform status
+- This should feel like a powerful access manager for one user
+
+==================================================
+STRICT RULES
+==================================================
+
+1. Remove the visible separate Subscriptions page from the admin flow
+2. Remove the Platforms column/badge from the Users table row
+3. Remove Assign Platforms from the Edit Profile modal
+4. Edit Profile modal = profile/account editing only
+5. User Profile modal = main read-only user profile window
+6. Subscription management must live in its own dedicated modal/window from the Users page
+7. Eye icon should feel connected to the user row/name, not random clutter
+8. The UI must feel premium, simple, enterprise-grade, and highly clear
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the real current implementation first.
+
+Audit:
+- Users table
+- current action icons
+- current User Profile modal
+- current Edit User modal
+- current separate Subscriptions page
+- current Manage Access / Manage Subscriptions flow
+- current placement of profile/view icon
+- current Platforms column
+- current subscription summary inside modals
+- current IP/login display
+- what data already exists for IP/location
+- whether geo lookup/live location already exists in the project
+- backend routes already available for:
+  - get_users
+  - get_user_subscriptions
+  - assign platforms
+  - extend subscription
+  - revoke subscription
+  - delete preview / safety
+- table column layout
+- action icon spacing/clipping issues
+- modal responsibility overlap
+- anything currently mixed/confusing
+
+Then clearly report:
+1. what is currently mixed/confusing
+2. what must be removed
+3. what must stay
+4. what can be reused safely
+5. what frontend layout issues exist
+6. what IP/location capability already exists
+7. what could become slow if redesigned badly
+
+==================================================
+PHASE 2 — USERS TABLE CLEANUP
+==================================================
+
+Redesign the Users table to focus on USER MANAGEMENT only.
+
+Requirements:
+- REMOVE the Platforms column from the row
+- keep the row cleaner and less cluttered
+- preserve:
+  - User
+  - Email
+  - Expiry (high-level summary only if still useful)
+  - Status
+  - Actions
+- reduce action clutter
+- profile/view action should feel attached to the user identity/name area
+- keep separate actions for:
+  - view profile
+  - edit profile
+  - manage subscription/access
+  - disable
+  - delete
+- fix action button spacing, overflow, clipping, and alignment
+- keep the table premium and compact
+- no oversized/cut buttons
+
+Also improve:
+- row density
+- badge consistency
+- expiry readability
+- hover states
+- responsive behavior
+- empty state
+- skeleton loading
+- action clarity
+
+==================================================
+PHASE 3 — USER PROFILE MODAL (READ-ONLY)
+==================================================
+
+Create/refine the dedicated User Profile modal as the main user window.
+
+It must show:
+- avatar/initial
+- username
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- join date
+- account/security info
+- expiry summary
+- login IP
+- device info if available
+- LIVE LOCATION of login IP if feasible and already supportable
+- active access summary in one clean compact row/section
+- maybe a clear CTA to open Manage Subscription modal
+
+It must remain READ-ONLY.
+It must NOT include:
+- edit inputs
+- assign platform controls
+- extend/revoke buttons in the main view state
+
+If login IP live location is added:
+- use the safest existing geo/IP capability if present
+- avoid adding heavy blocking external lookups on every render
+- cache geo lookups if needed
+- keep it lightweight for 1000+ users
+
+==================================================
+PHASE 4 — EDIT PROFILE MODAL
+==================================================
+
+Create/refine a separate Edit Profile modal/window.
+
+This modal must ONLY handle:
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- password reset
+- basic metadata
+
+This modal must NOT contain:
+- Assign Platforms
+- platform picker
+- duration selectors
+- subscription extend/revoke controls
+- access-management controls
+
+Make it:
+- clean
+- shorter
+- premium
+- easy to understand
+- clearly separate from profile viewing
+
+Add:
+- inline validation
+- clear save/cancel actions
+- dirty-state handling
+- loading state
+- success/error feedback
+
+==================================================
+PHASE 5 — MANAGE SUBSCRIPTION / ACCESS MODAL
+==================================================
+
+Create a dedicated per-user Access / Subscription modal/window from the Users page.
+
+This is the ONLY place for subscription management.
+
+This modal/window should include:
+
+A. USER HEADER
+- user name
+- username/email
+- status summary
+- maybe nearest expiry summary
+
+B. ACTIVE SUBSCRIPTIONS
+- each platform shown separately
+- platform logo/name
+- start date
+- expiry date
+- days left
+- status
+- actions:
+  - +7
+  - +30
+  - custom extend if useful
+  - revoke/delete
+
+C. EXPIRED / REVOKED SUBSCRIPTIONS
+- separate section if useful
+- clearly styled
+- can re-add/re-activate if business logic allows
+
+D. ADD NEW SUBSCRIPTION
+- select platform(s)
+- duration
+- add access
+- clear validation and feedback
+
+This modal must allow:
+- add new subscription
+- extend subscription
+- revoke/delete subscription
+- manage all user access from one place
+
+Keep this modal powerful but clean.
+
+==================================================
+PHASE 6 — REMOVE THE SEPARATE SUBSCRIPTIONS PAGE
+==================================================
+
+The separate Subscriptions page that was recently added should be removed from the visible admin navigation/workflow.
+
+Requirements:
+- remove sidebar nav item for Subscriptions
+- remove visible page/section routing for Subscriptions
+- migrate any useful UI/components from that page into the new per-user Access modal
+- do not lose the working subscription logic
+- keep backend endpoints if useful, but rewire frontend to the user-row modal workflow
+
+==================================================
+PHASE 7 — LOGIN IP LIVE LOCATION
+==================================================
+
+Add login IP live location to the User Profile view in a safe and performant way.
+
+I want:
+- last login IP shown clearly
+- geolocation info shown near it if possible:
+  - country
+  - region/city
+  - maybe ISP if already supported
+- if location is unavailable, show graceful fallback
+- no slow page loads
+- cache or persist geo results if needed
+- do not do expensive repeated live lookups on every modal open if that would slow the platform
+
+Inspect whether the project already has:
+- GeoEngine
+- GeoIPService
+- IP/location helpers
+- stored location fields
+and reuse them if available.
+
+==================================================
+PHASE 8 — GUI / UX QUALITY TARGET
+==================================================
+
+I want the final GUI to feel:
+- premium
+- compact
+- powerful
+- enterprise-grade
+- clean
+- modern
+- “dabang”
+
+Improve:
+- icon/button placement
+- modal header/footer design
+- section hierarchy
+- spacing consistency
+- action grouping
+- typography
+- badge system
+- expiry/status clarity
+- active platform chips/rows design
+- hover states
+- loading states
+- empty states
+- responsive layout
+- accessibility
+
+==================================================
+PHASE 9 — ACTION SAFETY
+==================================================
+
+Keep destructive and important actions safe.
+
+Users page / profile flow:
+- disable
+- enable
+- delete
+- edit profile
+
+Access modal:
+- add subscription
+- extend subscription
+- revoke/delete subscription
+
+Each action should have:
+- loading state
+- disabled state
+- success feedback
+- error feedback
+- premium confirmation UX
+- no accidental destructive clicks
+
+==================================================
+PHASE 10 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+All frontend changes must preserve performance for 1000+ concurrent users.
+
+Requirements:
+- keep server-side users API
+- keep server-side pagination/search/filter/sort
+- do not reintroduce ALL_USERS style heavy loading
+- no full loadStats-style refresh after every action
+- refresh only the affected user row or current list slice
+- load profile/access details on demand
+- cache or optimize IP geo lookups if needed
+- keep modals lightweight
+- avoid large DOM trees where not needed
+- minimize rerenders
+- keep tables efficient
+
+==================================================
+PHASE 11 — WHAT I WANT IMPLEMENTED
+==================================================
+
+Implement these exact changes:
+
+1. Remove the separate Subscriptions page from the visible admin workflow
+2. Remove the Platforms column/badge from Users table rows
+3. Keep the profile/view action tied to the user identity area
+4. Keep a dedicated read-only User Profile window
+5. Keep a separate Edit Profile window
+6. Remove Assign Platforms from Edit Profile modal
+7. Create a dedicated Manage Subscription modal/window
+8. Add login IP live location into the User Profile flow
+9. Keep subscription add/extend/revoke/delete only in the subscription modal
+10. Clean and polish the entire Users page GUI
+
+==================================================
+PHASE 12 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what was mixed/confusing
+- why the current UX was wrong
+- why the separate Subscriptions page should be removed
+- what table/modal issues existed
+- what IP/location capability existed or was missing
+
+2. PRODUCT DECISION SUMMARY
+- final Users table role
+- final User Profile window role
+- final Edit Profile window role
+- final Manage Subscription window role
+- final IP/location behavior
+- final frontend architecture
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how performance is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- Users table cleanup
+- removal of separate subscriptions page from visible flow
+- User Profile window redesign
+- Edit Profile window cleanup
+- dedicated Manage Subscription modal
+- login IP live location in profile view
+- premium GUI polish
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Users page is cleaner
+- Platforms column is removed
+- separate Subscriptions page is removed from visible flow
+- User Profile window is read-only and complete
+- Edit Profile window is profile-only
+- Manage Subscription window handles all subscription operations
+- login IP location appears correctly or fails gracefully
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Preserve the improved backend architecture
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI compact, premium, and admin-friendly
+- Think like a lead frontend engineer + product designer shipping to production

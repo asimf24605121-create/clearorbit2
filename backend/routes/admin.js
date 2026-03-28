@@ -1287,4 +1287,36 @@ router.post('/admin/notifications/mark-read', authenticate, requireAdmin(), asyn
   }
 });
 
+router.post('/geo_lookup', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { ip } = req.body;
+    if (!ip || typeof ip !== 'string') return res.json({ success: false, message: 'IP required' });
+    const cleanIp = ip.trim();
+    const cached = await prisma.ipGeoCache.findUnique({ where: { ipAddress: cleanIp } });
+    if (cached) {
+      const age = Date.now() - new Date(cached.lookedUpAt).getTime();
+      if (age < 72 * 60 * 60 * 1000) {
+        return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, cached: true } });
+      }
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    try {
+      const apiRes = await fetch(`http://ip-api.com/json/${encodeURIComponent(cleanIp)}?fields=status,message,country,countryCode,regionName,city,isp,lat,lon,timezone`, { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await apiRes.json();
+      if (data.status === 'success') {
+        const geo = { country: data.country || 'Unknown', country_code: data.countryCode || '--', region: data.regionName || 'Unknown', city: data.city || 'Unknown', isp: data.isp || 'Unknown', lat: data.lat || 0, lon: data.lon || 0, timezone: data.timezone || '' };
+        await prisma.ipGeoCache.upsert({ where: { ipAddress: cleanIp }, update: { country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() }, create: { ipAddress: cleanIp, country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() } });
+        return res.json({ success: true, geo: { ...geo, cached: false } });
+      }
+      return res.json({ success: false, message: data.message || 'Lookup failed' });
+    } catch (fetchErr) {
+      clearTimeout(timeout);
+      if (cached) return res.json({ success: true, geo: { country: cached.country, country_code: cached.countryCode, region: cached.region, city: cached.city, isp: cached.isp, lat: cached.lat, lon: cached.lon, timezone: cached.timezone, cached: true } });
+      return res.json({ success: false, message: 'Geo lookup unavailable' });
+    }
+  } catch (err) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
 export default router;
