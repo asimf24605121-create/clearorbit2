@@ -73,3 +73,10 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 ## External Dependencies
 - **Node.js Libraries**: `express`, `@prisma/client`, `jsonwebtoken`, `bcryptjs`, `cookie-parser`, `socket.io`, `multer`, `express-rate-limit`.
 - **Frontend Libraries**: Tailwind CSS v3 (CDN), intl-tel-input v18 (CDN).
+
+### Slot Card Event System (admin.html)
+- **Delegated events**: Single `click` listener on `accountSlotsContainer` routes `button[data-action]` clicks (check/edit/replace/delete) to handlers via `_getSlotData(slotId)` from `ALL_ACCOUNT_SLOTS`.
+- **Button selectors**: All toolbar/bulk buttons use stable IDs (`btnRecheckAll`, `btnBulkVerify`, `btnBulkRecheck`, `btnBulkDelete`). Platform delete buttons use `data-platform-del` attribute.
+- **Mutex system**: `_slotBusy` Set guards concurrent operations per key (`ck-{id}`, `del-{id}`, `bd`, `bv`, `br`, `rca`, `dap-{platformId}`, `be`, `ext-{id}`).
+- **Dead code**: Extend menu functions (`toggleExtendMenu`, `toggleBulkExtendMenu`, `bulkExtendSlots`) exist in JS but have no corresponding DOM elements — the feature was never fully built into the UI.
+- **Credentials**: All fetch calls use `credentials:'include'` (never `same-origin`).

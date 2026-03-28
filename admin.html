@@ -987,7 +987,7 @@
                                 <option value="DEAD">Dead</option>
                                 <option value="WEAK">Weak</option>
                             </select>
-                            <button onclick="recheckAllCookies()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:4px 10px;font-size:10px" title="Recheck all cookies">
+                            <button id="btnRecheckAll" onclick="recheckAllCookies()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:4px 10px;font-size:10px" title="Recheck all cookies">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Recheck
                             </button>
@@ -1001,9 +1001,9 @@
                     <div id="bulkActionsBar" class="hidden" style="padding:6px 16px;border-bottom:1px solid #E0E7FF;background:#EEF2FF;display:flex;align-items:center;justify-content:space-between;gap:8px">
                         <span class="text-[11px] font-semibold text-indigo-700"><span id="bulkSelectedCount">0</span> selected</span>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="bulkVerifySlots()" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0;flex:none;padding:3px 8px;font-size:9px">Verify</button>
-                            <button onclick="bulkRecheckSlots()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:3px 8px;font-size:9px">Recheck</button>
-                            <button onclick="bulkDeleteSlots()" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:3px 8px;font-size:9px">Delete</button>
+                            <button id="btnBulkVerify" onclick="bulkVerifySlots()" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0;flex:none;padding:3px 8px;font-size:9px">Verify</button>
+                            <button id="btnBulkRecheck" onclick="bulkRecheckSlots()" class="slot-action-btn" style="--c:#16A34A;--bg:#F0FDF4;--bc:#BBF7D0;flex:none;padding:3px 8px;font-size:9px">Recheck</button>
+                            <button id="btnBulkDelete" onclick="bulkDeleteSlots()" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:3px 8px;font-size:9px">Delete</button>
                             <button onclick="clearSlotSelection()" class="slot-action-btn" style="--c:#4B5563;--bg:#F3F4F6;--bc:#D1D5DB;flex:none;padding:3px 8px;font-size:9px">Clear</button>
                         </div>
                     </div>
@@ -5187,7 +5187,7 @@ function renderPlatformGroup(platformName, platformId, slots, totalActive, total
                 <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(99,102,241,.1);color:#4F46E5">${totalActive}/${totalCap}</span>
                 <span style="font-size:9px;color:#9CA3AF">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
             </div>
-            <button onclick="deleteAllPlatformSlots(${platformId},'${escHtml(platformName).replace(/'/g, "\\'")}')" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:2px 8px;font-size:9px" title="Delete all">Del All</button>
+            <button data-platform-del="${platformId}" onclick="deleteAllPlatformSlots(${platformId},'${escHtml(platformName).replace(/'/g, "\\'")}')" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:2px 8px;font-size:9px" title="Delete all">Del All</button>
         </div>
         <div style="display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">`;
     slots.forEach(a => { html += renderSlotCardHtml(a); });
@@ -6165,7 +6165,7 @@ async function bulkDeleteSlots() {
     if (_slotBusy.has('bd')) return;
     if (!confirm(`Delete ${ids.length} selected slot(s)? This will remove all associated sessions and cannot be undone.`)) return;
     _slotBusy.add('bd');
-    const btn = document.querySelector('button[onclick*="bulkDeleteSlots"]');
+    const btn = document.getElementById('btnBulkDelete');
     _setBusy(btn, true, `Deleting ${ids.length}...`);
     try {
         const res = await fetch('api/manage_platform_accounts', {
@@ -6183,7 +6183,7 @@ async function deleteAllPlatformSlots(platformId, platformName) {
     if (_slotBusy.has('dap-'+platformId)) return;
 
     _slotBusy.add('dap-'+platformId);
-    const btn = document.querySelector(`button[onclick*="deleteAllPlatformSlots(${platformId}"]`);
+    const btn = document.querySelector(`button[data-platform-del="${platformId}"]`);
 
     if (!confirm(`Delete ALL slots for "${platformName}"? This cannot be undone.`)) {
         _slotBusy.delete('dap-'+platformId);
@@ -6226,7 +6226,7 @@ async function bulkVerifySlots() {
     const ids = Array.from(SELECTED_SLOT_IDS);
     if (!ids.length) return;
     if (_slotBusy.has('bv')) return; _slotBusy.add('bv');
-    const btn = document.querySelector('button[onclick*="bulkVerifySlots"]');
+    const btn = document.getElementById('btnBulkVerify');
     _setBusy(btn, true, `Verifying ${ids.length}...`);
     showAlert(`Verifying ${ids.length} slot(s)...`);
     let ok = 0, fail = 0;
@@ -6249,7 +6249,7 @@ async function bulkRecheckSlots() {
     const ids = Array.from(SELECTED_SLOT_IDS);
     if (!ids.length) return;
     if (_slotBusy.has('br')) return; _slotBusy.add('br');
-    const btn = document.querySelector('button[onclick*="bulkRecheckSlots"]');
+    const btn = document.getElementById('btnBulkRecheck');
     _setBusy(btn, true, `Rechecking ${ids.length}...`);
     showAlert(`Rechecking ${ids.length} slot(s)...`);
     let ok = 0, fail = 0;
@@ -6266,34 +6266,6 @@ async function bulkRecheckSlots() {
     showAlert(`Recheck complete: ${ok} succeeded, ${fail} failed.`, fail > 0);
     SELECTED_SLOT_IDS.clear(); updateBulkBar(); _refreshAll();
     _slotBusy.delete('br'); _setBusy(btn, false, 'Recheck');
-}
-
-async function createAccountSlot() {
-    const platform_id = parseInt(document.getElementById('acctSlotPlatform').value);
-    const slot_name = document.getElementById('acctSlotName').value.trim();
-    const max_users = parseInt(document.getElementById('acctSlotMaxUsers').value) || 5;
-    const cookie_data = document.getElementById('acctSlotCookies').value.trim();
-    const expires_at = document.getElementById('acctSlotExpiry').value || null;
-    if (!platform_id) { showAlert('Please select a platform.', true); return; }
-    const btn = document.querySelector('button[onclick*="createAccountSlot"]');
-    if (btn && btn.disabled) return;
-    _setBusy(btn, true, 'Creating...');
-    try {
-        const res = await fetch('api/manage_platform_accounts', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ action: 'create', platform_id, slot_name, max_users, cookie_data, expires_at })
-        });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) {
-            document.getElementById('acctSlotName').value = '';
-            document.getElementById('acctSlotCookies').value = '';
-            document.getElementById('acctSlotMaxUsers').value = '5';
-            document.getElementById('acctSlotExpiry').value = '';
-            _refreshAll();
-        }
-    } catch (e) { showAlert('Network error.', true); }
-    _setBusy(btn, false, 'Create Slot');
 }
 
 function openEditAccountModal(accountId) {
@@ -6363,66 +6335,10 @@ async function saveEditAccount() {
     } catch (e) { showAlert('Network error.', true); }
     _setBusy(btn, false, 'Save Changes');
 }
-async function resetSlotStats(accountId, slotName) {
-    if (!confirm(`Reset health score & statistics for "${slotName}"?`)) return;
-    try {
-        const res = await fetch('api/manage_platform_accounts', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ action: 'reset_stats', account_id: accountId })
-        });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) _refreshAll();
-    } catch (e) { showAlert('Network error.', true); }
-}
-
-async function recheckCookie(accountId, slotName) {
-    if (_slotBusy.has('rc-'+accountId)) return; _slotBusy.add('rc-'+accountId);
-    const btn = _slotBtn(accountId, 'check');
-    _setBusy(btn, true, 'Checking...');
-    try {
-        const res = await fetch('api/validate_cookie', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ action: 'recheck', account_id: accountId })
-        });
-        const data = await res.json();
-        if (data.success) {
-            const statusEmoji = data.cookie_status === 'VALID' ? '✅' : data.cookie_status === 'RISKY' ? '⚠️' : '❌';
-            showAlert(`${statusEmoji} ${slotName}: ${data.cookie_status} — ${data.reason}`, data.cookie_status === 'DEAD' || data.cookie_status === 'EXPIRED');
-            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
-            _refreshAll();
-        } else {
-            showAlert(data.message, true);
-        }
-    } catch (e) { showAlert('Network error during recheck.', true); }
-    _slotBusy.delete('rc-'+accountId); _setBusy(btn, false, 'Recheck');
-}
-
-async function verifyLogin(accountId, slotName) {
-    if (_slotBusy.has('vl-'+accountId)) return; _slotBusy.add('vl-'+accountId);
-    const btn = _slotBtn(accountId, 'check');
-    _setBusy(btn, true, 'Verifying...');
-    try {
-        const res = await fetch('api/verify_login', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ action: 'verify_single', account_id: accountId })
-        });
-        const data = await res.json();
-        if (data.success) {
-            const icon = data.login_status === 'VALID' ? '✅' : data.login_status === 'PARTIAL' ? '⚠️' : '❌';
-            showAlert(`${icon} ${slotName}: Login ${data.login_status} — ${data.reason}`, data.login_status === 'INVALID');
-            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
-            _refreshAll();
-        } else {
-            showAlert(data.message, true);
-        }
-    } catch (e) { showAlert('Network error during login verification.', true); }
-    _slotBusy.delete('vl-'+accountId); _setBusy(btn, false, 'Verify');
-}
 
 async function recheckAllCookies() {
     if (_slotBusy.has('rca')) return; _slotBusy.add('rca');
-    const btn = document.querySelector('button[onclick*="recheckAllCookies"]');
+    const btn = document.getElementById('btnRecheckAll');
     _setBusy(btn, true, 'Rechecking All...');
     const filterPlatform = document.getElementById('acctSlotFilterPlatform')?.value || '0';
     const body = { action: 'recheck_all' };
@@ -6549,7 +6465,6 @@ async function deleteAccountSlot(accountId, slotName, activeUsers) {
             showAlert(data.message, !data.success);
             if (data.success) {
                 SELECTED_SLOT_IDS.delete(accountId);
-                _slotBusy.delete('del-'+accountId);
                 const card = _cardEl(accountId);
                 if (card) {
                     card.style.transition = 'opacity .25s,transform .25s';
@@ -6561,9 +6476,11 @@ async function deleteAccountSlot(accountId, slotName, activeUsers) {
             }
         }
     } catch (e) { showAlert('Network error.', true); }
-    _slotBusy.delete('del-'+accountId);
-    _setCardLoading(accountId, false);
-    _setBusy(btn, false, 'Del');
+    finally {
+        _slotBusy.delete('del-'+accountId);
+        _setCardLoading(accountId, false);
+        _setBusy(btn, false, 'Del');
+    }
 }
 
 function toggleExtendMenu(slotId) {
@@ -6577,7 +6494,7 @@ function toggleBulkExtendMenu() {
     if (menu) menu.classList.toggle('hidden');
 }
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('[id^="extend-menu-"]') && !e.target.closest('[onclick*="toggleExtendMenu"]') && !e.target.closest('[onclick*="toggleBulkExtendMenu"]') && !e.target.closest('#bulkExtendMenu')) {
+    if (!e.target.closest('[id^="extend-menu-"]') && !e.target.closest('[data-extend-toggle]') && !e.target.closest('#bulkExtendMenu')) {
         document.querySelectorAll('[id^="extend-menu-"]').forEach(m => m.classList.add('hidden'));
         const bm = document.getElementById('bulkExtendMenu');
         if (bm) bm.classList.add('hidden');
@@ -6603,7 +6520,7 @@ async function bulkExtendSlots(days) {
     if (SELECTED_SLOT_IDS.size === 0) { showAlert('No slots selected.', true); return; }
     if (_slotBusy.has('be')) return; _slotBusy.add('be');
     if (!confirm(`Extend ${SELECTED_SLOT_IDS.size} slot(s) by ${days} days?`)) { _slotBusy.delete('be'); return; }
-    const btn = document.querySelector('button[onclick*="toggleBulkExtendMenu"]');
+    const btn = document.getElementById('btnBulkExtend');
     _setBusy(btn, true, 'Extending...');
     try {
         const res = await fetch('api/manage_platform_accounts', {
