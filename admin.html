@@ -689,7 +689,8 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                                 <div>
                                     <label class="label">Username *</label>
-                                    <input id="newUsername" class="input" data-testid="input-new-username" placeholder="e.g. john_doe" />
+                                    <input id="newUsername" class="input" data-testid="input-new-username" placeholder="e.g. john_doe" oninput="checkUsernameAvailability()" />
+                                    <p id="cuUsernameStatus" class="text-xs mt-1 hidden"></p>
                                 </div>
                                 <div>
                                     <label class="label">Email *</label>
@@ -770,9 +771,11 @@
                             <select id="userStatusFilter" class="input text-xs" style="width:auto" onchange="sortAndFilterUsers()" data-testid="select-user-status">
                                 <option value="all">All Status</option>
                                 <option value="active">Active</option>
-                                <option value="expired">Expired</option>
                                 <option value="expiring">Expiring Soon</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="partial">Partial Access</option>
+                                <option value="expired">Expired</option>
+                                <option value="no_access">No Access</option>
+                                <option value="disabled">Disabled</option>
                             </select>
                             <select id="userSort" class="input text-xs" style="width:auto" onchange="sortAndFilterUsers()" data-testid="select-user-sort">
                                 <option value="newest">Newest First</option>
@@ -2480,7 +2483,7 @@ function showSection(name) {
     if (name === 'accounts') { loadAccountSlots(); loadIntelligenceDashboard(); uaPopulatePlatforms(); startAutoRecheck(); }
     else { stopAutoRecheck(); _alieStopLiveUpdates(); }
     if (name === 'platforms') loadPlatformIntelligence();
-    if (name === 'users') { if (ALL_USERS.length === 0) loadStats(); try { cuRenderPlatGrid(); } catch(e2) { console.error('cuRenderPlatGrid error', e2); } }
+    if (name === 'users') { fetchUsersFromServer(1); try { cuRenderPlatGrid(); } catch(e2) { console.error('cuRenderPlatGrid error', e2); } }
 }
 
 const _autoRefreshTimers = {};
@@ -2526,7 +2529,9 @@ async function loadStats(cachedData = null) {
         applyRBAC();
 
         ALL_USERS = data.recent_users || [];
-        sortAndFilterUsers();
+        if (document.getElementById('sec-users')?.classList.contains('active')) {
+            fetchUsersFromServer(1);
+        }
 
         ALL_PLATFORMS = data.platforms || [];
         ALL_COOKIES = data.cookies || [];
@@ -3287,28 +3292,45 @@ function smartTime(dateStr) {
 }
 
 function getUserStatusBadge(u) {
-    if (!u.is_active) return '<span class="badge badge-red">Inactive</span>';
-    if (u.expiry_date) {
-        const now = new Date();
-        const exp = new Date(u.expiry_date + 'T23:59:59');
-        if (now > exp) return '<span class="badge badge-red">Expired</span>';
-        const diffDays = Math.ceil((exp - now) / 86400000);
-        if (diffDays <= 3) return `<span class="badge" style="background:#FFF7ED;color:#C2410C">Expiring (${diffDays}d)</span>`;
+    const st = u.status || 'active';
+    if (st === 'disabled') return '<span class="badge badge-red">Disabled</span>';
+    if (st === 'expired') return '<span class="badge badge-red">Expired</span>';
+    if (st === 'no_access') return '<span class="badge" style="background:#F3F4F6;color:#6B7280">No Access</span>';
+    if (st === 'partial') return '<span class="badge" style="background:#FFF7ED;color:#C2410C">Partial Access</span>';
+    if (st === 'expiring') {
+        const ne = u.nearest_expiry;
+        if (ne) {
+            const daysLeft = Math.ceil((new Date(ne + 'T23:59:59') - new Date()) / 86400000);
+            return `<span class="badge" style="background:#FFF7ED;color:#C2410C">Expiring (${daysLeft}d)</span>`;
+        }
+        return '<span class="badge" style="background:#FFF7ED;color:#C2410C">Expiring</span>';
     }
     return '<span class="badge badge-green">Active</span>';
 }
 
+let _userDataCache = new Map();
+
 function renderUsersTable(users) {
+    _userDataCache.clear();
+    users.forEach(u => _userDataCache.set(u.id, u));
     document.getElementById('usersBody').innerHTML = users.map(u => {
         const displayName = u.name || u.username;
         const initial = (displayName[0] || '?').toUpperCase();
         const avatarHtml = u.profile_image
             ? `<img src="${escHtml(u.profile_image)}?t=${Date.now()}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0" style="display:none">${escHtml(initial)}</div>`
             : `<div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0">${escHtml(initial)}</div>`;
-        const platCount = (u.active_platforms || []).length;
+        const platCount = u.active_platform_count || (u.active_platforms || []).length;
+        const platNames = (u.active_platforms || []).join(', ');
         const platBadges = platCount > 0
-            ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full" style="background:#EEF2FF;color:#4338CA">${platCount} Platform${platCount > 1 ? 's' : ''}</span>`
+            ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full cursor-default" style="background:#EEF2FF;color:#4338CA" title="${escHtml(platNames)}">${platCount} Platform${platCount > 1 ? 's' : ''}</span>`
             : '<span class="text-xs text-gray-300">None</span>';
+        const expiryDisplay = u.nearest_expiry || u.expiry_date;
+        let expiryHtml = formatDate(expiryDisplay);
+        if (expiryDisplay) {
+            const daysLeft = Math.ceil((new Date(expiryDisplay + 'T23:59:59') - new Date()) / 86400000);
+            if (daysLeft < 0) expiryHtml += ` <span class="text-[10px] text-red-500">(${Math.abs(daysLeft)}d ago)</span>`;
+            else if (daysLeft <= 7) expiryHtml += ` <span class="text-[10px] text-amber-500">(${daysLeft}d left)</span>`;
+        }
         return `
         <tr>
             <td>
@@ -3323,17 +3345,17 @@ function renderUsersTable(users) {
             <td class="text-sm text-gray-500">${escHtml(u.email || '—')}</td>
             <td><div class="flex flex-wrap gap-1 max-w-[200px]">${platBadges}</div></td>
             <td class="text-xs text-gray-400 whitespace-nowrap">${formatDate(u.created_at)}</td>
-            <td class="text-xs text-gray-400 whitespace-nowrap">${formatDate(u.expiry_date)}</td>
+            <td class="text-xs text-gray-400 whitespace-nowrap">${expiryHtml}</td>
             <td>${getUserStatusBadge(u)}</td>
             <td>
                 <div class="flex gap-1 flex-wrap">
-                    <button onclick='openViewUserModal(${JSON.stringify(u).replace(/'/g,"&#39;")})' class="btn btn-secondary btn-sm" title="View" data-testid="btn-view-user-${u.id}">
+                    <button onclick="openViewUserModalById(${u.id})" class="btn btn-secondary btn-sm" title="View">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
-                    <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g,"&#39;")})' class="btn btn-secondary btn-sm" title="Edit">
+                    <button onclick="openEditModalById(${u.id})" class="btn btn-secondary btn-sm" title="Edit">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
-                    <button onclick="toggleUser(${u.id},'${u.is_active ? 'deactivate' : 'activate'}')" class="btn ${u.is_active ? 'btn-danger' : 'btn-success'} btn-sm">${u.is_active ? 'Disable' : 'Enable'}</button>
+                    <button onclick="toggleUser(${u.id},'${u.is_active ? 'disable' : 'enable'}')" class="btn ${u.is_active ? 'btn-danger' : 'btn-success'} btn-sm">${u.is_active ? 'Disable' : 'Enable'}</button>
                     ${u.device_id ? `<button onclick="toggleUser(${u.id},'reset_device')" class="btn btn-secondary btn-sm">Reset</button>` : ''}
                     ${ADMIN_LEVEL === 'super_admin' ? `<button onclick="deleteUser(${u.id},'${escHtml(u.username)}')" class="btn btn-danger btn-sm">Delete</button>` : ''}
                 </div>
@@ -3342,113 +3364,107 @@ function renderUsersTable(users) {
     }).join('') || '<tr><td colspan="7" class="text-center text-gray-400 py-6">No users found</td></tr>';
 }
 
+function openViewUserModalById(id) {
+    const u = _userDataCache.get(id);
+    if (u) openViewUserModal(u);
+}
+
+function openEditModalById(id) {
+    const u = _userDataCache.get(id);
+    if (u) openEditModal(u);
+}
+
 let _userPage = 1;
 const _userPerPage = 25;
-let _userFiltered = [];
+let _userTotalCount = 0;
+let _userTotalPages = 1;
+let _userSearchTimer = null;
+let _usersLoading = false;
 
 function getUserStatus(u) {
-    if (!u.is_active) return 'inactive';
-    if (u.expiry_date) {
-        const now = new Date();
-        const exp = new Date(u.expiry_date + 'T23:59:59');
-        if (now > exp) return 'expired';
-        const diffDays = Math.ceil((exp - now) / 86400000);
-        if (diffDays <= 7) return 'expiring';
-    }
-    return 'active';
+    return u.status || 'active';
 }
 
-function sortAndFilterUsers() {
-    const q = document.getElementById('userSearch').value.toLowerCase();
-    const sortBy = document.getElementById('userSort').value;
+async function fetchUsersFromServer(page) {
+    if (_usersLoading) return;
+    _usersLoading = true;
+    const q = (document.getElementById('userSearch')?.value || '').trim();
+    const sortBy = document.getElementById('userSort')?.value || 'newest';
     const statusFilter = document.getElementById('userStatusFilter')?.value || 'all';
-    let filtered = ALL_USERS.filter(u => {
-        const matchText = (u.username || '').toLowerCase().includes(q) ||
-            (u.name || '').toLowerCase().includes(q) ||
-            (u.email || '').toLowerCase().includes(q) ||
-            (u.phone || '').toLowerCase().includes(q);
-        if (!matchText) return false;
-        if (statusFilter === 'all') return true;
-        return getUserStatus(u) === statusFilter;
-    });
-    filtered.sort((a, b) => {
-        if (sortBy === 'newest') return (b.created_at || '').localeCompare(a.created_at || '');
-        if (sortBy === 'oldest') return (a.created_at || '').localeCompare(b.created_at || '');
-        if (sortBy === 'expiry') return (a.expiry_date || '9999').localeCompare(b.expiry_date || '9999');
-        if (sortBy === 'name') return (a.name || a.username || '').localeCompare(b.name || b.username || '');
-        return 0;
-    });
-    _userFiltered = filtered;
-    _userPage = 1;
-    renderUsersPage();
+    const pg = page || _userPage;
+    const params = new URLSearchParams({ page: pg, per_page: _userPerPage, sort: sortBy });
+    if (q) params.set('search', q);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    try {
+        const res = await fetch('api/get_users?' + params.toString(), { credentials: 'include' });
+        if (res.status === 401) { window.location.href = 'index.html'; return; }
+        const data = await res.json();
+        if (!data.success) return;
+        const users = data.users || [];
+        const pag = data.pagination || {};
+        _userTotalCount = pag.total_count || users.length;
+        _userTotalPages = pag.total_pages || 1;
+        _userPage = pag.page || pg;
+        renderUsersTable(users);
+        renderUsersPagination();
+    } catch (e) { console.error('fetchUsersFromServer error', e); }
+    finally { _usersLoading = false; }
 }
 
-function renderUsersPage() {
-    const total = _userFiltered.length;
-    const totalPages = Math.max(1, Math.ceil(total / _userPerPage));
-    if (_userPage > totalPages) _userPage = totalPages;
-    const start = (_userPage - 1) * _userPerPage;
-    const pageUsers = _userFiltered.slice(start, start + _userPerPage);
-    renderUsersTable(pageUsers);
-
+function renderUsersPagination() {
     const badge = document.getElementById('userCountBadge');
-    if (badge) badge.textContent = total;
-
+    if (badge) badge.textContent = _userTotalCount;
     const info = document.getElementById('userFilterInfo');
+    const q = (document.getElementById('userSearch')?.value || '').trim();
+    const statusFilter = document.getElementById('userStatusFilter')?.value || 'all';
     if (info) {
-        if (total === ALL_USERS.length) info.textContent = '';
-        else info.textContent = `Showing ${total} of ${ALL_USERS.length} users`;
+        if (!q && statusFilter === 'all') info.textContent = '';
+        else info.textContent = `${_userTotalCount} result${_userTotalCount !== 1 ? 's' : ''}`;
     }
-
     const pag = document.getElementById('userPagination');
     if (pag) {
-        pag.style.display = total > _userPerPage ? 'flex' : 'none';
+        pag.style.display = _userTotalPages > 1 ? 'flex' : 'none';
+        const start = (_userPage - 1) * _userPerPage;
         const pageInfo = document.getElementById('userPageInfo');
-        if (pageInfo) pageInfo.textContent = `${start + 1}–${Math.min(start + _userPerPage, total)} of ${total}`;
+        if (pageInfo) pageInfo.textContent = `${start + 1}–${Math.min(start + _userPerPage, _userTotalCount)} of ${_userTotalCount}`;
         const pageNum = document.getElementById('userPageNum');
-        if (pageNum) pageNum.textContent = `Page ${_userPage} / ${totalPages}`;
+        if (pageNum) pageNum.textContent = `Page ${_userPage} / ${_userTotalPages}`;
         const prevBtn = document.getElementById('userPrevBtn');
         const nextBtn = document.getElementById('userNextBtn');
         if (prevBtn) prevBtn.disabled = _userPage <= 1;
-        if (nextBtn) nextBtn.disabled = _userPage >= totalPages;
+        if (nextBtn) nextBtn.disabled = _userPage >= _userTotalPages;
     }
 }
 
+function sortAndFilterUsers() {
+    clearTimeout(_userSearchTimer);
+    _userSearchTimer = setTimeout(() => { _userPage = 1; fetchUsersFromServer(1); }, 300);
+}
+
+function refreshUsersTable() {
+    fetchUsersFromServer(_userPage);
+}
+
 function userChangePage(delta) {
-    _userPage += delta;
-    renderUsersPage();
+    const newPage = _userPage + delta;
+    if (newPage < 1 || newPage > _userTotalPages) return;
+    _userPage = newPage;
+    fetchUsersFromServer(newPage);
     document.getElementById('usersBody')?.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function exportUsersCSV() {
-    const hasFilters = document.getElementById('userSearch')?.value || (document.getElementById('userStatusFilter')?.value || 'all') !== 'all';
-    const users = hasFilters ? _userFiltered : ALL_USERS;
-    if (!users.length) { showAlert('No users to export.', true); return; }
-    const headers = ['Username','Name','Email','Phone','Country','City','Gender','Status','Platforms','Join Date','Expiry Date','Last Login IP','Device Locked'];
-    const rows = users.map(u => [
-        u.username || '',
-        u.name || '',
-        u.email || '',
-        u.phone || '',
-        u.country || '',
-        u.city || '',
-        u.gender || '',
-        getUserStatus(u),
-        (u.active_platforms || []).join('; '),
-        u.created_at || '',
-        u.expiry_date || '',
-        u.last_login_ip || '',
-        u.device_id ? 'Yes' : 'No'
-    ]);
-    const csvContent = [headers, ...rows].map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + csvContent], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
+    const q = (document.getElementById('userSearch')?.value || '').trim();
+    const statusFilter = document.getElementById('userStatusFilter')?.value || 'all';
+    const params = new URLSearchParams();
+    if (q) params.set('search', q);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    const url = 'api/export_users_csv' + (params.toString() ? '?' + params.toString() : '');
     const a = document.createElement('a');
     a.href = url;
     a.download = 'clearorbit_users_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${users.length} users to CSV`, 'success');
+    showToast('Exporting users to CSV...', 'success');
 }
 
 function filterUsers() { sortAndFilterUsers(); }
@@ -3601,7 +3617,7 @@ async function assignPlatformsToUser() {
         if (data.success) {
             showAlert(data.message || 'Platforms assigned successfully!');
             closeEditModal();
-            loadStats();
+            refreshUsersTable();
         } else { showAlert(data.message || 'Failed to assign.', true); }
     } catch (e) { showAlert('Network error.', true); }
     btn.disabled = false;
@@ -3636,8 +3652,12 @@ function openViewUserModal(u) {
     document.getElementById('viewUserUsername').textContent = '@' + u.username;
 
     const badge = document.getElementById('viewUserStatusBadge');
-    if (!u.is_active) { badge.textContent = 'Inactive'; badge.className = 'badge badge-red mt-1'; }
-    else if (u.expiry_date && new Date(u.expiry_date + 'T23:59:59') < new Date()) { badge.textContent = 'Expired'; badge.className = 'badge badge-red mt-1'; }
+    const st = u.status || 'active';
+    if (st === 'disabled') { badge.textContent = 'Disabled'; badge.className = 'badge badge-red mt-1'; }
+    else if (st === 'expired') { badge.textContent = 'Expired'; badge.className = 'badge badge-red mt-1'; }
+    else if (st === 'no_access') { badge.textContent = 'No Access'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#F3F4F6;color:#6B7280'; }
+    else if (st === 'partial') { badge.textContent = 'Partial Access'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#FFF7ED;color:#C2410C'; }
+    else if (st === 'expiring') { badge.textContent = 'Expiring Soon'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#FFF7ED;color:#C2410C'; }
     else { badge.textContent = 'Active'; badge.className = 'badge badge-green mt-1'; }
 
     document.getElementById('vuUsername').textContent = u.username || '—';
@@ -3693,7 +3713,7 @@ async function saveUserEdit() {
         const res = await fetch('api/edit_user', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify(body) });
         const data = await res.json();
         showAlert(data.message, !data.success);
-        if (data.success) { closeEditModal(); loadStats(); }
+        if (data.success) { closeEditModal(); refreshUsersTable(); }
     } catch (e) { showAlert('Network error.', true); }
 }
 
@@ -4894,6 +4914,35 @@ function cuGetSelectedPlatIds() {
     return Array.from(document.querySelectorAll('#cuPlatGrid .cu-plat-cb:checked')).map(cb => parseInt(cb.value));
 }
 
+let _cuUsernameTimer = null;
+let _cuUsernameAvailable = null;
+function checkUsernameAvailability() {
+    clearTimeout(_cuUsernameTimer);
+    const el = document.getElementById('cuUsernameStatus');
+    const input = document.getElementById('newUsername');
+    const val = input.value.trim();
+    if (!val || val.length < 2) { el.classList.add('hidden'); _cuUsernameAvailable = null; return; }
+    el.classList.remove('hidden');
+    el.textContent = 'Checking...';
+    el.className = 'text-xs mt-1 text-gray-400';
+    _cuUsernameTimer = setTimeout(async () => {
+        try {
+            const res = await fetch('api/check_username?username=' + encodeURIComponent(val), { headers: csrfHeaders(), credentials: 'include' });
+            const data = await res.json();
+            if (input.value.trim() !== val) return;
+            if (data.available) {
+                el.textContent = 'Username available';
+                el.className = 'text-xs mt-1 text-green-600';
+                _cuUsernameAvailable = true;
+            } else {
+                el.textContent = 'Username already taken';
+                el.className = 'text-xs mt-1 text-red-600';
+                _cuUsernameAvailable = false;
+            }
+        } catch (e) { el.classList.add('hidden'); _cuUsernameAvailable = null; }
+    }, 400);
+}
+
 async function createUserWithSub() {
     const username = document.getElementById('newUsername').value.trim();
     const email = document.getElementById('newEmail').value.trim();
@@ -4902,6 +4951,7 @@ async function createUserWithSub() {
     const platIds = cuGetSelectedPlatIds();
 
     if (!username || !email || !password) { showAlert('Username, email, and password are required.', true); return; }
+    if (_cuUsernameAvailable === false) { showAlert('Username is already taken. Please choose a different one.', true); return; }
 
     const btn = document.getElementById('cuCreateBtn');
     const origHtml = btn.innerHTML;
@@ -4975,7 +5025,7 @@ async function createUserWithSub() {
         document.getElementById('cuInputArea').classList.add('hidden');
         document.getElementById('cuResultArea').classList.remove('hidden');
 
-        loadStats();
+        refreshUsersTable();
         showAlert(data.message, false);
 
     } catch(e) {
@@ -5004,18 +5054,98 @@ async function toggleUser(userId, action) {
         const res = await fetch('api/toggle_user', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId, action }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
-        if (data.success) loadStats();
+        if (data.success) refreshUsersTable();
     } catch (e) { showAlert('Network error.', true); }
 }
 
 async function deleteUser(userId, username) {
-    if (!confirm(`Permanently delete user "${username}"? This cannot be undone.`)) return;
     try {
-        const res = await fetch('api/delete_user', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId }) });
+        const previewRes = await fetch('api/delete_user_preview', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId }) });
+        const previewData = await previewRes.json();
+        if (!previewData.success) { showAlert(previewData.message, true); return; }
+        const p = previewData.preview;
+        showDeleteConfirmModal(p);
+    } catch (e) { showAlert('Network error.', true); }
+}
+
+function showDeleteConfirmModal(preview) {
+    let existing = document.getElementById('deleteConfirmModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'deleteConfirmModal';
+    modal.className = 'fixed inset-0 z-[60] flex items-center justify-center';
+    modal.style.cssText = 'background:rgba(15,23,42,.6);backdrop-filter:blur(4px)';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-red-100 bg-red-50">
+                <h3 class="font-bold text-red-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                    Permanently Delete User
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700 mb-3">You are about to permanently delete <strong>${escHtml(preview.username)}</strong>. This will remove:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="text-lg font-bold text-red-600">${preview.subscription_count}</div>
+                            <div class="text-gray-500">Subscription(s)</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="text-lg font-bold text-red-600">${preview.active_session_count}</div>
+                            <div class="text-gray-500">Active Session(s)</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="text-lg font-bold text-red-600">${preview.total_payment_count}</div>
+                            <div class="text-gray-500">Payment Record(s)</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="text-lg font-bold ${preview.pending_payment_count > 0 ? 'text-amber-600' : 'text-gray-400'}">${preview.pending_payment_count}</div>
+                            <div class="text-gray-500">Pending Payment(s)</div>
+                        </div>
+                    </div>
+                    ${preview.has_pending_payments ? '<p class="text-xs text-amber-600 mt-2 font-medium">This user has pending payments that must be resolved before deletion.</p>' : ''}
+                </div>
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-gray-700 block mb-1">Type <strong>${escHtml(preview.username)}</strong> to confirm:</label>
+                    <input id="deleteConfirmInput" class="input w-full" placeholder="Enter username exactly" autocomplete="off"/>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button onclick="document.getElementById('deleteConfirmModal').remove()" class="btn btn-secondary">Cancel</button>
+                    <button id="deleteConfirmBtn" class="btn btn-danger" ${preview.has_pending_payments ? 'disabled title="Resolve pending payments first"' : ''}>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+    document.body.appendChild(modal);
+    document.getElementById('deleteConfirmBtn').addEventListener('click', () => executeDeleteUser(preview.user_id, preview.username));
+    document.getElementById('deleteConfirmInput')?.focus();
+}
+
+async function executeDeleteUser(userId, username) {
+    const input = document.getElementById('deleteConfirmInput');
+    if (!input || input.value !== username) {
+        showAlert('Username does not match. Type it exactly to confirm.', true);
+        input?.focus();
+        return;
+    }
+    const btn = document.getElementById('deleteConfirmBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+    try {
+        const res = await fetch('api/delete_user', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId, confirm_username: username }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
-        if (data.success) loadStats();
-    } catch (e) { showAlert('Network error.', true); }
+        if (data.success) {
+            document.getElementById('deleteConfirmModal')?.remove();
+            refreshUsersTable();
+        } else if (btn) { btn.disabled = false; btn.textContent = 'Delete Permanently'; }
+    } catch (e) {
+        showAlert('Network error.', true);
+        if (btn) { btn.disabled = false; btn.textContent = 'Delete Permanently'; }
+    }
 }
 
 async function vuLoadUserSubs(userId) {
@@ -5090,20 +5220,20 @@ async function vuExtendSub(subId, days) {
         showAlert(data.message, !data.success);
         if (data.success) {
             vuRefreshSubs();
-            loadStats();
+            refreshUsersTable();
         }
     } catch (e) { showAlert('Network error.', true); }
 }
 
 async function vuDeleteSub(subId, platformName) {
-    if (!confirm(`Remove access to "${platformName}"? This cannot be undone.`)) return;
+    if (!confirm(`Revoke access to "${platformName}"?`)) return;
     try {
-        const res = await fetch('api/delete_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId }) });
+        const res = await fetch('api/revoke_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) {
             vuRefreshSubs();
-            loadStats();
+            refreshUsersTable();
         }
     } catch (e) { showAlert('Network error.', true); }
 }

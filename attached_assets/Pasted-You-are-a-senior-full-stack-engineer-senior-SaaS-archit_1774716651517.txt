@@ -1,0 +1,434 @@
+You are a senior full-stack engineer, senior SaaS architect, senior admin-dashboard product designer, senior security engineer, senior DBA, and senior performance engineer.
+
+I have completed a deep audit of my Users module. Now I want you to rebuild and harden it into a production-grade Users + Access Management system.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must be optimized for smooth performance and scalability for 1000+ concurrent users.
+Every improvement must consider:
+- server-side pagination and search
+- efficient DB queries and indexes
+- no oversized init payloads
+- lightweight incremental refreshes
+- transactional mutations
+- safe destructive actions
+- immediate session revocation where required
+- no blocking admin actions
+- minimal frontend rerenders
+- scalable export behavior
+
+==================================================
+AUDIT FINDINGS YOU MUST USE
+==================================================
+
+These are the major issues found and must be fixed:
+
+1. 100-USER CAP
+The Users table currently relies on ALL_USERS from admin_init with take: 100.
+Admins become blind beyond 100 users.
+Search, filters, export, and actions are all incomplete because they only operate on the first 100 users.
+
+2. TWO EXPIRY SYSTEMS CONFLICT
+User.expiryDate and UserSubscription.endDate exist separately and drift out of sync.
+The table/badge/status uses User.expiryDate, while real access lives in UserSubscription.
+This makes expiry/status inaccurate after subscription extensions.
+
+3. ACTIVE PLATFORM COUNT IS WRONG
+The code counts subscriptions with isActive=1 but does not check whether endDate has already passed.
+Expired subscriptions may still show as active platforms.
+
+4. CREATE USER FLOW CAN SILENTLY UPDATE AN EXISTING USER
+If username exists, create_user_with_sub silently switches into update mode and only modifies subscriptions.
+This is dangerous and confusing.
+
+5. EDIT MODAL CANNOT REVOKE INDIVIDUAL PLATFORM ACCESS
+Admins can add platforms but cannot remove/deactivate a specific user subscription cleanly.
+
+6. DISABLE DOES NOT REVOKE SESSIONS
+Disabling a user flips isActive but does not terminate active sessions or revoke access immediately.
+
+7. DELETE IS TOO DANGEROUS
+Delete uses weak confirm() and cascades everything.
+No impact summary, no type-to-confirm, no pre-check for pending payments.
+
+8. STATUS SEMANTICS ARE INCONSISTENT
+The filter and badge thresholds differ.
+A user may be classified as expiring in one place and active in another.
+There is no "Partial Access" concept.
+
+9. HEAVY FULL REFRESH
+After every mutation, loadStats() refetches a heavy admin payload.
+This is inefficient at scale.
+
+10. CSV EXPORT IS WRONG / INCOMPLETE
+Client-side export only covers the loaded array and silently caps at 100 users.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Transform the Users module into a complete, professional, production-grade User + Access Management system.
+
+It should answer:
+- Who are all the users, beyond 100?
+- What exact platform access does each user currently have?
+- What is the true expiry situation per user?
+- Which users are active, expiring, expired, partially active, disabled?
+- Can admins revoke one platform without deleting the user?
+- Does disable immediately revoke access?
+- Are destructive actions safe?
+- Can this scale smoothly to 1000+ concurrent users?
+
+==================================================
+PHASE 1 — FIX PRODUCT / DATA LOGIC FIRST
+==================================================
+
+Before polishing the UI, fix the underlying semantics and data model behavior.
+
+A. MOVE TO SUBSCRIPTION-LEVEL TRUTH
+Make UserSubscription the source of truth for access and expiry.
+Decide whether:
+- User.expiryDate should be deprecated
+OR
+- User.expiryDate should be derived/synced from active subscriptions
+
+I prefer one of these:
+Option 1:
+- compute status and expiry entirely from UserSubscription
+Option 2:
+- keep User.expiryDate as a cached derived value from active subscriptions only
+
+But do NOT leave both drifting independently.
+
+B. FIX ACTIVE ACCESS CALCULATION
+A subscription counts as active only if:
+- isActive = true
+- endDate >= today
+- linked platform is active/usable if business logic requires it
+
+C. REDESIGN USER STATUS MODEL
+Implement a clear status model such as:
+- Active = at least one valid active subscription, not near expiry
+- Expiring Soon = active subscription(s), nearest expiry within threshold
+- Expired = no valid active subscriptions, but user exists
+- Partial Access = some active subscriptions, some expired/revoked/dead-platform access
+- Disabled = admin disabled account
+- Pending / No Access if useful for users with no subscriptions
+
+Make sure filter logic and badge logic use the SAME rules.
+
+D. MAKE CREATE FLOW EXPLICIT
+Do not silently reuse an existing username without warning.
+If username/email exists:
+- either block with a clear validation error
+- or explicitly offer a separate “assign access to existing user” workflow
+But do NOT hide this behavior.
+
+==================================================
+PHASE 2 — BACKEND REBUILD / HARDENING
+==================================================
+
+Refactor the backend routes and services for Users.
+
+1. SERVER-SIDE USERS TABLE API
+Use the existing get_users route or redesign it properly so the frontend uses it as the source of truth.
+
+Support:
+- page
+- per_page
+- search
+- status filter
+- sort
+- maybe role/access filter if useful
+
+Return:
+- only the rows needed for the current page
+- total count
+- pagination info
+- true per-user status
+- active platform count
+- nearest expiry
+- partial access flags
+- active session count if useful
+
+2. CREATE USER + ASSIGN ACCESS
+Rebuild create_user_with_sub as a fully transactional flow.
+
+Requirements:
+- validate username/email uniqueness clearly
+- prefetch requested platforms in one query
+- batch create/update subscriptions
+- transaction-safe behavior
+- no partial user creation if subscription assignment fails
+- explicit response for:
+  - created user
+  - assigned platforms
+  - extended platforms
+  - skipped/invalid platforms
+
+3. EDIT USER
+Improve edit_user to support:
+- profile metadata edits
+- optional password reset
+- maybe access-related edits separately
+- richer audit logs
+
+4. REVOKE PLATFORM ACCESS
+Add a backend flow to deactivate/revoke one or more UserSubscription rows safely.
+
+Requirements:
+- immediate effect
+- audit logging
+- optional session revocation for the affected platform
+- UI support for revoke from edit/view modal
+
+5. DISABLE / ENABLE USER
+Disable must:
+- set user disabled state
+- immediately revoke or expire active sessions
+- prevent future access
+- be concurrency-safe
+- audit log the action and reason if useful
+
+The backend must read the intended action explicitly.
+Do NOT toggle blindly based only on current state.
+
+6. SAFE DELETE
+Add:
+- delete impact preview
+- pending payments pre-check
+- active session count
+- subscription count
+- type-to-confirm safety
+- optional block if pending payments exist
+- transactional delete
+- richer audit logs
+
+7. EXPORT
+Move CSV export to a server-side route.
+Requirements:
+- export the full filtered dataset, not only visible client rows
+- streaming or efficient generation if needed
+- include correct platform/access fields
+- no fake blank columns
+
+8. BACKGROUND EXPIRY ENFORCEMENT
+Add a scheduled job or safe recurring maintenance path that:
+- marks expired subscriptions inactive
+- keeps counts/statuses accurate
+- updates any derived user expiry fields if retained
+
+==================================================
+PHASE 3 — FRONTEND / GUI PROFESSIONAL REDESIGN
+==================================================
+
+Now rebuild the Users page to be professional, scalable, and admin-friendly.
+
+A. CREATE USER PANEL
+Improve:
+- clearer one-step flow
+- stronger validation
+- better result/success state
+- existing-user warning
+- platform picker clarity
+- show access summary before submission if useful
+- do not waste space
+- make it feel premium and fast
+
+B. PLATFORM PICKER
+Improve:
+- availability-aware rendering
+- dead/inactive platforms should not be assignable or should clearly warn
+- better search
+- better selected count
+- better “Select All” semantics
+- maybe grouped by health/status or sorted by usefulness
+
+C. USERS TABLE
+Move to true server-side pagination/search/filter/sort.
+
+Improve columns such as:
+- User
+- Email
+- Platforms / Access breakdown
+- Join Date
+- Nearest Expiry
+- Status
+- maybe Sessions / Last Login / Last Activity
+- Actions
+
+Add:
+- consistent badges
+- correct expiry messaging
+- tooltips for platform breakdown
+- no stale inline JSON blobs in onclick handlers
+- lightweight row actions
+
+D. VIEW USER MODAL / PAGE
+Make it richer:
+- full profile
+- platform subscriptions with per-platform expiry
+- active/revoked/expired state
+- last login / sessions if useful
+- audit/activity summary
+- revoke one platform directly from the detail view
+- extend one platform directly if appropriate
+
+E. EDIT USER MODAL
+Redesign to make it clear that:
+- profile editing
+- access assignment
+- access revoke
+are distinct but coordinated workflows
+
+Avoid silent loss of selected platforms if only one save button is pressed.
+
+==================================================
+PHASE 4 — SAFETY / OPERATIONAL RULES
+==================================================
+
+Implement safe admin behavior.
+
+1. PERMISSIONS / RBAC
+- destructive actions restricted appropriately
+- delete likely super_admin only
+- revoke/disable according to admin role
+- export permissions if needed
+
+2. TYPE-TO-CONFIRM FOR DELETE
+Require typing the username or email to confirm delete.
+
+3. IMPACT PREVIEWS
+Before delete/disable/revoke:
+- show counts of affected subscriptions/sessions/payments where relevant
+
+4. AUDIT LOGS
+Log:
+- create user
+- assign access
+- extend access
+- revoke platform
+- disable/enable user
+- delete user
+- edit profile
+- password reset
+- export action if useful
+
+Audit logs should include old/new values where meaningful.
+
+==================================================
+PHASE 5 — PERFORMANCE & 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+The module must stay fast for 1000+ concurrent users.
+
+Implement:
+- server-side pagination/search/filter/sort for the table
+- lightweight row refresh after mutations
+- avoid full admin_init or loadStats() reload after every action
+- batch DB operations where possible
+- indexed lookups for user search/status/expiry
+- efficient export strategy
+- no giant platform payload on every user action
+- no inline giant JSON blobs in DOM
+- request deduplication where useful
+
+Explicitly avoid:
+- loading all users into ALL_USERS
+- exporting from a partial client-side array
+- repeated full-page heavy stats refresh after small mutations
+
+==================================================
+PHASE 6 — STATUS / EXPIRY PRODUCT DEFINITION
+==================================================
+
+I want a clean product definition in the implementation.
+
+Clarify:
+- what the table Expiry column means
+  - recommend: nearest active subscription expiry
+- what the Platforms badge/count means
+  - recommend: number of currently valid active platform subscriptions
+- what status means
+  - recommend: derived from all current subscriptions + user disabled flag
+- how Partial Access is determined
+- how disabled vs expired vs no-access differ
+
+Add:
+- tooltip/help text where needed
+- relative expiry if useful ("in 5 days", "expired 3 days ago")
+- exact date on hover or in subtext
+
+==================================================
+PHASE 7 — WHAT TO BUILD NOW
+==================================================
+
+I want you to implement the highest-value improvements first.
+
+Priority order:
+1. Remove the 100-user cap by wiring frontend to server-side users API
+2. Fix expiry/data model semantics so statuses are accurate
+3. Make disable revoke sessions
+4. Add revoke platform access flow
+5. Fix create-user existing-user ambiguity
+6. Add safe delete with impact summary + type confirm
+7. Replace heavy full refresh with lightweight row/data refresh
+8. Fix export
+9. Improve modals / table UX
+10. Add background expiry enforcement
+
+==================================================
+PHASE 8 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, I want this exact output:
+
+1. CURRENT PROBLEM SUMMARY
+- what was wrong
+- what was misleading
+- what was dangerous
+- what would be slow at 1000+ users
+
+2. PRODUCT DECISION SUMMARY
+- final status model
+- final expiry model
+- final create/edit/revoke/delete behavior
+- final pagination/export strategy
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files modified
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of execution
+- how regressions are avoided
+- how performance is preserved
+
+5. CODE IMPLEMENTATION
+Actually implement the improvements in the project.
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- no 100-user cap
+- status/expiry are accurate
+- disable revokes sessions
+- revoke platform works
+- delete is safe
+- export is correct
+- UI is clearer and more professional
+- performance remains good for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect and modify the real code
+- Fix the product logic before polishing the UI
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve existing functionality while upgrading it
+- Be brutally honest about weak logic
+- Think like a lead engineer shipping this to production

@@ -277,6 +277,34 @@ async function autoRecheckJob(data, updateProgress) {
     invalidateAccountCaches();
     emitAdminEvent('accounts_rechecked', { updated, total: accounts.length });
   }
+
+  try {
+    const expiredSubs = await prisma.userSubscription.updateMany({
+      where: { isActive: 1, endDate: { lt: today } },
+      data: { isActive: 0 },
+    });
+    if (expiredSubs.count > 0) {
+      console.log(`Auto-recheck: expired ${expiredSubs.count} subscription(s)`);
+      const affectedUsers = await prisma.userSubscription.findMany({
+        where: { isActive: 0, endDate: { lt: today } },
+        select: { userId: true },
+        distinct: ['userId'],
+      });
+      for (const { userId } of affectedUsers) {
+        const activeSubs = await prisma.userSubscription.findMany({
+          where: { userId, isActive: 1, endDate: { gte: today } },
+          select: { endDate: true },
+        });
+        const newExpiry = activeSubs.length > 0
+          ? activeSubs.reduce((max, s) => s.endDate > max ? s.endDate : max, activeSubs[0].endDate)
+          : null;
+        await prisma.user.update({ where: { id: userId }, data: { expiryDate: newExpiry } });
+      }
+    }
+  } catch (e) {
+    console.error('Subscription expiry enforcement error:', e.message);
+  }
+
   return { updated, total: accounts.length };
 }
 

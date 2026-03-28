@@ -28,7 +28,7 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Design**: Clean white/light theme with mobile responsiveness.
 
 ### Key Features
-- **User & Subscription Management**: Comprehensive user, subscription, and payment management with RBAC.
+- **User & Subscription Management**: Production-grade user + access management with RBAC. Server-side `get_users` API with computed 6-state status model (`active`, `expiring`, `partial`, `expired`, `no_access`, `disabled`) derived from subscriptions. `computeUserStatus()` and `mapUserRow()` are the single source of truth. Server-side search, filter, sort, pagination with correct counts for computed-status filters. `create_user_with_sub` is transactional with duplicate username blocking. `toggle_user` accepts explicit action and revokes sessions on disable. `delete_user` has impact preview (`delete_user_preview`) + type-to-confirm + pending payment guard, wrapped in transaction. `revoke_subscription` endpoint replaces hard delete. `check_username` availability endpoint for real-time UI feedback. `export_users_csv` server-side endpoint. Background subscription expiry enforcement in `autoRecheckJob`. Frontend uses `_userDataCache` Map, `fetchUsersFromServer()` with debounced search, `refreshUsersTable()` for lightweight post-mutation refresh. Status badges use `getUserStatusBadge()`. View modal shows 6-state status. Delete modal has type-to-confirm with impact summary. Create form has real-time username availability check.
 - **Platform Management**: CRUD operations for platforms and account slots.
 - **Cookie Vault**: Secure storage for cookies with validation and auto-detection.
 - **Support System**: Ticketing, contact management, announcements, and notifications.

@@ -369,10 +369,47 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
   }
 });
 
+function computeUserStatus(user, today) {
+  if (!user.isActive) return 'disabled';
+  const subs = (user.subscriptions || []);
+  const activeSubs = subs.filter(s => s.isActive === 1 && s.endDate >= today);
+  const expiredSubs = subs.filter(s => s.isActive === 1 && s.endDate < today);
+  if (activeSubs.length === 0 && expiredSubs.length === 0 && subs.length === 0) return 'no_access';
+  if (activeSubs.length === 0) return 'expired';
+  const nearestExpiry = activeSubs.reduce((min, s) => s.endDate < min ? s.endDate : min, activeSubs[0].endDate);
+  const daysLeft = Math.ceil((new Date(nearestExpiry + 'T23:59:59') - new Date()) / 86400000);
+  if (expiredSubs.length > 0) return 'partial';
+  if (daysLeft <= 7) return 'expiring';
+  return 'active';
+}
+
+function mapUserRow(u, today) {
+  const subs = (u.subscriptions || []);
+  const activeSubs = subs.filter(s => s.isActive === 1 && s.endDate >= today);
+  const activePlatforms = activeSubs.map(s => s.platform?.name).filter(Boolean);
+  const nearestExpiry = activeSubs.length > 0
+    ? activeSubs.reduce((min, s) => s.endDate < min ? s.endDate : min, activeSubs[0].endDate)
+    : null;
+  return {
+    id: u.id, username: u.username, name: u.name, email: u.email,
+    phone: u.phone, is_active: u.isActive, created_at: u.createdAt,
+    expiry_date: u.expiryDate, country: u.country, city: u.city,
+    gender: u.gender, profile_image: u.profileImage, reseller_id: u.resellerId,
+    subscription_count: subs.length,
+    active_platform_count: activePlatforms.length,
+    active_platforms: activePlatforms,
+    nearest_expiry: nearestExpiry,
+    status: computeUserStatus(u, today),
+    device_id: u.deviceId || null,
+    last_login_ip: u.lastLoginIp || null,
+  };
+}
+
 router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page, search, status } = req.query;
-    const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
+    const { page, per_page, search, status, sort } = req.query;
+    const { page: p, perPage: pp } = paginate(page, per_page);
+    const today = todayISO();
 
     const where = { role: 'user' };
     if (search) {
@@ -380,39 +417,57 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
         { username: { contains: search } },
         { name: { contains: search } },
         { email: { contains: search } },
+        { phone: { contains: search } },
       ];
     }
-    if (status === 'active') where.isActive = 1;
-    else if (status === 'disabled') where.isActive = 0;
+    if (status === 'disabled') where.isActive = 0;
+    else if (status && status !== 'all') where.isActive = 1;
 
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
+    let orderBy = { createdAt: 'desc' };
+    if (sort === 'oldest') orderBy = { createdAt: 'asc' };
+    else if (sort === 'name') orderBy = { name: 'asc' };
+    else if (sort === 'expiry') orderBy = { expiryDate: 'asc' };
+
+    const needsComputedFilter = status && !['all', 'disabled'].includes(status);
+
+    const userSelect = {
+      id: true, username: true, name: true, email: true, phone: true,
+      isActive: true, createdAt: true, expiryDate: true, country: true,
+      city: true, gender: true, profileImage: true, resellerId: true,
+      deviceId: true, lastLoginIp: true,
+      subscriptions: {
         select: {
-          id: true, username: true, name: true, email: true, phone: true,
-          isActive: true, createdAt: true, expiryDate: true, country: true,
-          subscriptions: {
-            where: { isActive: 1 },
-            select: { platform: { select: { name: true } } },
-          },
+          id: true, platformId: true, startDate: true, endDate: true, isActive: true,
+          platform: { select: { name: true } },
         },
-        orderBy: { createdAt: 'desc' },
-        skip, take,
-      }),
-      prisma.user.count({ where }),
-    ]);
+      },
+    };
 
-    res.json({
-      success: true,
-      users: users.map(u => ({
-        id: u.id, username: u.username, name: u.name, email: u.email,
-        phone: u.phone, is_active: u.isActive, created_at: u.createdAt,
-        expiry_date: u.expiryDate, country: u.country,
-        subscription_count: u.subscriptions.length,
-        active_platforms: u.subscriptions.map(s => s.platform.name),
-      })),
-      pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
-    });
+    if (needsComputedFilter) {
+      const allUsers = await prisma.user.findMany({ where, select: userSelect, orderBy });
+      const allMapped = allUsers.map(u => mapUserRow(u, today));
+      const filtered = allMapped.filter(u => u.status === status);
+      const total = filtered.length;
+      const skip = (p - 1) * pp;
+      const paged = filtered.slice(skip, skip + pp);
+      res.json({
+        success: true,
+        users: paged,
+        pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
+      });
+    } else {
+      const skip = (p - 1) * pp;
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({ where, select: userSelect, orderBy, skip, take: pp }),
+        prisma.user.count({ where }),
+      ]);
+      const mapped = users.map(u => mapUserRow(u, today));
+      res.json({
+        success: true,
+        users: mapped,
+        pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
+      });
+    }
   } catch (err) {
     console.error('get_users error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -479,34 +534,200 @@ router.post('/edit_user', authenticate, requireAdmin(), async (req, res) => {
   }
 });
 
-router.post('/delete_user', authenticate, requireAdmin('super_admin'), async (req, res) => {
+router.post('/delete_user_preview', authenticate, requireAdmin('super_admin'), async (req, res) => {
   try {
     const { user_id } = req.body;
     if (!user_id) return res.status(400).json({ success: false, message: 'User ID required' });
+    const uid = parseInt(user_id);
 
-    await prisma.user.delete({ where: { id: parseInt(user_id) } });
+    const [user, subCount, sessionCount, paymentCount, pendingPayments] = await Promise.all([
+      prisma.user.findUnique({ where: { id: uid }, select: { id: true, username: true, name: true, email: true } }),
+      prisma.userSubscription.count({ where: { userId: uid } }),
+      prisma.userSession.count({ where: { userId: uid, status: 'active' } }),
+      prisma.payment.count({ where: { userId: uid } }),
+      prisma.payment.count({ where: { userId: uid, status: 'pending' } }),
+    ]);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Deleted user ID: ${user_id}`, ipAddress: req.ip || null, createdAt: nowISO() },
+    res.json({
+      success: true,
+      preview: {
+        user_id: user.id, username: user.username, name: user.name, email: user.email,
+        subscription_count: subCount,
+        active_session_count: sessionCount,
+        total_payment_count: paymentCount,
+        pending_payment_count: pendingPayments,
+        has_pending_payments: pendingPayments > 0,
+      },
+    });
+  } catch (err) {
+    console.error('delete_user_preview error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/delete_user', authenticate, requireAdmin('super_admin'), async (req, res) => {
+  try {
+    const { user_id, confirm_username } = req.body;
+    if (!user_id) return res.status(400).json({ success: false, message: 'User ID required' });
+    const uid = parseInt(user_id);
+
+    const user = await prisma.user.findUnique({ where: { id: uid } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (!confirm_username || confirm_username !== user.username) {
+      return res.status(400).json({ success: false, message: 'Type the exact username to confirm deletion.' });
+    }
+
+    const pendingPayments = await prisma.payment.count({ where: { userId: uid, status: 'pending' } });
+    if (pendingPayments > 0) {
+      return res.status(400).json({ success: false, message: `Cannot delete: user has ${pendingPayments} pending payment(s). Resolve payments first.` });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.userSession.updateMany({
+        where: { userId: uid, status: 'active' },
+        data: { status: 'inactive', logoutReason: 'user_deleted' },
+      });
+      await tx.user.delete({ where: { id: uid } });
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Deleted user: ${user.username} (ID: ${user_id})`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
     });
 
-    res.json({ success: true, message: 'User deleted' });
+    res.json({ success: true, message: `User "${user.username}" permanently deleted` });
   } catch (err) {
     console.error('delete_user error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
+router.post('/revoke_subscription', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { subscription_id, user_id } = req.body;
+    if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });
+
+    const sub = await prisma.userSubscription.findUnique({
+      where: { id: parseInt(subscription_id) },
+      include: { platform: { select: { name: true } }, user: { select: { id: true, username: true } } },
+    });
+    if (!sub) return res.status(404).json({ success: false, message: 'Subscription not found' });
+
+    await prisma.userSubscription.update({
+      where: { id: sub.id },
+      data: { isActive: 0 },
+    });
+
+    const remainingActive = await prisma.userSubscription.findMany({
+      where: { userId: sub.userId, isActive: 1, endDate: { gte: todayISO() } },
+      select: { endDate: true },
+    });
+    const newExpiry = remainingActive.length > 0
+      ? remainingActive.reduce((max, s) => s.endDate > max ? s.endDate : max, remainingActive[0].endDate)
+      : null;
+    await prisma.user.update({ where: { id: sub.userId }, data: { expiryDate: newExpiry } });
+
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user.id,
+        action: `Revoked ${sub.platform?.name || 'unknown'} access for user: ${sub.user?.username || sub.userId}`,
+        ipAddress: req.ip || null, createdAt: nowISO(),
+      },
+    });
+
+    res.json({ success: true, message: `${sub.platform?.name || 'Platform'} access revoked` });
+  } catch (err) {
+    console.error('revoke_subscription error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/export_users_csv', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { search, status } = req.query;
+    const today = todayISO();
+    const where = { role: 'user' };
+    if (search) {
+      where.OR = [
+        { username: { contains: search } },
+        { name: { contains: search } },
+        { email: { contains: search } },
+        { phone: { contains: search } },
+      ];
+    }
+    if (status === 'disabled') where.isActive = 0;
+
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true, username: true, name: true, email: true, phone: true,
+        isActive: true, createdAt: true, expiryDate: true, country: true,
+        city: true, gender: true, deviceId: true, lastLoginIp: true,
+        subscriptions: {
+          select: { endDate: true, isActive: true, platform: { select: { name: true } } },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = ['Username','Name','Email','Phone','Country','City','Gender','Status','Active Platforms','Total Subscriptions','Nearest Expiry','Join Date','Last Login IP','Device Locked'];
+    const esc = (v) => '"' + String(v || '').replace(/"/g, '""') + '"';
+    const rows = users.map(u => {
+      const mapped = mapUserRow(u, today);
+      return [
+        esc(u.username), esc(u.name), esc(u.email), esc(u.phone),
+        esc(u.country), esc(u.city), esc(u.gender), esc(mapped.status),
+        esc(mapped.active_platforms.join('; ')), esc(mapped.subscription_count),
+        esc(mapped.nearest_expiry), esc(u.createdAt),
+        esc(u.lastLoginIp), esc(u.deviceId ? 'Yes' : 'No'),
+      ].join(',');
+    });
+
+    let filtered = rows;
+    if (status && !['all', 'disabled'].includes(status)) {
+      const mappedUsers = users.map(u => mapUserRow(u, today));
+      filtered = [];
+      for (let i = 0; i < mappedUsers.length; i++) {
+        if (mappedUsers[i].status === status) filtered.push(rows[i]);
+      }
+    }
+
+    const csv = '\uFEFF' + headers.join(',') + '\n' + filtered.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="clearorbit_users_${today}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error('export_users_csv error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 router.post('/toggle_user', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { user_id } = req.body;
+    const { user_id, action } = req.body;
     if (!user_id) return res.status(400).json({ success: false, message: 'User ID required' });
 
     const user = await prisma.user.findUnique({ where: { id: parseInt(user_id) } });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    const newStatus = user.isActive ? 0 : 1;
+    let newStatus;
+    if (action === 'disable' || action === 'deactivate') newStatus = 0;
+    else if (action === 'enable' || action === 'activate') newStatus = 1;
+    else newStatus = user.isActive ? 0 : 1;
+
     await prisma.user.update({ where: { id: user.id }, data: { isActive: newStatus } });
+
+    if (newStatus === 0) {
+      const revokedSessions = await prisma.userSession.updateMany({
+        where: { userId: user.id, status: 'active' },
+        data: { status: 'inactive', logoutReason: 'admin_disabled' },
+      });
+      if (revokedSessions.count > 0) {
+        await prisma.activityLog.create({
+          data: { userId: req.user.id, action: `Revoked ${revokedSessions.count} session(s) for disabled user: ${user.username}`, ipAddress: req.ip || null, createdAt: nowISO() },
+        });
+      }
+    }
 
     await prisma.activityLog.create({
       data: { userId: req.user.id, action: `${newStatus ? 'Enabled' : 'Disabled'} user: ${user.username}`, ipAddress: req.ip || null, createdAt: nowISO() },
@@ -638,82 +859,78 @@ router.post('/admin_kill_session', authenticate, requireAdmin('super_admin'), as
   }
 });
 
+router.get('/check_username', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const username = (req.query.username || '').trim();
+    if (!username) return res.json({ available: false });
+    const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+    res.json({ available: !existing });
+  } catch (err) {
+    console.error('check_username error:', err);
+    res.json({ available: false });
+  }
+});
+
 router.post('/create_user_with_sub', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { username, password, name, email, phone, platform_id, platform_ids, duration_days, duration_in_days, expiry_date } = req.body;
+    const { username, password, name, email, phone, platform_ids, duration_days, duration_in_days, expiry_date } = req.body;
     if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });
-
-    const duration = parseInt(duration_in_days) || parseInt(duration_days) || 0;
-    const pids = (Array.isArray(platform_ids) ? platform_ids.map(Number) : (platform_id ? [parseInt(platform_id)] : [])).filter(n => Number.isFinite(n) && n > 0);
+    if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+    if (password.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
 
     const existing = await prisma.user.findUnique({ where: { username } });
-    let user, userStatus;
+    if (existing) return res.status(400).json({ success: false, message: `Username "${username}" already exists. Use the edit modal to assign platforms to an existing user.` });
 
-    if (existing) {
-      user = existing;
-      userStatus = 'updated';
-    } else {
-      const hash = await bcrypt.hash(password, 10);
-      user = await prisma.user.create({
+    const duration = parseInt(duration_in_days) || parseInt(duration_days) || 0;
+    const pids = (Array.isArray(platform_ids) ? platform_ids.map(Number) : []).filter(n => Number.isFinite(n) && n > 0);
+
+    const platforms = pids.length > 0
+      ? await prisma.platform.findMany({ where: { id: { in: pids } }, select: { id: true, name: true, isActive: true } })
+      : [];
+    const activePlatforms = platforms.filter(p => p.isActive);
+    const skippedPlatforms = platforms.filter(p => !p.isActive).map(p => p.name);
+
+    const hash = await bcrypt.hash(password, 10);
+    const computedExpiry = duration > 0 && activePlatforms.length > 0 ? futureDate(duration) : (expiry_date || null);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
         data: {
           username, passwordHash: hash, role: 'user', isActive: 1,
           name: name || null, email: email || null, phone: phone || null,
-          expiryDate: expiry_date || (duration > 0 ? futureDate(duration) : null),
-          createdAt: nowISO(),
+          expiryDate: computedExpiry, createdAt: nowISO(),
         },
       });
-      userStatus = 'created';
-    }
 
-    const platformsAssigned = [];
-    const platformsExtended = [];
-
-    if (pids.length > 0 && duration > 0) {
-      for (const pid of pids) {
-        const platform = await prisma.platform.findUnique({ where: { id: pid } });
-        if (!platform) continue;
-
-        const existingSub = await prisma.userSubscription.findFirst({
-          where: { userId: user.id, platformId: pid, isActive: 1 },
-        });
-
-        if (existingSub) {
-          const currentEnd = new Date(existingSub.endDate);
-          const baseDate = currentEnd > new Date() ? currentEnd : new Date();
-          const newEnd = new Date(baseDate.getTime() + duration * 24 * 60 * 60 * 1000);
-          await prisma.userSubscription.update({
-            where: { id: existingSub.id },
-            data: { endDate: newEnd.toISOString().split('T')[0] },
+      const platformsAssigned = [];
+      if (activePlatforms.length > 0 && duration > 0) {
+        const today = todayISO();
+        const endDate = futureDate(duration);
+        for (const p of activePlatforms) {
+          await tx.userSubscription.create({
+            data: { userId: user.id, platformId: p.id, startDate: today, endDate, isActive: 1 },
           });
-          platformsExtended.push(platform.name);
-        } else {
-          await prisma.userSubscription.create({
-            data: {
-              userId: user.id, platformId: pid,
-              startDate: todayISO(), endDate: futureDate(duration),
-              isActive: 1,
-            },
-          });
-          platformsAssigned.push(platform.name);
+          platformsAssigned.push(p.name);
         }
       }
-    }
 
-    const totalAssigned = platformsAssigned.length + platformsExtended.length;
-    const msg = userStatus === 'created'
-      ? `User "${username}" created with ${totalAssigned} platform(s)`
-      : `User "${username}" updated with ${totalAssigned} platform(s)`;
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Created user: ${username} with ${platformsAssigned.length} platform(s)`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return { user, platformsAssigned };
+    });
 
     res.json({
       success: true,
-      message: msg,
-      user_id: user.id,
-      username,
-      user_status: userStatus,
-      total_platforms: totalAssigned,
+      message: `User "${username}" created with ${result.platformsAssigned.length} platform(s)`,
+      user_id: result.user.id, username,
+      user_status: 'created',
+      total_platforms: result.platformsAssigned.length,
       duration_days: duration,
-      platforms_assigned: platformsAssigned,
-      platforms_extended: platformsExtended,
+      platforms_assigned: result.platformsAssigned,
+      platforms_extended: [],
+      platforms_skipped: skippedPlatforms,
     });
   } catch (err) {
     console.error('create_user_with_sub error:', err);
@@ -728,45 +945,63 @@ router.post('/assign_platforms', authenticate, requireAdmin(), async (req, res) 
       return res.status(400).json({ success: false, message: 'User ID and platform IDs required' });
     }
     const duration = parseInt(duration_in_days) || 30;
-    const user = await prisma.user.findUnique({ where: { id: parseInt(user_id) } });
+    const uid = parseInt(user_id);
+    const user = await prisma.user.findUnique({ where: { id: uid } });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    const assigned = [];
-    const extended = [];
-    for (const pid of platform_ids.map(Number).filter(n => n > 0)) {
-      const platform = await prisma.platform.findUnique({ where: { id: pid } });
-      if (!platform) continue;
-      const existingSub = await prisma.userSubscription.findFirst({
-        where: { userId: user.id, platformId: pid, isActive: 1 },
-      });
-      if (existingSub) {
-        const currentEnd = new Date(existingSub.endDate);
-        const baseDate = currentEnd > new Date() ? currentEnd : new Date();
-        const newEnd = new Date(baseDate.getTime() + duration * 86400000);
-        await prisma.userSubscription.update({
-          where: { id: existingSub.id },
-          data: { endDate: newEnd.toISOString().split('T')[0] },
-        });
-        extended.push(platform.name);
-      } else {
-        await prisma.userSubscription.create({
-          data: { userId: user.id, platformId: pid, startDate: todayISO(), endDate: futureDate(duration), isActive: 1 },
-        });
-        assigned.push(platform.name);
+    const pids = platform_ids.map(Number).filter(n => n > 0);
+    const [platforms, existingSubs] = await Promise.all([
+      prisma.platform.findMany({ where: { id: { in: pids } }, select: { id: true, name: true } }),
+      prisma.userSubscription.findMany({ where: { userId: uid, platformId: { in: pids }, isActive: 1 } }),
+    ]);
+    const platformMap = new Map(platforms.map(p => [p.id, p.name]));
+    const existingSubMap = new Map(existingSubs.map(s => [s.platformId, s]));
+
+    const result = await prisma.$transaction(async (tx) => {
+      const assigned = [];
+      const extended = [];
+      for (const pid of pids) {
+        const platName = platformMap.get(pid);
+        if (!platName) continue;
+        const existingSub = existingSubMap.get(pid);
+        if (existingSub) {
+          const currentEnd = new Date(existingSub.endDate);
+          const baseDate = currentEnd > new Date() ? currentEnd : new Date();
+          const newEnd = new Date(baseDate.getTime() + duration * 86400000);
+          await tx.userSubscription.update({
+            where: { id: existingSub.id },
+            data: { endDate: newEnd.toISOString().split('T')[0] },
+          });
+          extended.push(platName);
+        } else {
+          await tx.userSubscription.create({
+            data: { userId: uid, platformId: pid, startDate: todayISO(), endDate: futureDate(duration), isActive: 1 },
+          });
+          assigned.push(platName);
+        }
       }
-    }
 
-    const newExpiry = futureDate(duration);
-    if (!user.expiryDate || new Date(user.expiryDate) < new Date(newExpiry)) {
-      await prisma.user.update({ where: { id: user.id }, data: { expiryDate: newExpiry } });
-    }
+      const allActive = await tx.userSubscription.findMany({
+        where: { userId: uid, isActive: 1, endDate: { gte: todayISO() } },
+        select: { endDate: true },
+      });
+      const maxExpiry = allActive.length > 0
+        ? allActive.reduce((max, s) => s.endDate > max ? s.endDate : max, allActive[0].endDate)
+        : null;
+      await tx.user.update({ where: { id: uid }, data: { expiryDate: maxExpiry } });
 
-    const total = assigned.length + extended.length;
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Assigned ${assigned.length + extended.length} platform(s) to user: ${user.username}`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return { assigned, extended };
+    });
+
     res.json({
       success: true,
-      message: `${total} platform(s) assigned to "${user.username}"`,
-      platforms_assigned: assigned,
-      platforms_extended: extended,
+      message: `${result.assigned.length + result.extended.length} platform(s) assigned to "${user.username}"`,
+      platforms_assigned: result.assigned,
+      platforms_extended: result.extended,
     });
   } catch (err) {
     console.error('assign_platforms error:', err);
