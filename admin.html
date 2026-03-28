@@ -900,7 +900,7 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="data-table" id="usersTable">
-                            <thead><tr><th>User</th><th>Email</th><th>Expiry</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+                            <thead><tr><th style="width:36px;text-align:center">#</th><th>User</th><th>Email</th><th>Expiry</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
                             <tbody id="usersBody"></tbody>
                         </table>
                     </div>
@@ -3432,7 +3432,7 @@ function showTableSkeleton() {
     if (!body) return;
     let html = '';
     for (let i = 0; i < 8; i++) {
-        html += `<tr class="skel-row"><td><div class="flex items-center gap-2.5"><div class="skel-circle" style="width:32px;height:32px"></div><div><div class="skel-bar w-24 h-3 mb-1"></div><div class="skel-bar w-16 h-2"></div></div></div></td><td><div class="skel-bar w-32 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-20 h-2"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div></div></td></tr>`;
+        html += `<tr class="skel-row"><td style="text-align:center"><div class="skel-bar h-3" style="width:16px;margin:0 auto"></div></td><td><div class="flex items-center gap-2.5"><div class="skel-circle" style="width:32px;height:32px"></div><div><div class="skel-bar w-24 h-3 mb-1"></div><div class="skel-bar w-16 h-2"></div></div></div></td><td><div class="skel-bar w-32 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-20 h-2"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div></div></td></tr>`;
     }
     body.innerHTML = html;
 }
@@ -3444,10 +3444,12 @@ function renderUsersTable(users) {
     users.forEach(u => _userDataCache.set(u.id, u));
     const body = document.getElementById('usersBody');
     if (!users.length) {
-        body.innerHTML = `<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="user-empty-title">No users found</div><div class="user-empty-sub">Try adjusting your search or filter criteria</div></div></td></tr>`;
+        body.innerHTML = `<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="user-empty-title">No users found</div><div class="user-empty-sub">Try adjusting your search or filter criteria</div></div></td></tr>`;
         return;
     }
-    body.innerHTML = users.map(u => {
+    const startIdx = ((_userPage || 1) - 1) * _userPerPage;
+    body.innerHTML = users.map((u, idx) => {
+        const rowNum = startIdx + idx + 1;
         const displayName = u.name || u.username;
         const initial = (displayName[0] || '?').toUpperCase();
         const avatarHtml = u.profile_image
@@ -3458,6 +3460,7 @@ function renderUsersTable(users) {
             ? '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>'
             : '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
         return `<tr>
+            <td style="text-align:center;color:#9CA3AF;font-size:12px;font-weight:500">${rowNum}</td>
             <td><div class="flex items-center gap-2.5">${avatarHtml}<div><p class="font-medium text-sm text-gray-900">${escHtml(displayName)}</p><p class="text-[11px] text-gray-400">@${escHtml(u.username)}</p></div></div></td>
             <td class="text-sm text-gray-500" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(u.email || '—')}</td>
             <td style="white-space:nowrap">${getExpiryDisplay(u)}</td>
@@ -3501,7 +3504,7 @@ async function fetchUsersFromServer(page) {
         if (res.status === 401) { window.location.href = 'index.html'; return; }
         const data = await res.json();
         if (!data.success) {
-            document.getElementById('usersBody').innerHTML = '<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><div class="user-empty-title">Failed to load users</div><div class="user-empty-sub">Please try refreshing the page</div></div></td></tr>';
+            document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><div class="user-empty-title">Failed to load users</div><div class="user-empty-sub">Please try refreshing the page</div></div></td></tr>';
             return;
         }
         const users = data.users || [];
@@ -3513,7 +3516,7 @@ async function fetchUsersFromServer(page) {
         renderUsersPagination();
     } catch (e) {
         console.error('fetchUsersFromServer error', e);
-        document.getElementById('usersBody').innerHTML = '<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
+        document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
     }
     finally { _usersLoading = false; }
 }
