@@ -73,7 +73,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       data: { username, ipAddress: ip, userAgent: ua, deviceType, browser, os, status: 'success', reason: null, createdAt: nowISO() },
     });
 
-    await prisma.user.update({ where: { id: user.id }, data: { lastLoginIp: ip, deviceId: devId } });
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginIp: ip, deviceId: devId, lastLoginAt: new Date().toISOString() } });
 
     const jwtToken = generateToken({ userId: user.id, sessionToken, role: user.role });
     const csrfToken = generateCsrfToken(user.id);

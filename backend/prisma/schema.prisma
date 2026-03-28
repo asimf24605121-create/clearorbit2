@@ -15,6 +15,7 @@ model User {
   isActive         Int      @default(1) @map("is_active")
   deviceId         String?  @map("device_id")
   lastLoginIp      String?  @map("last_login_ip")
+  lastLoginAt      String?  @map("last_login_at")
   adminLevel       String?  @map("admin_level")
   name             String?
   email            String?

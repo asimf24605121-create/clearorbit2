@@ -402,6 +402,7 @@ function mapUserRow(u, today) {
     status: computeUserStatus(u, today),
     device_id: u.deviceId || null,
     last_login_ip: u.lastLoginIp || null,
+    last_login_at: u.lastLoginAt || null,
     geo_lat: u.geoLat ?? null,
     geo_lon: u.geoLon ?? null,
     geo_city: u.geoCity || null,
@@ -431,7 +432,11 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
     let orderBy = { createdAt: 'desc' };
     if (sort === 'oldest') orderBy = { createdAt: 'asc' };
     else if (sort === 'name') orderBy = { name: 'asc' };
+    else if (sort === 'name_desc') orderBy = { name: 'desc' };
     else if (sort === 'expiry') orderBy = { expiryDate: 'asc' };
+    else if (sort === 'expiry_desc') orderBy = { expiryDate: 'desc' };
+    else if (sort === 'username') orderBy = { username: 'asc' };
+    else if (sort === 'recent_login') orderBy = { lastLoginAt: 'desc' };
 
     const needsComputedFilter = status && !['all', 'disabled'].includes(status);
 
@@ -439,7 +444,7 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
       id: true, username: true, name: true, email: true, phone: true,
       isActive: true, createdAt: true, expiryDate: true, country: true,
       city: true, gender: true, profileImage: true, resellerId: true,
-      deviceId: true, lastLoginIp: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
+      deviceId: true, lastLoginIp: true, lastLoginAt: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
       subscriptions: {
         select: {
           id: true, platformId: true, startDate: true, endDate: true, isActive: true,
@@ -667,7 +672,7 @@ router.get('/export_users_csv', authenticate, requireAdmin(), async (req, res) =
       select: {
         id: true, username: true, name: true, email: true, phone: true,
         isActive: true, createdAt: true, expiryDate: true, country: true,
-        city: true, gender: true, deviceId: true, lastLoginIp: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
+        city: true, gender: true, deviceId: true, lastLoginIp: true, lastLoginAt: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
         subscriptions: {
           select: { endDate: true, isActive: true, platform: { select: { name: true } } },
         },
