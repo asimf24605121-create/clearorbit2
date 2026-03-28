@@ -1,0 +1,417 @@
+You are a senior full-stack engineer, senior SaaS architect, senior frontend UX architect, senior admin-dashboard product designer, and senior performance engineer.
+
+I want you to REWORK the current Users + Subscriptions frontend architecture into a clean single-page Users management experience.
+
+IMPORTANT:
+The current separate Subscriptions page should be REMOVED from the main admin flow.
+I do NOT want a separate subscriptions page anymore.
+
+GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT break the improved backend logic that already exists.
+Do NOT reintroduce large client-side arrays or heavy full-page refreshes.
+Preserve server-side pagination/search/filter/sort and lightweight refresh patterns.
+
+==================================================
+FINAL PRODUCT DIRECTION
+==================================================
+
+I want the USERS PAGE to remain the main operational page.
+
+For every user row, there should be 3 clearly separated workflows:
+
+1. VIEW PROFILE
+- Eye icon
+- Opens a dedicated User Profile modal/window
+- Read-only
+- Shows full user/account details
+- Shows account/security info
+- Shows only a lightweight subscription summary
+- NO edit controls
+- NO subscription actions
+
+2. EDIT USER
+- Edit/Pencil icon
+- Opens a dedicated Edit User modal/window
+- Only user/account/profile editing
+- Full name
+- Email
+- Phone
+- Country
+- City
+- Gender
+- Password reset
+- Basic account metadata only
+- NO subscription assignment here
+- NO assign platforms here
+- NO extend/revoke here
+
+3. MANAGE SUBSCRIPTION / ACCESS
+- Separate access/subscription icon in the same row
+- Opens a dedicated Access / Subscription modal/window
+- ONLY place for subscription operations
+- Shows all active/expired/revoked subscriptions for that user
+- Can add new platform subscriptions
+- Can extend time
+- Can revoke/delete subscription
+- Shows each platform separately
+- Shows per-platform expiry/status
+- Can manage all subscriptions from here
+
+==================================================
+STRICT RULES
+==================================================
+
+1. Remove the separate Subscriptions page from the sidebar/admin main workflow
+2. Remove the Platforms column/badge from the Users table row
+3. Remove Assign Platforms from the Edit User modal
+4. Keep View Profile modal strictly read-only
+5. Put all subscription management into a dedicated per-user Access modal/window
+6. Users page must no longer feel mixed or overloaded
+7. The UI must feel premium, clean, enterprise-grade, and “dabang”
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the real current implementation first.
+
+Audit:
+- Users table
+- current action icons
+- current View User modal
+- current Edit User modal
+- current separate Subscriptions page
+- current Manage Access / Manage Subscriptions flow
+- backend routes already available for:
+  - get_user_subscriptions
+  - assign platforms
+  - extend subscription
+  - revoke subscription
+  - delete preview / safety
+- table column layout
+- action icon spacing/clipping issues
+- modal responsibility overlap
+- anything currently mixed/confusing
+
+Then clearly report:
+1. what is currently mixed
+2. what must be removed
+3. what must stay
+4. what can be reused safely
+5. what frontend layout issues exist
+6. what could become slow if redesigned badly
+
+==================================================
+PHASE 2 — USERS TABLE CLEANUP
+==================================================
+
+Redesign the Users table to focus on USER MANAGEMENT only.
+
+Requirements:
+- REMOVE the Platforms column from the row
+- keep rows cleaner and less cluttered
+- preserve:
+  - User
+  - Email
+  - Expiry (high-level summary only if still useful)
+  - Status
+  - Actions
+- fix action button spacing, clipping, and alignment
+- action column must clearly show:
+  - Eye = profile view
+  - Edit = profile edit
+  - Subscription icon = manage access
+  - Disable
+  - Delete
+- use tooltips on icon buttons
+- keep row design premium and compact
+- no oversized or cut buttons
+
+Also improve:
+- row density
+- badge consistency
+- expiry readability
+- responsive behavior
+- hover states
+- empty state
+- loading skeleton state
+
+==================================================
+PHASE 3 — VIEW PROFILE MODAL
+==================================================
+
+Create or refine the dedicated View Profile modal.
+
+This modal must:
+- be READ-ONLY
+- show a clean premium user profile layout
+- show:
+  - avatar/initial
+  - username
+  - full name
+  - email
+  - phone
+  - country
+  - city
+  - gender
+  - join date
+  - high-level expiry
+  - account/security info
+  - maybe basic subscription summary only
+
+It must NOT:
+- contain edit inputs
+- contain assign platform controls
+- contain extend/revoke/delete subscription actions
+
+It may include:
+- small “Manage Access” button/CTA that opens the dedicated access modal
+- but not inline heavy subscription management
+
+==================================================
+PHASE 4 — EDIT USER MODAL
+==================================================
+
+Create or refine the dedicated Edit User modal.
+
+This modal must ONLY handle:
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- password reset
+- basic user/account metadata
+
+This modal must NOT contain:
+- Assign Platforms
+- subscription cards
+- duration selectors
+- extend/revoke controls
+- platform access management
+
+Make this modal:
+- clean
+- shorter
+- less overloaded
+- premium
+- easy to understand
+
+Add:
+- inline validation
+- clear save/cancel actions
+- dirty-state handling
+- loading state
+- success/error feedback
+
+==================================================
+PHASE 5 — NEW MANAGE SUBSCRIPTION / ACCESS MODAL
+==================================================
+
+Create a dedicated per-user Access / Subscription modal or drawer from the Users page.
+
+This is the only place where subscription management should happen.
+
+This modal/window should show:
+
+A. USER HEADER
+- user name
+- username/email
+- status summary
+- maybe nearest expiry summary
+
+B. ACTIVE SUBSCRIPTIONS
+- each platform shown separately
+- platform logo/name
+- start date
+- expiry date
+- days left
+- status
+- actions:
+  - +7
+  - +30
+  - revoke/delete
+
+C. EXPIRED / REVOKED SUBSCRIPTIONS
+- shown in a separate section if useful
+- clearly styled
+- can re-activate/reassign if business logic allows
+
+D. ADD NEW SUBSCRIPTION
+- select platform(s)
+- duration
+- add access
+- clear validation and feedback
+
+This modal must allow:
+- add new subscription
+- extend existing subscription
+- revoke subscription
+- manage all user access from one place
+
+This modal should feel like a powerful mini access-manager for a single user.
+
+==================================================
+PHASE 6 — REMOVE THE SEPARATE SUBSCRIPTIONS PAGE
+==================================================
+
+The separate Subscriptions page that was recently added should be removed from the main navigation/workflow.
+
+Requirements:
+- remove sidebar nav item for Subscriptions
+- remove page/section routing from the visible admin UX
+- migrate any useful UI/components from that page into the new per-user Access modal if appropriate
+- do not lose working functionality
+- keep backend endpoints if useful, but rewire frontend to modal-based management from Users page
+
+==================================================
+PHASE 7 — GUI / UX QUALITY TARGET
+==================================================
+
+I want the final GUI to feel:
+- premium
+- compact
+- powerful
+- enterprise-grade
+- clean
+- highly professional
+- “dabang”
+
+Improve:
+- icon button design
+- modal header/footer design
+- section hierarchy
+- spacing consistency
+- action grouping
+- badge system
+- status clarity
+- expiry clarity
+- typography
+- empty states
+- error states
+- success states
+- responsive layout
+- accessibility
+
+==================================================
+PHASE 8 — ACTION SAFETY
+==================================================
+
+Keep destructive and important actions safe:
+
+Users page:
+- disable
+- enable
+- delete
+
+Access modal:
+- add subscription
+- extend subscription
+- revoke subscription
+- delete/revoke with proper confirmation
+
+Each action should have:
+- loading state
+- disabled state
+- success feedback
+- error feedback
+- premium confirmation UX
+- no accidental destructive clicks
+
+==================================================
+PHASE 9 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+All frontend changes must preserve performance for 1000+ concurrent users.
+
+Requirements:
+- keep server-side users API
+- keep server-side pagination/search/filter/sort
+- do not reintroduce ALL_USERS style heavy frontend loading
+- no full loadStats-style refresh after every action
+- refresh only the affected row or the current user list slice
+- load subscription/access details on demand when opening the Access modal
+- keep modals lightweight
+- avoid large DOM trees where not needed
+- minimize rerenders
+- keep tables efficient
+
+==================================================
+PHASE 10 — WHAT I WANT IMPLEMENTED
+==================================================
+
+Implement these exact changes:
+
+1. Remove the separate Subscriptions page from the admin workflow
+2. Remove the Platforms column/badge from Users table rows
+3. Keep Eye icon for User Profile only
+4. Keep Edit icon for User Edit only
+5. Add or repurpose a dedicated Access/Subscription icon for subscription management only
+6. Remove Assign Platforms from Edit User modal
+7. Create a dedicated per-user Manage Subscription modal/window
+8. Keep View Profile modal read-only
+9. Clean and polish the entire Users page UI
+
+==================================================
+PHASE 11 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what was mixed/confusing
+- why the current UX was wrong
+- why the separate Subscriptions page should be removed
+- what table/modal issues existed
+
+2. PRODUCT DECISION SUMMARY
+- final Users table role
+- final View Profile modal role
+- final Edit User modal role
+- final Manage Subscription modal role
+- final frontend architecture
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how performance is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- Users table cleanup
+- separate modal responsibilities
+- removal of separate subscriptions page from frontend flow
+- dedicated Manage Subscription modal
+- premium GUI polish
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Users page is cleaner
+- Platforms column is removed
+- Eye icon opens only profile view
+- Edit icon opens only user edit
+- subscription/access icon opens only manage subscription
+- separate Subscriptions page is removed from the visible admin flow
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Preserve the improved backend architecture
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI compact, premium, and admin-friendly
+- Think like a lead frontend engineer + product designer shipping to production

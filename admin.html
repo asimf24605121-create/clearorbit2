@@ -391,10 +391,6 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                 Users
             </div>
-            <div class="nav-item" data-section="subscriptions" onclick="showSection('subscriptions')">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-                Subscriptions
-            </div>
             <div class="nav-item" data-section="accounts" data-rbac="super_admin" onclick="showSection('accounts')">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 Account Manager
@@ -727,7 +723,7 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="ov-quickActions">
                     <button onclick="showSection('users')" class="ov-quick-btn" data-testid="quick-add-user"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg> Add User</button>
-                    <button onclick="showSection('subscriptions')" class="ov-quick-btn" data-testid="quick-add-sub"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg> Manage Subscriptions</button>
+                    <button onclick="showSection('users')" class="ov-quick-btn" data-testid="quick-add-sub"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg> Create User + Access</button>
                     <button onclick="showSection('accounts')" class="ov-quick-btn" data-testid="quick-add-slot"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg> Account Manager</button>
                     <button onclick="showSection('announcements')" class="ov-quick-btn" data-testid="quick-broadcast"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg> Broadcast</button>
                 </div>
@@ -873,7 +869,7 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="data-table" id="usersTable">
-                            <thead><tr><th>User</th><th>Email</th><th>Platforms</th><th>Expiry</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+                            <thead><tr><th>User</th><th>Email</th><th>Expiry</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
                             <tbody id="usersBody"></tbody>
                         </table>
                     </div>
@@ -944,37 +940,6 @@
                                 <label class="label">New Password (blank = keep)</label>
                                 <input id="editPassword" type="password" class="input" placeholder="Enter new password"/>
                             </div>
-                        </div>
-                        <div class="border-t border-gray-100 pt-4 mb-4">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                    <label class="font-semibold text-gray-900 text-sm" style="margin:0">Assign Platforms</label>
-                                </div>
-                                <span id="editPlatCount" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600">0 new</span>
-                            </div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <select id="editDurationType" class="input text-sm" style="width:auto;min-width:110px" onchange="onDurationTypeChange()">
-                                    <option value="days">Days</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
-                                    <option value="custom">Custom</option>
-                                </select>
-                                <select id="editDuration" class="input text-sm" style="width:auto;min-width:120px">
-                                    <option value="7">7 Days</option>
-                                    <option value="15">15 Days</option>
-                                    <option value="30" selected>30 Days</option>
-                                    <option value="60">60 Days</option>
-                                    <option value="90">90 Days</option>
-                                </select>
-                                <input id="editDurationCustom" type="number" class="input text-sm hidden" style="width:100px" min="1" max="3650" placeholder="Days" value="30"/>
-                                <span id="editDurationLabel" class="text-xs text-gray-400 whitespace-nowrap">30 Days</span>
-                            </div>
-                            <div id="editPlatGrid" class="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1" style="scroll-behavior:smooth"></div>
-                            <button type="button" onclick="assignPlatformsToUser()" id="editAssignBtn" class="btn btn-primary w-full mt-3 hidden" style="font-size:13px">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                Assign Selected Platforms
-                            </button>
                         </div>
                     </div>
                     <div class="px-6 py-4 border-t border-gray-100 flex gap-2 justify-end flex-shrink-0 bg-gray-50/50 rounded-b-2xl">
@@ -1049,7 +1014,7 @@
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
                                     Subscriptions
                                 </div>
-                                <button onclick="vuGoToSubscriptions()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors" title="Manage access in Subscriptions page">
+                                <button onclick="vuGoToSubscriptions()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors" title="Manage subscriptions">
                                     Manage Access
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                 </button>
@@ -1086,105 +1051,59 @@
             </div>
 
 
-            <div id="sec-subscriptions" class="section">
-                <div class="card mb-6">
-                    <div class="px-5 py-4 border-b border-gray-100" style="background:linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%);">
+            <div id="accessModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="background:rgba(15,23,42,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)" onclick="if(event.target===this)closeAccessModal()">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 flex flex-col" style="max-height:90vh" onclick="event.stopPropagation()">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0" style="background:linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%);border-radius:16px 16px 0 0">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
                             </div>
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2">
-                                    <h3 class="font-semibold text-gray-900 text-sm">All Subscriptions</h3>
-                                    <span id="subCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">0</span>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 text-sm">Manage Access</h3>
+                                <span id="amUserLabel" class="text-xs text-gray-400"></span>
+                            </div>
+                        </div>
+                        <button onclick="closeAccessModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" title="Close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6" style="scroll-behavior:smooth">
+                        <div class="vu-section">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="vu-section-title" style="margin-bottom:0">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Active Subscriptions
                                 </div>
-                                <p class="text-xs text-gray-400 mt-0.5">Manage user platform access — assign, extend, revoke subscriptions</p>
+                                <button onclick="amRefresh()" class="tbl-act" style="width:26px;height:26px" title="Refresh">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                            </div>
+                            <div id="amActiveSubs">
+                                <div class="text-center text-gray-400 text-xs py-4">Loading...</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-center gap-2">
-                        <select id="subStatusFilter" class="input text-xs" style="width:auto" onchange="subFilterChanged()">
-                            <option value="all">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="expiring_soon">Expiring Soon</option>
-                            <option value="expired">Expired</option>
-                            <option value="revoked">Revoked</option>
-                        </select>
-                        <select id="subPlatformFilter" class="input text-xs" style="width:auto" onchange="subFilterChanged()">
-                            <option value="">All Platforms</option>
-                        </select>
-                        <select id="subSort" class="input text-xs" style="width:auto" onchange="subFilterChanged()">
-                            <option value="expiry_asc">Expiry (soonest first)</option>
-                            <option value="expiry_desc">Expiry (latest first)</option>
-                            <option value="newest">Newest first</option>
-                            <option value="user">By User</option>
-                            <option value="platform">By Platform</option>
-                        </select>
-                        <input id="subSearch" class="input text-xs" style="width:auto;max-width:200px" placeholder="Search user..." oninput="subSearchDebounced()"/>
-                        <span id="subFilterInfo" class="text-[10px] text-gray-400 ml-auto"></span>
-                    </div>
-                    <div class="px-5 py-2 border-b border-gray-100 flex items-center gap-2" id="subBulkBar" style="display:none">
-                        <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
-                            <input type="checkbox" id="subSelectAll" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600" onchange="subToggleSelectAll(this.checked)"/>
-                            Select all on page
-                        </label>
-                        <span id="subSelectedCount" class="text-[10px] font-bold text-indigo-600">0 selected</span>
-                        <div class="ml-auto flex items-center gap-1.5">
-                            <button onclick="subBulkExtend(7)" class="btn btn-secondary btn-sm text-[10px]">+7d</button>
-                            <button onclick="subBulkExtend(30)" class="btn btn-secondary btn-sm text-[10px]">+30d</button>
-                            <button onclick="subBulkRevoke()" class="btn btn-sm text-[10px]" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA">Revoke Selected</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="data-table" id="subTable">
-                            <thead><tr>
-                                <th style="width:32px"><input type="checkbox" id="subThSelectAll" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600" onchange="subToggleSelectAll(this.checked)"/></th>
-                                <th>User</th>
-                                <th>Platform</th>
-                                <th>Period</th>
-                                <th>Expiry</th>
-                                <th>Status</th>
-                                <th style="text-align:right">Actions</th>
-                            </tr></thead>
-                            <tbody id="subBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="subPagination" class="px-5 py-3 border-t border-gray-100 flex items-center justify-between" style="display:none">
-                        <span id="subPageInfo" class="text-xs text-gray-400"></span>
-                        <div class="flex items-center gap-1">
-                            <button onclick="subChangePage(-1)" id="subPrevBtn" class="btn btn-secondary btn-sm text-xs" disabled>Previous</button>
-                            <span id="subPageNum" class="text-xs text-gray-500 px-2">Page 1</span>
-                            <button onclick="subChangePage(1)" id="subNextBtn" class="btn btn-secondary btn-sm text-xs" disabled>Next</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="px-5 py-4 border-b border-gray-100" style="background:linear-gradient(135deg,#ECFDF5 0%,#D1FAE5 100%);">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#059669,#10B981);">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                        <div class="vu-section">
+                            <div class="vu-section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Expired / Revoked
                             </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900 text-sm">Assign New Subscription</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">Grant platform access to an existing user</p>
+                            <div id="amExpiredSubs">
+                                <div class="text-center text-gray-400 text-xs py-3">—</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="p-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                            <div>
-                                <label class="label">User</label>
-                                <select id="subAssignUser" class="input text-sm"></select>
+                        <div class="vu-section" style="margin-bottom:0">
+                            <div class="vu-section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                Add New Subscription
                             </div>
-                            <div>
-                                <label class="label">Platform</label>
-                                <select id="subAssignPlatform" class="input text-sm"></select>
-                            </div>
-                            <div>
-                                <label class="label">Duration</label>
-                                <div class="flex items-center gap-1.5">
-                                    <select id="subAssignDuration" class="input text-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label">Platform</label>
+                                    <select id="amPlatform" class="input text-sm"></select>
+                                </div>
+                                <div>
+                                    <label class="label">Duration</label>
+                                    <select id="amDuration" class="input text-sm">
                                         <option value="7">7 days</option>
                                         <option value="30" selected>30 days</option>
                                         <option value="90">90 days</option>
@@ -1193,12 +1112,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="flex items-end">
-                                <button onclick="subAssignAccess()" id="subAssignBtn" class="btn text-white font-semibold py-2 px-5 w-full" style="background:linear-gradient(135deg,#059669,#10B981);border:none;border-radius:10px">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                                    Assign Access
-                                </button>
-                            </div>
+                            <button onclick="amAddSubscription()" id="amAddBtn" class="btn w-full mt-3 text-white font-semibold" style="background:linear-gradient(135deg,#059669,#10B981);border:none;border-radius:10px;font-size:13px">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                Assign Access
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2660,7 +2577,6 @@ function _ingestNewNotif(notifData) {
 const sectionTitles = {
     overview: ['Overview', 'System dashboard and quick stats'],
     users: ['Users', 'Manage user accounts, profiles, and access credentials'],
-    subscriptions: ['Subscriptions', 'Manage platform access — assign, extend, revoke, and monitor subscriptions'],
     accounts: ['Account Manager', 'Import cookies, manage slots, monitor health, and replace cookies across all linked slots'],
     platforms: ['Platform Intelligence', 'Auto-detected platforms with health monitoring'],
     pricing: ['Pricing', 'Set prices per platform, duration, and account type'],
@@ -2699,7 +2615,6 @@ function showSection(name) {
     if (name === 'tickets') loadTickets();
     if (name === 'announcements') loadAnnouncements();
     if (name === 'contacts') loadContacts();
-    if (name === 'subscriptions') fetchSubscriptions(1);
     if (name === 'sessions') { loadActiveSessions(); startAutoRefresh('sessions'); }
     else { stopAutoRefresh('sessions'); }
     if (name === 'loginlogs') { loadLoginAttempts(); startAutoRefresh('loginlogs'); }
@@ -3553,7 +3468,7 @@ function showTableSkeleton() {
     if (!body) return;
     let html = '';
     for (let i = 0; i < 8; i++) {
-        html += `<tr class="skel-row"><td><div class="flex items-center gap-2.5"><div class="skel-circle" style="width:32px;height:32px"></div><div><div class="skel-bar w-24 h-3 mb-1"></div><div class="skel-bar w-16 h-2"></div></div></div></td><td><div class="skel-bar w-32 h-3"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-20 h-2"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div></div></td></tr>`;
+        html += `<tr class="skel-row"><td><div class="flex items-center gap-2.5"><div class="skel-circle" style="width:32px;height:32px"></div><div><div class="skel-bar w-24 h-3 mb-1"></div><div class="skel-bar w-16 h-2"></div></div></div></td><td><div class="skel-bar w-32 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-20 h-2"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div></div></td></tr>`;
     }
     body.innerHTML = html;
 }
@@ -3565,7 +3480,7 @@ function renderUsersTable(users) {
     users.forEach(u => _userDataCache.set(u.id, u));
     const body = document.getElementById('usersBody');
     if (!users.length) {
-        body.innerHTML = `<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="user-empty-title">No users found</div><div class="user-empty-sub">Try adjusting your search or filter criteria</div></div></td></tr>`;
+        body.innerHTML = `<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="user-empty-title">No users found</div><div class="user-empty-sub">Try adjusting your search or filter criteria</div></div></td></tr>`;
         return;
     }
     body.innerHTML = users.map(u => {
@@ -3574,11 +3489,6 @@ function renderUsersTable(users) {
         const avatarHtml = u.profile_image
             ? `<img src="${escHtml(u.profile_image)}?t=${Date.now()}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0" style="display:none">${escHtml(initial)}</div>`
             : `<div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0">${escHtml(initial)}</div>`;
-        const platCount = u.active_platform_count || (u.active_platforms || []).length;
-        const platNames = (u.active_platforms || []).join(', ');
-        const platChip = platCount > 0
-            ? `<span class="plat-count-chip" title="${escHtml(platNames)}">${platCount} platform${platCount > 1 ? 's' : ''}</span>`
-            : '<span class="plat-count-chip none">None</span>';
         const toggleAction = u.is_active ? 'disable' : 'enable';
         const toggleIcon = u.is_active
             ? '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>'
@@ -3586,12 +3496,12 @@ function renderUsersTable(users) {
         return `<tr>
             <td><div class="flex items-center gap-2.5">${avatarHtml}<div><p class="font-medium text-sm text-gray-900">${escHtml(displayName)}</p><p class="text-[11px] text-gray-400">@${escHtml(u.username)}</p></div></div></td>
             <td class="text-sm text-gray-500" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(u.email || '—')}</td>
-            <td>${platChip}</td>
             <td style="white-space:nowrap">${getExpiryDisplay(u)}</td>
             <td>${getUserStatusBadge(u)}</td>
-            <td style="text-align:right"><div class="tbl-actions" style="justify-content:flex-end">
-                <button onclick="openViewUserModalById(${u.id})" class="tbl-act tbl-act-view" title="View details" aria-label="View user details"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
-                <button onclick="openEditModalById(${u.id})" class="tbl-act tbl-act-edit" title="Edit user" aria-label="Edit user"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+            <td style="text-align:right"><div class="tbl-actions" style="justify-content:flex-end;gap:3px">
+                <button onclick="openViewUserModalById(${u.id})" class="tbl-act tbl-act-view" title="View profile" aria-label="View user profile"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
+                <button onclick="openEditModalById(${u.id})" class="tbl-act tbl-act-edit" title="Edit profile" aria-label="Edit user profile"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                <button onclick="openAccessModal(${u.id})" class="tbl-act" title="Manage subscriptions" aria-label="Manage user subscriptions" style="color:#6C5CE7;border-color:#DDD6FE"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg></button>
                 <button onclick="toggleUser(${u.id},'${toggleAction}')" class="tbl-act ${u.is_active ? 'tbl-act-danger' : 'tbl-act-success'}" title="${u.is_active ? 'Disable user' : 'Enable user'}" aria-label="${u.is_active ? 'Disable user' : 'Enable user'}">${toggleIcon}</button>
                 ${u.device_id ? `<button onclick="toggleUser(${u.id},'reset_device')" class="tbl-act" title="Reset device lock" aria-label="Reset device lock"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>` : ''}
                 ${ADMIN_LEVEL === 'super_admin' ? `<button onclick="deleteUser(${u.id},'${escHtml(u.username).replace(/'/g, "\\'")}')" class="tbl-act tbl-act-danger" title="Delete user" aria-label="Delete user"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
@@ -3637,7 +3547,7 @@ async function fetchUsersFromServer(page) {
         if (res.status === 401) { window.location.href = 'index.html'; return; }
         const data = await res.json();
         if (!data.success) {
-            document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><div class="user-empty-title">Failed to load users</div><div class="user-empty-sub">Please try refreshing the page</div></div></td></tr>';
+            document.getElementById('usersBody').innerHTML = '<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><div class="user-empty-title">Failed to load users</div><div class="user-empty-sub">Please try refreshing the page</div></div></td></tr>';
             return;
         }
         const users = data.users || [];
@@ -3649,7 +3559,7 @@ async function fetchUsersFromServer(page) {
         renderUsersPagination();
     } catch (e) {
         console.error('fetchUsersFromServer error', e);
-        document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
+        document.getElementById('usersBody').innerHTML = '<tr><td colspan="5"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
     }
     finally { _usersLoading = false; }
 }
@@ -3735,137 +3645,19 @@ function openEditModal(u) {
         avatar.classList.remove('hidden');
         avatar.textContent = (displayName[0] || '?').toUpperCase();
     }
-    document.getElementById('editDurationType').value = 'days';
-    onDurationTypeChange();
-    const existingPlats = (u.active_platforms || []).map(p => p.toLowerCase());
-    const grid = document.getElementById('editPlatGrid');
-    grid.innerHTML = ALL_PLATFORMS.filter(p => p.is_active).map(p => {
-        const already = existingPlats.includes(p.name.toLowerCase());
-        const initial = (p.name||'?')[0].toUpperCase();
-        const bgColor = p.bg_color_hex || '#4F46E5';
-        const logoHtml = p.logo_url
-            ? `<img src="${escHtml(p.logo_url)}" class="w-6 h-6 rounded object-cover flex-shrink-0" onerror="this.outerHTML='<div class=\\'w-6 h-6 rounded flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0\\' style=\\'background:${bgColor}\\'>${initial}</div>'"/>`
-            : `<div class="w-6 h-6 rounded flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0" style="background:${bgColor}">${initial}</div>`;
-        return `<label class="editPlatLabel flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-all cursor-pointer text-xs ${already ? 'border-green-300 bg-green-50 opacity-70' : 'border-gray-200 hover:border-indigo-300 hover:shadow-sm'}">
-            <input type="checkbox" class="editPlatCb rounded" value="${p.id}" ${already ? 'disabled checked' : ''} onchange="updateEditPlatCount();togglePlatHighlight(this)" style="display:none"/>
-            ${logoHtml}
-            <span class="flex-1 truncate ${already ? 'text-green-700 font-medium' : 'text-gray-700'}">${escHtml(p.name)}</span>
-            <span class="editPlatCheck flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all ${already ? 'bg-green-500 text-white' : 'border-2 border-gray-300'}">
-                ${already ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
-            </span>
-        </label>`;
-    }).join('') || '<div class="col-span-2 text-center text-gray-400 text-xs py-4">No active platforms available</div>';
-    updateEditPlatCount();
     document.getElementById('editUserModal').classList.remove('hidden');
-}
-
-function togglePlatHighlight(cb) {
-    const label = cb.closest('.editPlatLabel');
-    if (!label || cb.disabled) return;
-    const check = label.querySelector('.editPlatCheck');
-    if (cb.checked) {
-        label.classList.remove('border-gray-200');
-        label.classList.add('border-indigo-400', 'bg-indigo-50', 'shadow-sm');
-        check.className = 'editPlatCheck flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all bg-indigo-500 text-white';
-        check.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
-    } else {
-        label.classList.remove('border-indigo-400', 'bg-indigo-50', 'shadow-sm');
-        label.classList.add('border-gray-200');
-        check.className = 'editPlatCheck flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all border-2 border-gray-300';
-        check.innerHTML = '';
-    }
-}
-
-function onDurationTypeChange() {
-    const type = document.getElementById('editDurationType').value;
-    const sel = document.getElementById('editDuration');
-    const custom = document.getElementById('editDurationCustom');
-    sel.classList.toggle('hidden', type === 'custom');
-    custom.classList.toggle('hidden', type !== 'custom');
-    sel.innerHTML = '';
-    if (type === 'days') {
-        [{v:7,t:'7 Days'},{v:15,t:'15 Days'},{v:30,t:'30 Days'},{v:60,t:'60 Days'},{v:90,t:'90 Days'}].forEach(o => sel.add(new Option(o.t, o.v)));
-        sel.value = '30';
-    } else if (type === 'months') {
-        [{v:30,t:'1 Month'},{v:90,t:'3 Months'},{v:180,t:'6 Months'},{v:270,t:'9 Months'}].forEach(o => sel.add(new Option(o.t, o.v)));
-        sel.value = '30';
-    } else if (type === 'years') {
-        [{v:365,t:'1 Year'},{v:730,t:'2 Years'},{v:1095,t:'3 Years'}].forEach(o => sel.add(new Option(o.t, o.v)));
-        sel.value = '365';
-    }
-    updateDurationLabel();
-    sel.onchange = updateDurationLabel;
-    custom.oninput = updateDurationLabel;
-}
-
-function updateDurationLabel() {
-    const type = document.getElementById('editDurationType').value;
-    const label = document.getElementById('editDurationLabel');
-    if (type === 'custom') {
-        const v = parseInt(document.getElementById('editDurationCustom').value) || 0;
-        label.textContent = v > 0 ? v + ' Day' + (v !== 1 ? 's' : '') : 'Enter days';
-    } else {
-        const sel = document.getElementById('editDuration');
-        label.textContent = sel.options[sel.selectedIndex]?.text || '';
-    }
-}
-
-function getEditDurationDays() {
-    const type = document.getElementById('editDurationType').value;
-    if (type === 'custom') {
-        const v = parseInt(document.getElementById('editDurationCustom').value);
-        return v > 0 && v <= 3650 ? v : 0;
-    }
-    return parseInt(document.getElementById('editDuration').value) || 0;
-}
-
-function updateEditPlatCount() {
-    const cbs = document.querySelectorAll('.editPlatCb:checked:not(:disabled)');
-    const count = cbs.length;
-    const el = document.getElementById('editPlatCount');
-    el.textContent = count > 0 ? count + ' new' : '0 new';
-    el.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold ' + (count > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-400');
-    const btn = document.getElementById('editAssignBtn');
-    btn.classList.toggle('hidden', count === 0);
-    if (count > 0) {
-        const dur = getEditDurationDays();
-        btn.querySelector('span')?.remove();
-        const durText = dur > 0 ? ' for ' + document.getElementById('editDurationLabel').textContent : '';
-        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Assign ' + count + ' Platform' + (count>1?'s':'') + durText;
-    }
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        const accessMdl = document.getElementById('accessModal');
+        if (accessMdl && !accessMdl.classList.contains('hidden')) { closeAccessModal(); return; }
         const editModal = document.getElementById('editUserModal');
         if (editModal && !editModal.classList.contains('hidden')) { closeEditModal(); return; }
         const viewModal = document.getElementById('viewUserModal');
         if (viewModal && !viewModal.classList.contains('hidden')) { closeViewUserModal(); return; }
     }
 });
-
-async function assignPlatformsToUser() {
-    const userId = parseInt(document.getElementById('editUserId').value);
-    const duration = getEditDurationDays();
-    if (!duration || duration < 1) { showAlert('Please enter a valid duration.', true); return; }
-    const cbs = document.querySelectorAll('.editPlatCb:checked:not(:disabled)');
-    const platformIds = Array.from(cbs).map(cb => parseInt(cb.value));
-    if (!platformIds.length) { showAlert('Select at least one platform.', true); return; }
-    const btn = document.getElementById('editAssignBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Assigning...';
-    try {
-        const res = await fetch('api/assign_platforms', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId, platform_ids: platformIds, duration_in_days: duration }) });
-        const data = await res.json();
-        if (data.success) {
-            showAlert(data.message || 'Platforms assigned successfully!');
-            closeEditModal();
-            refreshUsersTable();
-        } else { showAlert(data.message || 'Failed to assign.', true); }
-    } catch (e) { showAlert('Network error.', true); }
-    btn.disabled = false;
-    btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Assign Selected Platforms';
-}
 
 function closeEditModal() {
     document.getElementById('editUserModal').classList.add('hidden');
@@ -5495,12 +5287,9 @@ async function vuLoadUserSubs(userId) {
 
 function vuGoToSubscriptions() {
     document.getElementById('viewUserModal')?.classList.add('hidden');
-    document.body.classList.remove('overflow-hidden');
-    const userId = VIEW_USER_DATA?.id;
-    if (userId) {
-        document.getElementById('subSearch').value = VIEW_USER_DATA.username || '';
+    if (VIEW_USER_DATA?.id) {
+        openAccessModal(VIEW_USER_DATA.id);
     }
-    showSection('subscriptions');
 }
 
 async function vuLoadUserSlots(userId) {
@@ -8968,234 +8757,124 @@ async function saveGlobalWhatsApp() {
     } catch(e) { showAlert('Network error', true); }
 }
 
-let _subPage = 1;
-let _subSelectedIds = new Set();
-let _subSearchTimer = null;
-let _subPlatformsLoaded = false;
+let _amUserId = null;
 
-function subSearchDebounced() {
-    clearTimeout(_subSearchTimer);
-    _subSearchTimer = setTimeout(() => fetchSubscriptions(1), 350);
+function openAccessModal(userId) {
+    const u = _userDataCache.get(userId);
+    _amUserId = userId;
+    const displayName = u ? (u.name || u.username) : 'User #' + userId;
+    document.getElementById('amUserLabel').textContent = displayName + (u ? ' (@' + u.username + ')' : '');
+    const platSel = document.getElementById('amPlatform');
+    platSel.innerHTML = '<option value="">Select platform...</option>' + ALL_PLATFORMS.filter(p => p.is_active).map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
+    document.getElementById('accessModal').classList.remove('hidden');
+    amLoadSubs(userId);
 }
 
-function subFilterChanged() { fetchSubscriptions(1); }
-
-function subChangePage(delta) {
-    const newPage = _subPage + delta;
-    if (newPage >= 1) fetchSubscriptions(newPage);
+function closeAccessModal() {
+    document.getElementById('accessModal').classList.add('hidden');
+    _amUserId = null;
 }
 
-function subToggleSelectAll(checked) {
-    _subSelectedIds.clear();
-    document.querySelectorAll('.sub-row-cb').forEach(cb => {
-        cb.checked = checked;
-        if (checked) _subSelectedIds.add(parseInt(cb.dataset.subId));
-    });
-    document.getElementById('subThSelectAll').checked = checked;
-    subUpdateBulkBar();
-}
+function amRefresh() { if (_amUserId) amLoadSubs(_amUserId); }
 
-function subToggleRow(subId, checked) {
-    if (checked) _subSelectedIds.add(subId); else _subSelectedIds.delete(subId);
-    const allCbs = document.querySelectorAll('.sub-row-cb');
-    const allChecked = allCbs.length > 0 && [...allCbs].every(cb => cb.checked);
-    document.getElementById('subThSelectAll').checked = allChecked;
-    subUpdateBulkBar();
-}
-
-function subUpdateBulkBar() {
-    const bar = document.getElementById('subBulkBar');
-    const count = _subSelectedIds.size;
-    document.getElementById('subSelectedCount').textContent = count + ' selected';
-    bar.style.display = count > 0 ? 'flex' : 'none';
-}
-
-function subShowSkeleton() {
-    const body = document.getElementById('subBody');
-    let html = '';
-    for (let i = 0; i < 8; i++) {
-        html += `<tr class="skel-row"><td><div class="skel-bar" style="width:14px;height:14px;border-radius:3px"></div></td><td><div class="flex items-center gap-2"><div class="skel-circle" style="width:28px;height:28px"></div><div><div class="skel-bar w-20 h-3 mb-1"></div><div class="skel-bar w-14 h-2"></div></div></div></td><td><div class="flex items-center gap-2"><div class="skel-bar" style="width:20px;height:20px;border-radius:6px"></div><div class="skel-bar w-16 h-3"></div></div></td><td><div class="skel-bar w-20 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-18 h-2"></div></td><td><div class="skel-bar w-16 h-5" style="border-radius:9999px"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar" style="width:28px;height:28px;border-radius:8px"></div><div class="skel-bar" style="width:28px;height:28px;border-radius:8px"></div></div></td></tr>`;
-    }
-    body.innerHTML = html;
-}
-
-function subPopulateDropdowns() {
-    if (_subPlatformsLoaded) return;
-    _subPlatformsLoaded = true;
-    const platFilter = document.getElementById('subPlatformFilter');
-    const platAssign = document.getElementById('subAssignPlatform');
-    const userAssign = document.getElementById('subAssignUser');
-    const platOpts = ALL_PLATFORMS.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
-    platFilter.innerHTML = '<option value="">All Platforms</option>' + platOpts;
-    platAssign.innerHTML = '<option value="">Select platform...</option>' + platOpts;
-    fetch('api/get_users?per_page=500', { credentials: 'include' }).then(r => r.json()).then(d => {
-        if (d.success) {
-            userAssign.innerHTML = '<option value="">Select user...</option>' + (d.users || []).map(u => `<option value="${u.id}">${escHtml(u.username)}${u.name ? ' — ' + escHtml(u.name) : ''}</option>`).join('');
-        }
-    }).catch(() => {});
-}
-
-function subGetExpiryDisplay(daysLeft, endDate) {
-    let relClass, relText;
-    if (daysLeft < 0) { relClass = 'expiry-danger'; relText = Math.abs(daysLeft) + 'd ago'; }
-    else if (daysLeft === 0) { relClass = 'expiry-danger'; relText = 'Today'; }
-    else if (daysLeft <= 3) { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
-    else if (daysLeft <= 7) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
-    else if (daysLeft <= 30) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
-    else { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
-    return `<div><div class="expiry-rel ${relClass}">${relText}</div><div class="expiry-abs">${formatDate(endDate)}</div></div>`;
-}
-
-function subGetStatusBadge(status) {
-    const map = {
-        active: ['badge-active', 'Active'],
-        expiring: ['badge-expiring', 'Expiring'],
-        expired: ['badge-expired', 'Expired'],
-        revoked: ['badge-disabled', 'Revoked'],
-    };
-    const [cls, label] = map[status] || ['badge-no-access', status];
-    return `<span class="badge-status ${cls}"><span class="badge-dot"></span>${label}</span>`;
-}
-
-async function fetchSubscriptions(page = 1) {
-    _subPage = page;
-    _subSelectedIds.clear();
-    subUpdateBulkBar();
-    document.getElementById('subThSelectAll').checked = false;
-
-    subShowSkeleton();
-    subPopulateDropdowns();
-
-    const status = document.getElementById('subStatusFilter').value;
-    const platformId = document.getElementById('subPlatformFilter').value;
-    const sort = document.getElementById('subSort').value;
-    const search = document.getElementById('subSearch').value.trim();
-
-    const params = new URLSearchParams({ page, per_page: 20 });
-    if (status !== 'all') params.set('status', status);
-    if (platformId) params.set('platform_id', platformId);
-    if (sort) params.set('sort', sort);
-    if (search) params.set('search', search);
-
+async function amLoadSubs(userId) {
+    const activeC = document.getElementById('amActiveSubs');
+    const expiredC = document.getElementById('amExpiredSubs');
+    activeC.innerHTML = '<div class="text-center text-gray-400 text-xs py-4">Loading...</div>';
+    expiredC.innerHTML = '';
     try {
-        const res = await fetch('api/get_subscriptions?' + params.toString(), { credentials: 'include' });
+        const res = await fetch(`api/get_user_subscriptions?user_id=${userId}`, { credentials: 'include' });
         const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-
         const subs = data.subscriptions || [];
-        const pag = data.pagination || {};
-        document.getElementById('subCountBadge').textContent = pag.total_count || 0;
+        const now = new Date();
+        const active = subs.filter(s => s.is_active == 1 && new Date(s.end_date) >= now);
+        const expired = subs.filter(s => s.is_active != 1 || new Date(s.end_date) < now);
 
-        const filterParts = [];
-        if (status !== 'all') filterParts.push(status.replace('_', ' '));
-        if (platformId) filterParts.push('platform #' + platformId);
-        if (search) filterParts.push('search: "' + search + '"');
-        document.getElementById('subFilterInfo').textContent = filterParts.length ? 'Showing: ' + filterParts.join(', ') : '';
-
-        const body = document.getElementById('subBody');
-        if (!subs.length) {
-            body.innerHTML = `<tr><td colspan="7"><div class="text-center py-12"><svg class="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg><p class="text-sm text-gray-400 font-medium">No subscriptions found</p><p class="text-xs text-gray-300 mt-1">Try adjusting filters or assign new access below</p></div></td></tr>`;
+        if (!active.length) {
+            activeC.innerHTML = '<div class="text-center text-gray-400 text-xs py-4">No active subscriptions</div>';
         } else {
-            body.innerHTML = subs.map(s => {
-                const avatar = s.user_avatar ? `<img src="${escHtml(s.user_avatar)}" class="w-7 h-7 rounded-full object-cover"/>` : `<div class="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold">${(s.username || '?')[0].toUpperCase()}</div>`;
-                const platLogo = s.platform_logo ? `<img src="${escHtml(s.platform_logo)}" class="w-5 h-5 rounded" style="object-fit:contain"/>` : `<div class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold text-white" style="background:${s.platform_color || '#6366F1'}">${(s.platform_name || '?')[0]}</div>`;
-                const canExtend = s.status !== 'revoked';
-                const canRevoke = s.status === 'active' || s.status === 'expiring';
-                return `<tr class="group hover:bg-gray-50/50 transition-colors">
-                    <td><input type="checkbox" class="sub-row-cb w-3.5 h-3.5 rounded border-gray-300 text-indigo-600" data-sub-id="${s.id}" onchange="subToggleRow(${s.id}, this.checked)" ${_subSelectedIds.has(s.id) ? 'checked' : ''}/></td>
-                    <td><div class="flex items-center gap-2">${avatar}<div><div class="text-xs font-semibold text-gray-800">${escHtml(s.username || '—')}</div><div class="text-[10px] text-gray-400">${escHtml(s.user_name || '')}</div></div></div></td>
-                    <td><div class="flex items-center gap-2">${platLogo}<span class="text-xs font-medium text-gray-700">${escHtml(s.platform_name || '—')}</span></div></td>
-                    <td><div class="text-[10px] text-gray-400">${formatDate(s.start_date)} — ${formatDate(s.end_date)}</div></td>
-                    <td style="white-space:nowrap">${subGetExpiryDisplay(s.days_left, s.end_date)}</td>
-                    <td>${subGetStatusBadge(s.status)}</td>
-                    <td style="text-align:right"><div class="flex items-center gap-1 justify-end opacity-60 group-hover:opacity-100 transition-opacity">
-                        ${canExtend ? `<button class="tbl-act tbl-act-success" title="Extend 7 days" aria-label="Extend subscription 7 days" onclick="subExtendSingle(${s.id}, 7)"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
-                        <button class="tbl-act tbl-act-success" title="Extend 30 days" aria-label="Extend subscription 30 days" onclick="subExtendSingle(${s.id}, 30)"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></button>` : ''}
-                        ${canRevoke ? `<button class="tbl-act tbl-act-danger" title="Revoke access" aria-label="Revoke subscription" onclick="subRevokeSingle(${s.id})"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>` : ''}
-                    </div></td>
-                </tr>`;
-            }).join('');
+            activeC.innerHTML = active.map(s => amSubCard(s, true)).join('');
         }
 
-        const pagDiv = document.getElementById('subPagination');
-        if (pag.total_pages > 1) {
-            pagDiv.style.display = 'flex';
-            document.getElementById('subPageInfo').textContent = `Showing ${((pag.page - 1) * pag.per_page) + 1}–${Math.min(pag.page * pag.per_page, pag.total_count)} of ${pag.total_count}`;
-            document.getElementById('subPageNum').textContent = `Page ${pag.page} of ${pag.total_pages}`;
-            document.getElementById('subPrevBtn').disabled = pag.page <= 1;
-            document.getElementById('subNextBtn').disabled = pag.page >= pag.total_pages;
+        if (!expired.length) {
+            expiredC.innerHTML = '<div class="text-center text-gray-300 text-[10px] py-3">No expired subscriptions</div>';
         } else {
-            pagDiv.style.display = pag.total_count > 0 ? 'flex' : 'none';
-            if (pag.total_count > 0) {
-                document.getElementById('subPageInfo').textContent = `Showing all ${pag.total_count} subscription(s)`;
-                document.getElementById('subPageNum').textContent = 'Page 1 of 1';
-            }
-            document.getElementById('subPrevBtn').disabled = true;
-            document.getElementById('subNextBtn').disabled = true;
+            expiredC.innerHTML = expired.map(s => amSubCard(s, false)).join('');
         }
-    } catch (err) {
-        document.getElementById('subBody').innerHTML = `<tr><td colspan="7"><div class="text-center py-8 text-red-500 text-xs"><svg class="w-6 h-6 mx-auto mb-2 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>${escHtml(err.message || 'Failed to load subscriptions')}</div></td></tr>`;
+    } catch (e) {
+        activeC.innerHTML = '<div class="text-center text-red-400 text-xs py-4">Failed to load subscriptions</div>';
     }
 }
 
-async function subExtendSingle(subId, days) {
+function amSubCard(s, isActive) {
+    const initial = (s.platform_name || '?')[0].toUpperCase();
+    const bgColor = s.platform_color || '#4F46E5';
+    const logo = s.platform_logo;
+    const logoHtml = logo
+        ? `<img src="${escHtml(logo)}" class="w-8 h-8 rounded-lg object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
+        : `<div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
+    const daysLeft = s.days_left !== undefined ? s.days_left : Math.ceil((new Date(s.end_date) - new Date()) / 86400000);
+    let statusCls, statusLabel;
+    if (!isActive) { statusCls = 'badge-expired'; statusLabel = s.is_active == 0 ? 'Revoked' : 'Expired'; }
+    else if (daysLeft <= 3) { statusCls = 'badge-expiring'; statusLabel = `${daysLeft}d left`; }
+    else if (daysLeft <= 7) { statusCls = 'badge-expiring'; statusLabel = `${daysLeft}d left`; }
+    else { statusCls = 'badge-active'; statusLabel = `${daysLeft}d left`; }
+
+    return `<div class="vu-sub-card">
+        <div class="flex items-center gap-2.5 min-w-0">
+            ${logoHtml}
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-gray-800 truncate">${escHtml(s.platform_name)}</p>
+                <p class="text-[10px] text-gray-400">${formatDate(s.start_date)} → ${formatDate(s.end_date)}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="badge-status ${statusCls}" style="font-size:10px;padding:1px 8px"><span class="badge-dot"></span>${statusLabel}</span>
+            ${isActive ? `
+                <button onclick="amExtendSub(${s.id}, 7)" class="tbl-act tbl-act-success" style="width:24px;height:24px" title="Extend 7 days" aria-label="Extend 7 days"><span style="font-size:9px;font-weight:700">+7</span></button>
+                <button onclick="amExtendSub(${s.id}, 30)" class="tbl-act tbl-act-success" style="width:24px;height:24px" title="Extend 30 days" aria-label="Extend 30 days"><span style="font-size:9px;font-weight:700">+30</span></button>
+            ` : ''}
+            <button onclick="amRevokeSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="tbl-act tbl-act-danger" style="width:24px;height:24px" title="${isActive ? 'Revoke access' : 'Delete subscription'}" aria-label="${isActive ? 'Revoke' : 'Delete'}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </div>`;
+}
+
+async function amExtendSub(subId, days) {
     try {
         const res = await fetch('api/extend_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId, days }) });
         const data = await res.json();
-        if (data.success) { showAlert(`Subscription extended by ${days} days`); fetchSubscriptions(_subPage); }
-        else showAlert(data.message || 'Failed', true);
+        showAlert(data.message, !data.success);
+        if (data.success) { amRefresh(); refreshUsersTable(); }
     } catch { showAlert('Network error', true); }
 }
 
-async function subRevokeSingle(subId) {
-    if (!confirm('Revoke this subscription? The user will lose access immediately.')) return;
+async function amRevokeSub(subId, platformName) {
+    if (!confirm(`Revoke access to "${platformName}"?`)) return;
     try {
         const res = await fetch('api/revoke_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId }) });
         const data = await res.json();
-        if (data.success) { showAlert('Subscription revoked'); fetchSubscriptions(_subPage); }
-        else showAlert(data.message || 'Failed', true);
+        showAlert(data.message, !data.success);
+        if (data.success) { amRefresh(); refreshUsersTable(); }
     } catch { showAlert('Network error', true); }
 }
 
-async function subBulkExtend(days) {
-    const ids = [..._subSelectedIds];
-    if (!ids.length) return;
-    if (!confirm(`Extend ${ids.length} subscription(s) by ${days} days?`)) return;
-    try {
-        const res = await fetch('api/bulk_extend_subscriptions', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_ids: ids, days }) });
-        const data = await res.json();
-        if (data.success) { showAlert(data.message); fetchSubscriptions(_subPage); }
-        else showAlert(data.message || 'Failed', true);
-    } catch { showAlert('Network error', true); }
-}
-
-async function subBulkRevoke() {
-    const ids = [..._subSelectedIds];
-    if (!ids.length) return;
-    if (!confirm(`Revoke ${ids.length} subscription(s)? Users will lose access immediately.`)) return;
-    try {
-        const res = await fetch('api/bulk_revoke_subscriptions', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_ids: ids }) });
-        const data = await res.json();
-        if (data.success) { showAlert(data.message); fetchSubscriptions(_subPage); }
-        else showAlert(data.message || 'Failed', true);
-    } catch { showAlert('Network error', true); }
-}
-
-async function subAssignAccess() {
-    const userId = document.getElementById('subAssignUser').value;
-    const platformId = document.getElementById('subAssignPlatform').value;
-    const duration = document.getElementById('subAssignDuration').value;
-    if (!userId || !platformId) { showAlert('Select a user and platform', true); return; }
-    const btn = document.getElementById('subAssignBtn');
+async function amAddSubscription() {
+    if (!_amUserId) return;
+    const platformId = document.getElementById('amPlatform').value;
+    const duration = document.getElementById('amDuration').value;
+    if (!platformId) { showAlert('Select a platform', true); return; }
+    const btn = document.getElementById('amAddBtn');
     btn.disabled = true; btn.style.opacity = '0.6';
     try {
-        const res = await fetch('api/add_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: parseInt(userId), platform_id: parseInt(platformId), duration_days: parseInt(duration) }) });
+        const res = await fetch('api/add_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: _amUserId, platform_id: parseInt(platformId), duration_days: parseInt(duration) }) });
         const data = await res.json();
         if (data.success) {
-            showAlert('Subscription assigned successfully');
-            document.getElementById('subAssignUser').value = '';
-            document.getElementById('subAssignPlatform').value = '';
-            fetchSubscriptions(1);
+            showAlert('Subscription assigned');
+            document.getElementById('amPlatform').value = '';
+            amRefresh();
+            refreshUsersTable();
         } else showAlert(data.message || 'Failed', true);
     } catch { showAlert('Network error', true); }
     finally { btn.disabled = false; btn.style.opacity = '1'; }
