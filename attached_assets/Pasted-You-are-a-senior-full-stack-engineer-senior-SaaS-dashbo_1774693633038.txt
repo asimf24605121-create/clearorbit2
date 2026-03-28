@@ -1,0 +1,338 @@
+You are a senior full-stack engineer, senior SaaS dashboard designer, senior product analyst, senior UX architect, and senior performance engineer.
+
+I want you to deeply inspect and improve the “Account Intelligence” section of my admin dashboard.
+
+IMPORTANT GLOBAL REQUIREMENT:
+This module and the whole platform must NOT feel slow.
+Everything must be optimized for smooth performance and scalability for 1000+ concurrent users.
+Every improvement must consider:
+- fast rendering
+- low-latency interactions
+- efficient API design
+- optimized database queries
+- aggregation caching
+- background jobs/queues for heavy intelligence calculations
+- websocket or incremental refresh where needed
+- minimal re-rendering on frontend
+- scalable architecture for 1000+ concurrent users
+
+==================================================
+CURRENT ACCOUNT INTELLIGENCE MODULE
+==================================================
+
+The visible Account Intelligence section currently includes:
+- Header: Account Intelligence
+- Subtitle: ALIE — Adaptive Learning Intelligence Engine
+- Action buttons:
+  - Run Intelligence
+  - Auto Clean
+  - Refresh
+- Summary stat cards:
+  - Total Accounts
+  - Avg IQ Score
+  - Stable
+  - Risky
+  - Dead
+  - Success Rate
+- Platform Breakdown
+  - Example: Netflix / Coursera
+  - status chips/counts
+  - IQ score per platform
+- Recent Intelligence Events
+  - account name
+  - platform
+  - intelligence score movement (e.g. 90 → 95)
+  - final status (STABLE / DEAD)
+  - timestamp
+
+==================================================
+WHAT I WANT YOU TO DO
+==================================================
+
+PHASE 1 — REAL PRODUCT / CODE AUDIT
+Inspect the actual implementation, not just the screenshot.
+
+Check:
+- frontend component / HTML structure of Account Intelligence
+- CSS/styling/layout
+- backend API routes used by this section
+- intelligence calculation logic
+- data source for summary metrics
+- platform breakdown query logic
+- recent events query logic
+- Run Intelligence behavior
+- Auto Clean behavior
+- Refresh behavior
+- loading and error states
+- caching or lack of caching
+- scalability issues
+- whether this module is production-safe for 1000+ concurrent users
+
+Then clearly report:
+1. what already works well
+2. what is weak or confusing
+3. what is missing
+4. what is visually poor
+5. what is risky architecturally
+6. what can become slow under 1000+ users
+
+==================================================
+PHASE 2 — GUI / UX IMPROVEMENT AUDIT
+==================================================
+
+Improve the Account Intelligence GUI into a premium SaaS analytics panel.
+
+Audit and improve:
+
+1. HEADER AREA
+- Make the title area stronger
+- Clarify what ALIE actually does
+- Add a short helper description/tooltips
+- Make action buttons clearer and safer
+
+2. ACTION BUTTONS
+- Run Intelligence
+- Auto Clean
+- Refresh
+
+For each button define:
+- exact purpose
+- when it should be enabled/disabled
+- confirmation needs
+- loading behavior
+- progress feedback
+- success/error feedback
+- permission rules
+- whether it should run synchronously or via background job
+
+3. SUMMARY CARDS
+Current cards are too basic.
+Redesign them to be more useful and decision-oriented.
+
+Improve:
+- hierarchy
+- color meaning
+- trend indicators
+- delta vs previous run
+- tooltips
+- click-to-filter behavior
+- mini sparkline/trend if appropriate
+- better status semantics
+
+Examples of better cards:
+- Total Accounts
+- Healthy Accounts
+- Accounts Requiring Action
+- Avg Intelligence Score
+- Recent Failures
+- Success Rate Trend
+- Last Run Time
+- Queue/Job Status
+
+4. PLATFORM BREAKDOWN
+Current platform breakdown is too shallow.
+Improve it so admins can quickly understand platform health.
+
+Add:
+- total accounts per platform
+- stable / risky / dead counts
+- avg score
+- trend compared to previous run
+- last checked time
+- actionable warning if a platform is degrading
+- click to drill into affected accounts
+
+5. RECENT INTELLIGENCE EVENTS
+Current event list needs better usability.
+
+Improve:
+- event severity
+- event icons
+- better row layout
+- filter by platform/status/severity
+- click to open account details
+- show why a score changed
+- show intelligence reason tags
+- support pagination or virtual list if many events
+- highlight important events first
+
+6. CLARITY OF “IQ SCORE”
+IQ score may be confusing.
+Improve naming and explanation.
+
+Consider:
+- renaming to Intelligence Score / Health Score if better
+- adding tooltip explaining score formula
+- showing score bands:
+  - 90+ Stable
+  - 70–89 Watch
+  - 40–69 Risky
+  - <40 Dead / Failed
+- showing why a score changed
+
+==================================================
+PHASE 3 — WHAT IS MISSING
+==================================================
+
+I want you to identify missing features this module should have.
+
+Examples of likely missing features:
+- Last intelligence run timestamp
+- Run status / queue state
+- partial progress indicator
+- filters
+- timeframe selector
+- trend chart
+- score distribution chart
+- top deteriorating accounts
+- top improving accounts
+- recommended actions
+- auto-clean preview before execution
+- “why flagged?” explanations
+- drill-down into an account’s intelligence history
+- export/report capability
+- alert thresholds
+- anomaly detection
+- intelligence confidence score
+- background job logs
+- retry failed intelligence runs
+
+Tell me exactly what should exist in a professional version.
+
+==================================================
+PHASE 4 — ADMIN DECISION SUPPORT
+==================================================
+
+Right now the section shows data, but may not help admins decide fast enough.
+
+Improve it so the admin can immediately answer:
+- which accounts need action now?
+- which platform is getting worse?
+- which accounts died recently?
+- what should I clean first?
+- what changed since last run?
+- is auto clean safe right now?
+- did intelligence improve after replacement?
+- what caused the biggest score drop?
+
+Design the module for operational decision-making, not just display.
+
+==================================================
+PHASE 5 — UI REDESIGN REQUIREMENTS
+==================================================
+
+Without making the page heavy or slow, redesign the GUI professionally.
+
+Requirements:
+- compact but premium
+- clear hierarchy
+- less wasted whitespace
+- better section separation
+- better card consistency
+- cleaner breakdown layout
+- improved event list readability
+- responsive on desktop/tablet
+- accessible contrast
+- tooltips for non-obvious metrics
+- professional admin-dashboard appearance
+
+Possible improvements:
+- top KPI row
+- platform health table or compact cards
+- recent events timeline
+- trends chart
+- warnings/recommendations panel
+- sticky action bar
+- click-to-filter interactions
+
+==================================================
+PHASE 6 — BACKEND / DATA / PERFORMANCE IMPROVEMENTS
+==================================================
+
+I do not want a GUI-only redesign.
+I want real product-grade improvement.
+
+Inspect and improve:
+- API design
+- query performance
+- background job execution
+- intelligence recomputation strategy
+- caching strategy
+- aggregation tables/materialized summaries if needed
+- websocket / live updates
+- rate limiting for Run Intelligence
+- Auto Clean safety rules
+- audit logging
+- retry logic
+- concurrency handling
+
+IMPORTANT:
+This must remain fast and scalable for 1000+ concurrent users.
+Do not create heavy blocking requests.
+If intelligence calculation is expensive, move it to queued background jobs.
+Use efficient summaries for dashboard rendering.
+
+==================================================
+PHASE 7 — SAFETY / AUTO CLEAN
+==================================================
+
+Auto Clean sounds destructive.
+Improve it safely.
+
+Define:
+- what exactly Auto Clean does
+- whether it disables/removes dead accounts
+- whether it archives risky accounts
+- whether it only targets threshold-based failures
+- preview mode before execution
+- confirm modal with impact summary
+- rollback or undo support
+- audit logs
+- permission restriction
+- dry-run mode
+
+I do not want dangerous admin actions without safety.
+
+==================================================
+PHASE 8 — FINAL OUTPUT I WANT
+==================================================
+
+After inspection, give me:
+
+1. CURRENT PROBLEMS REPORT
+- visual issues
+- UX issues
+- missing features
+- logic issues
+- scalability risks
+
+2. IMPROVEMENT PLAN
+- GUI improvements
+- product improvements
+- backend/data improvements
+- performance improvements for 1000+ concurrent users
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files to modify
+- what to change in each
+
+4. IMPLEMENTATION PLAN
+- safest build order
+- how to preserve current functionality
+- how to keep it fast
+
+5. CODE IMPLEMENTATION
+Actually improve the Account Intelligence section in the project.
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real implementation first
+- Improve both GUI and backend logic
+- Keep the UI fast and scalable
+- Preserve existing functionality while upgrading it
+- Make it production-ready
+- Optimize for 1000+ concurrent users
+- Avoid anything that could make the platform slow

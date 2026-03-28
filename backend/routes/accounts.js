@@ -1003,6 +1003,9 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
     const { action, account_id, platform_id } = req.query;
 
     if (action === 'dashboard') {
+      const cached = intelligenceCache.get('intel:dashboard');
+      if (cached) return res.json(cached);
+
       const accounts = await prisma.platformAccount.findMany({
         include: { platform: { select: { name: true } } },
       });
@@ -1026,42 +1029,65 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
       const stableCount = accounts.filter(a => classify(a) === 'stable').length;
       const riskyCount = accounts.filter(a => classify(a) === 'risky').length;
       const deadCount = accounts.filter(a => classify(a) === 'dead').length;
+      const activeCount = accounts.filter(a => a.isActive === 1).length;
       const totalSuccess = accounts.reduce((s, a) => s + (a.successCount || 0), 0);
       const totalFail = accounts.reduce((s, a) => s + (a.failCount || 0), 0);
       const successRate = (totalSuccess + totalFail) > 0 ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 100;
 
+      const lastRunTimes = accounts.map(a => a.lastIntelligenceRun).filter(Boolean).sort();
+      const lastRunAt = lastRunTimes.length > 0 ? lastRunTimes[lastRunTimes.length - 1] : null;
+
       const platformStats = {};
       accounts.forEach(a => {
         const pName = a.platform?.name || 'Unknown';
-        if (!platformStats[pName]) platformStats[pName] = { stable: 0, risky: 0, dead: 0, total_score: 0, count: 0 };
+        if (!platformStats[pName]) platformStats[pName] = { stable: 0, risky: 0, dead: 0, total_score: 0, count: 0, active: 0, total: 0 };
         const ps = platformStats[pName];
         ps.count++;
+        ps.total++;
         ps.total_score += (a.intelligenceScore || 0);
         ps[classify(a)]++;
+        if (a.isActive === 1) ps.active++;
       });
       Object.keys(platformStats).forEach(k => {
-        platformStats[k].avg_score = platformStats[k].count > 0
-          ? Math.round(platformStats[k].total_score / platformStats[k].count) : 0;
-        delete platformStats[k].total_score;
-        delete platformStats[k].count;
+        const ps = platformStats[k];
+        ps.avg_score = ps.count > 0 ? Math.round(ps.total_score / ps.count) : 0;
+        delete ps.total_score;
+        delete ps.count;
       });
+
+      const deteriorating = accounts
+        .filter(a => (a.stabilityStatus || '').toUpperCase() === 'RISKY' || ((a.intelligenceScore || 0) < 60 && (a.intelligenceScore || 0) >= 40))
+        .sort((a, b) => (a.intelligenceScore || 0) - (b.intelligenceScore || 0))
+        .slice(0, 5)
+        .map(a => ({ id: a.id, slot_name: a.slotName, platform: a.platform?.name, score: a.intelligenceScore || 0, status: a.stabilityStatus }));
+
+      const needsAction = accounts
+        .filter(a => classify(a) === 'dead' || (a.cookieStatus || '').toUpperCase() === 'EXPIRED' || (a.cookieStatus || '').toUpperCase() === 'DEAD')
+        .map(a => ({ id: a.id, slot_name: a.slotName, platform: a.platform?.name, score: a.intelligenceScore || 0, status: a.stabilityStatus, cookie_status: a.cookieStatus }));
 
       const recentEvents = await prisma.accountIntelligenceLog.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 20,
+        take: 30,
         include: {
           account: { select: { slotName: true, platform: { select: { name: true } } } },
         },
       });
 
-      return res.json({
+      const queueStatus = intelligenceQueue.getAll();
+
+      const result = {
         success: true,
         summary: {
-          total_accounts: totalAccounts, avg_score: avgScore,
+          total_accounts: totalAccounts, active_accounts: activeCount, avg_score: avgScore,
           stable_count: stableCount, risky_count: riskyCount,
           dead_count: deadCount, success_rate: successRate,
+          total_successes: totalSuccess, total_failures: totalFail,
+          last_run_at: lastRunAt,
         },
         platform_stats: platformStats,
+        deteriorating,
+        needs_action: needsAction,
+        queue_status: queueStatus,
         recent_events: recentEvents.map(e => ({
           id: e.id, account_id: e.accountId, platform_id: e.platformId,
           slot_name: e.account?.slotName || null,
@@ -1070,7 +1096,10 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
           old_stability: e.oldStability, new_stability: e.newStability,
           reason: e.reason, created_at: e.createdAt,
         })),
-      });
+      };
+
+      intelligenceCache.set('intel:dashboard', result, 15000);
+      return res.json(result);
     }
 
     const where = {};
@@ -1132,52 +1161,119 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
     }
 
     if (action === 'run_intelligence') {
-      const accounts = await prisma.platformAccount.findMany();
-      let updated = 0;
-      for (const account of accounts) {
-        const newScore = computeIntelligenceScore(account);
-        const newStability = classifyStability(newScore);
-        const oldStability = (account.stabilityStatus || 'UNKNOWN').toUpperCase();
-
-        if (newScore !== account.intelligenceScore || newStability !== oldStability) {
-          await prisma.platformAccount.update({
-            where: { id: account.id },
-            data: {
-              intelligenceScore: newScore, stabilityStatus: newStability,
-              healthStatus: newScore >= 50 ? 'healthy' : 'degraded',
-              lastIntelligenceRun: nowISO(),
-            },
-          });
-
-          await prisma.accountIntelligenceLog.create({
-            data: {
-              accountId: account.id, platformId: account.platformId,
-              eventType: 'intelligence_run',
-              oldScore: account.intelligenceScore || 0, newScore,
-              oldStability, newStability,
-              reason: 'Scheduled intelligence run', createdAt: nowISO(),
-            },
-          });
-        }
-        updated++;
+      const queueState = intelligenceQueue.getAll();
+      if (queueState.running > 0 || queueState.queued > 0) {
+        return res.json({ success: false, message: 'Intelligence run already in progress. Please wait.' });
       }
-      invalidateAccountCaches();
-      emitAdminEvent('intelligence_run_complete', { updated });
-      return res.json({ success: true, message: `Intelligence run complete. ${updated} accounts scored.` });
+
+      const jobId = intelligenceQueue.add('intelligence_run', async (data, updateProgress) => {
+        const accounts = await prisma.platformAccount.findMany();
+        let updated = 0;
+        const total = accounts.length;
+        for (let i = 0; i < accounts.length; i++) {
+          const account = accounts[i];
+          const newScore = computeIntelligenceScore(account);
+          const newStability = classifyStability(newScore);
+          const oldStability = (account.stabilityStatus || 'UNKNOWN').toUpperCase();
+
+          if (newScore !== account.intelligenceScore || newStability !== oldStability) {
+            await prisma.platformAccount.update({
+              where: { id: account.id },
+              data: {
+                intelligenceScore: newScore, stabilityStatus: newStability,
+                healthStatus: newScore >= 50 ? 'healthy' : 'degraded',
+                lastIntelligenceRun: nowISO(),
+              },
+            });
+
+            await prisma.accountIntelligenceLog.create({
+              data: {
+                accountId: account.id, platformId: account.platformId,
+                eventType: 'intelligence_run',
+                oldScore: account.intelligenceScore || 0, newScore,
+                oldStability, newStability,
+                reason: 'Scheduled intelligence run', createdAt: nowISO(),
+              },
+            });
+            updated++;
+          }
+          updateProgress(Math.round(((i + 1) / total) * 100));
+        }
+        invalidateAccountCaches();
+        emitAdminEvent('intelligence_run_complete', { updated, total });
+        return { updated, total };
+      }, {});
+
+      return res.json({ success: true, message: 'Intelligence run started in background.', job_id: jobId });
+    }
+
+    if (action === 'job_status') {
+      const jobId = req.body.job_id;
+      if (!jobId) {
+        const queueState = intelligenceQueue.getAll();
+        return res.json({ success: true, queue: queueState });
+      }
+      const status = intelligenceQueue.getStatus(jobId);
+      return res.json({ success: true, job: status });
+    }
+
+    if (action === 'auto_clean_preview') {
+      const targets = await prisma.platformAccount.findMany({
+        where: {
+          OR: [
+            { stabilityStatus: { in: ['DEAD', 'CRITICAL', 'critical', 'dead'] } },
+            { cookieStatus: { in: ['EXPIRED', 'DEAD'] } },
+            { healthStatus: 'degraded' },
+          ],
+          isActive: 1,
+        },
+        include: {
+          platform: { select: { name: true } },
+          _count: { select: { accountSessions: { where: { status: 'active' } } } },
+        },
+      });
+
+      const preview = targets.map(a => ({
+        id: a.id,
+        slot_name: a.slotName,
+        platform: a.platform?.name || 'Unknown',
+        score: a.intelligenceScore || 0,
+        stability: a.stabilityStatus,
+        cookie_status: a.cookieStatus,
+        active_sessions: a._count?.accountSessions || 0,
+        reason: (a.stabilityStatus || '').toUpperCase() === 'DEAD' ? 'Dead account'
+          : (a.cookieStatus || '').toUpperCase() === 'EXPIRED' ? 'Expired cookies'
+          : (a.cookieStatus || '').toUpperCase() === 'DEAD' ? 'Dead cookies'
+          : 'Degraded health',
+      }));
+
+      const totalSessions = preview.reduce((s, p) => s + p.active_sessions, 0);
+
+      return res.json({
+        success: true,
+        preview,
+        impact: {
+          accounts_to_disable: preview.length,
+          sessions_to_free: totalSessions,
+          platforms_affected: [...new Set(preview.map(p => p.platform))],
+        },
+      });
     }
 
     if (action === 'auto_clean') {
       const targets = await prisma.platformAccount.findMany({
         where: {
           OR: [
-            { healthStatus: 'degraded' },
             { stabilityStatus: { in: ['DEAD', 'CRITICAL', 'critical', 'dead'] } },
             { cookieStatus: { in: ['EXPIRED', 'DEAD'] } },
+            { healthStatus: 'degraded' },
           ],
+          isActive: 1,
         },
       });
 
       let cleaned = 0;
+      let freedSessions = 0;
       for (const account of targets) {
         const activeSess = await prisma.accountSession.findMany({
           where: { accountId: account.id, status: 'active' },
@@ -1191,6 +1287,7 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
           sessionStore.releaseAccountSession(s.id);
           console.log(`[slot-release] auto_clean sessionId=${s.id} account=${account.id}`);
         }
+        freedSessions += activeSess.length;
 
         await prisma.platformAccount.update({
           where: { id: account.id },
@@ -1200,8 +1297,8 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
         cleaned++;
       }
       invalidateAccountCaches();
-      emitAdminEvent('auto_clean_complete', { cleaned });
-      return res.json({ success: true, message: `Auto clean complete. ${cleaned} account(s) disabled and sessions freed.` });
+      emitAdminEvent('auto_clean_complete', { cleaned, freedSessions });
+      return res.json({ success: true, message: `Auto clean complete. ${cleaned} account(s) disabled, ${freedSessions} session(s) freed.` });
     }
 
     return res.status(400).json({ success: false, message: 'Invalid action' });

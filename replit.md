@@ -80,3 +80,14 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 - **Mutex system**: `_slotBusy` Set guards concurrent operations per key (`ck-{id}`, `del-{id}`, `bd`, `bv`, `br`, `rca`, `dap-{platformId}`, `be`, `ext-{id}`).
 - **Dead code**: Extend menu functions (`toggleExtendMenu`, `toggleBulkExtendMenu`, `bulkExtendSlots`) exist in JS but have no corresponding DOM elements — the feature was never fully built into the UI.
 - **Credentials**: All fetch calls use `credentials:'include'` (never `same-origin`).
+
+### Account Intelligence (ALIE) System
+- **Dashboard API**: `GET /api/account_intelligence?action=dashboard` — cached (15s TTL via `intelligenceCache`), returns summary, platform_stats, deteriorating, needs_action, queue_status, recent_events
+- **Run Intelligence**: `POST action=run_intelligence` — queued via `intelligenceQueue` background job (concurrency:1), prevents concurrent runs, returns `job_id` for progress polling
+- **Job Status Polling**: `POST action=job_status` — polls background job progress (0-100%), frontend uses `setInterval(2000)` to update live status
+- **Auto Clean Preview**: `POST action=auto_clean_preview` — dry-run mode showing impact (accounts/sessions/platforms affected) before destructive action
+- **Auto Clean Execute**: `POST action=auto_clean` — disables dead/expired/degraded accounts (isActive=1 only), frees active sessions
+- **Score Formula**: Success Rate (35%) + Recency (20%) + Cookie Quality (15%) + Expiry (15%) + Login Status (10%) + Base (5%), with confidence multiplier, anomaly penalty, streak bonus, recovery bonus
+- **Score Bands**: Stable (70+), Risky (40-69), Dead (<40)
+- **Frontend Sections**: 7 summary cards, Platform Health table, Needs Action panel, Deteriorating panel, Recent Events timeline, Score Legend
+- **Auto Clean Modal**: `msg-modal-overlay` pattern with ESC dismiss, preview-before-execute safety

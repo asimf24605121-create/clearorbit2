@@ -62,6 +62,8 @@
         .compact-modal .cm-btn-secondary:hover{background:#E5E7EB}
         .compact-modal .cm-btn-primary{color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
         .compact-modal .cm-btn-primary:hover{filter:brightness(.93);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+        .compact-modal .cm-btn-danger{background:#DC2626;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+        .compact-modal .cm-btn-danger:hover{background:#B91C1C;box-shadow:0 2px 6px rgba(0,0,0,.15)}
         .msg-modal-overlay.active .msg-modal{transform:translateY(0) scale(1)}
         .table-responsive{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#D1D5DB transparent}
         .table-responsive::-webkit-scrollbar{height:6px}
@@ -927,24 +929,28 @@
                 </div>
 
                 <div class="card mb-6" id="intelligenceDashboard">
-                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
                         <div>
                             <h3 class="font-semibold text-gray-900 text-sm flex items-center gap-2">
                                 <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                                 Account Intelligence
                             </h3>
-                            <p class="text-xs text-gray-400 mt-0.5">ALIE — Adaptive Learning Intelligence Engine</p>
+                            <p class="text-xs text-gray-400 mt-0.5">ALIE — Adaptive Learning Intelligence Engine <span id="alieLastRun" class="text-gray-300"></span></p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="runIntelligenceCycle()" id="alieRunBtn" class="btn btn-sm text-xs" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;border:none;">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div id="alieJobStatus" class="hidden text-[10px] text-violet-600 font-medium flex items-center gap-1">
+                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                <span id="alieJobText">Running...</span>
+                            </div>
+                            <button onclick="runIntelligenceCycle()" id="alieRunBtn" class="btn btn-sm text-xs" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;border:none;" title="Re-score all accounts using the ALIE engine">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                 Run Intelligence
                             </button>
-                            <button onclick="runAutoClean()" id="alieCleanBtn" class="btn btn-sm text-xs" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;">
+                            <button onclick="runAutoCleanPreview()" id="alieCleanBtn" class="btn btn-sm text-xs" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;" title="Preview and disable dead/expired accounts">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 Auto Clean
                             </button>
-                            <button onclick="loadIntelligenceDashboard()" class="btn btn-secondary btn-sm text-xs">
+                            <button onclick="loadIntelligenceDashboard()" class="btn btn-secondary btn-sm text-xs" title="Refresh intelligence data">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 Refresh
                             </button>
@@ -952,6 +958,25 @@
                     </div>
                     <div id="alieContent" class="p-5">
                         <div class="text-center text-gray-400 text-sm py-4">Loading intelligence data...</div>
+                    </div>
+                </div>
+
+                <div id="autoCleanModal" class="msg-modal-overlay" onclick="if(event.target===this)closeAutoCleanModal()" style="z-index:82" role="dialog" aria-modal="true" aria-label="Auto Clean Preview">
+                    <div class="compact-modal" style="max-width:560px">
+                        <div class="cm-header" style="background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border-bottom:1px solid #FECACA">
+                            <h3 class="cm-title" style="color:#DC2626;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.999L13.732 4.001c-.77-1.333-2.694-1.333-3.464 0L3.268 16.001C2.498 17.335 3.46 19.001 5 19.001z"/></svg>
+                                Auto Clean Preview
+                            </h3>
+                            <button class="cm-close" onclick="closeAutoCleanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9CA3AF;padding:4px 8px">&times;</button>
+                        </div>
+                        <div class="cm-body" id="autoCleanPreviewContent" style="max-height:350px;overflow-y:auto">
+                            <div class="text-center text-gray-400 text-sm py-4">Loading preview...</div>
+                        </div>
+                        <div class="cm-footer" id="autoCleanFooter" style="display:none">
+                            <button class="cm-btn cm-btn-secondary" onclick="closeAutoCleanModal()">Cancel</button>
+                            <button class="cm-btn cm-btn-danger" id="autoCleanConfirmBtn" onclick="executeAutoClean()">Confirm & Clean</button>
+                        </div>
                     </div>
                 </div>
 
@@ -5244,6 +5269,36 @@ async function loadAccountSlots() {
     }
 }
 
+function _alieScoreColor(score) {
+    if (score >= 70) return '#10B981';
+    if (score >= 40) return '#F59E0B';
+    return '#EF4444';
+}
+function _alieScoreBand(score) {
+    if (score >= 90) return { label: 'Excellent', cls: 'text-emerald-600' };
+    if (score >= 70) return { label: 'Stable', cls: 'text-emerald-600' };
+    if (score >= 40) return { label: 'Watch', cls: 'text-amber-600' };
+    return { label: 'Critical', cls: 'text-red-600' };
+}
+function _alieTimeAgo(dateStr) {
+    if (!dateStr) return 'Never';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    return Math.floor(diff / 86400000) + 'd ago';
+}
+function _alieStabBadge(stab) {
+    const s = (stab || 'UNKNOWN').toUpperCase();
+    if (s === 'STABLE') return '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-700">STABLE</span>';
+    if (s === 'RISKY') return '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-700">RISKY</span>';
+    if (s === 'DEAD') return '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">DEAD</span>';
+    return '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-500">UNKNOWN</span>';
+}
+
+let _alieJobId = null;
+let _alieJobPollTimer = null;
+
 async function loadIntelligenceDashboard() {
     const container = document.getElementById('alieContent');
     if (!container) return;
@@ -5251,82 +5306,226 @@ async function loadIntelligenceDashboard() {
     try {
         const res = await fetch('api/account_intelligence?action=dashboard', { credentials: 'include' });
         const data = await res.json();
-        if (!data.success) { container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Failed to load.</div>'; return; }
+        if (!data.success) { container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Failed to load intelligence data.</div>'; return; }
         const s = data.summary;
-        const scoreColor = s.avg_score >= 50 ? '#10B981' : s.avg_score >= 0 ? '#F59E0B' : '#EF4444';
-        let html = `<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-5">
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
+
+        const lastRunEl = document.getElementById('alieLastRun');
+        if (lastRunEl && s.last_run_at) {
+            lastRunEl.textContent = '· Last run: ' + _alieTimeAgo(s.last_run_at);
+        }
+
+        const qs = data.queue_status || {};
+        const jobStatusEl = document.getElementById('alieJobStatus');
+        if (jobStatusEl) {
+            if (qs.running > 0) {
+                jobStatusEl.classList.remove('hidden');
+                document.getElementById('alieJobText').textContent = `Processing (${qs.running} active)...`;
+            } else {
+                jobStatusEl.classList.add('hidden');
+            }
+        }
+
+        if (s.total_accounts === 0) {
+            container.innerHTML = '<div class="text-center text-gray-400 text-sm py-8"><svg class="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>No accounts yet. Add accounts to start building intelligence.</div>';
+            return;
+        }
+
+        const scoreBand = _alieScoreBand(s.avg_score);
+        const needsActionCount = (data.needs_action || []).length;
+
+        let html = `<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-5">
+            <div class="text-center py-3 px-2 rounded-xl bg-indigo-50 border border-indigo-100 cursor-pointer hover:shadow-sm transition-shadow" title="Total platform accounts managed">
                 <div class="text-xl font-bold text-indigo-600">${s.total_accounts}</div>
                 <div class="text-[10px] text-gray-500 font-medium mt-0.5">Total Accounts</div>
+                <div class="text-[9px] text-indigo-400 mt-0.5">${s.active_accounts || s.total_accounts} active</div>
             </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold" style="color:${scoreColor};">${s.avg_score}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Avg IQ Score</div>
+            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100" title="Weighted average of all account intelligence scores (0-100). ${scoreBand.label}: ${s.avg_score}/100">
+                <div class="text-xl font-bold" style="color:${_alieScoreColor(s.avg_score)}">${s.avg_score}</div>
+                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Avg Score</div>
+                <div class="text-[9px] ${scoreBand.cls} font-medium mt-0.5">${scoreBand.label}</div>
             </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-emerald-50 border border-emerald-100">
+            <div class="text-center py-3 px-2 rounded-xl bg-emerald-50 border border-emerald-100" title="Score 70+: Healthy, verified, and actively used accounts">
                 <div class="text-xl font-bold text-emerald-600">${s.stable_count}</div>
                 <div class="text-[10px] text-gray-500 font-medium mt-0.5">Stable</div>
+                <div class="text-[9px] text-emerald-400 mt-0.5">${s.total_accounts > 0 ? Math.round(s.stable_count / s.total_accounts * 100) : 0}%</div>
             </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-amber-50 border border-amber-100">
+            <div class="text-center py-3 px-2 rounded-xl bg-amber-50 border border-amber-100" title="Score 40-69: Accounts showing degradation or inconsistent access">
                 <div class="text-xl font-bold text-amber-600">${s.risky_count}</div>
                 <div class="text-[10px] text-gray-500 font-medium mt-0.5">Risky</div>
+                <div class="text-[9px] text-amber-400 mt-0.5">${s.total_accounts > 0 ? Math.round(s.risky_count / s.total_accounts * 100) : 0}%</div>
             </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-red-50 border border-red-100">
+            <div class="text-center py-3 px-2 rounded-xl bg-red-50 border border-red-100" title="Score <40: Accounts with dead cookies, expired, or high failure rate">
                 <div class="text-xl font-bold text-red-600">${s.dead_count}</div>
                 <div class="text-[10px] text-gray-500 font-medium mt-0.5">Dead</div>
+                <div class="text-[9px] text-red-400 mt-0.5">${s.total_accounts > 0 ? Math.round(s.dead_count / s.total_accounts * 100) : 0}%</div>
             </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100" title="Overall success rate across all accounts: ${s.total_successes || 0} successes / ${(s.total_successes||0)+(s.total_failures||0)} total">
                 <div class="text-xl font-bold ${s.success_rate >= 80 ? 'text-emerald-600' : s.success_rate >= 50 ? 'text-amber-600' : 'text-red-600'}">${s.success_rate}%</div>
                 <div class="text-[10px] text-gray-500 font-medium mt-0.5">Success Rate</div>
             </div>
+            <div class="text-center py-3 px-2 rounded-xl ${needsActionCount > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50 border border-gray-100'}" title="Accounts that need immediate attention (dead, expired cookies)">
+                <div class="text-xl font-bold ${needsActionCount > 0 ? 'text-orange-600' : 'text-gray-400'}">${needsActionCount}</div>
+                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Needs Action</div>
+                ${needsActionCount > 0 ? '<div class="text-[9px] text-orange-500 font-medium mt-0.5">Review now</div>' : ''}
+            </div>
         </div>`;
+
         const platforms = data.platform_stats || {};
         const platKeys = Object.keys(platforms);
         if (platKeys.length > 0) {
-            html += `<div class="mb-5"><h4 class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Platform Breakdown</h4><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">`;
+            html += `<div class="mb-5"><h4 class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                Platform Health</h4>
+                <div class="overflow-hidden rounded-lg border border-gray-100">
+                <table class="w-full text-xs">
+                    <thead><tr class="bg-gray-50 text-gray-500">
+                        <th class="text-left px-3 py-2 font-medium">Platform</th>
+                        <th class="text-center px-2 py-2 font-medium">Total</th>
+                        <th class="text-center px-2 py-2 font-medium">Active</th>
+                        <th class="text-center px-2 py-2 font-medium" title="Score 70+">Stable</th>
+                        <th class="text-center px-2 py-2 font-medium" title="Score 40-69">Risky</th>
+                        <th class="text-center px-2 py-2 font-medium" title="Score <40">Dead</th>
+                        <th class="text-center px-2 py-2 font-medium">Avg Score</th>
+                        <th class="text-center px-2 py-2 font-medium">Health</th>
+                    </tr></thead><tbody>`;
             platKeys.forEach(p => {
                 const ps = platforms[p];
-                const pScoreColor = ps.avg_score >= 50 ? 'text-emerald-600' : ps.avg_score >= 0 ? 'text-amber-600' : 'text-red-600';
-                html += `<div class="border border-gray-100 rounded-lg px-3 py-2 flex items-center justify-between hover:bg-gray-50">
-                    <span class="font-medium text-sm text-gray-800">${escHtml(p)}</span>
-                    <div class="flex items-center gap-2 text-[10px]">
-                        <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">${ps.stable}</span>
-                        <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">${ps.risky}</span>
-                        <span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold">${ps.dead}</span>
-                        <span class="${pScoreColor} font-bold">IQ: ${ps.avg_score}</span>
-                    </div>
-                </div>`;
+                const total = ps.total || (ps.stable + ps.risky + ps.dead);
+                const healthPct = total > 0 ? Math.round((ps.stable / total) * 100) : 0;
+                const healthColor = healthPct >= 80 ? '#10B981' : healthPct >= 50 ? '#F59E0B' : '#EF4444';
+                const hasWarning = ps.dead > 0 || ps.avg_score < 50;
+                html += `<tr class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td class="px-3 py-2 font-medium text-gray-800 flex items-center gap-1.5">
+                        ${hasWarning ? '<span class="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" title="Needs attention"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>'}
+                        ${escHtml(p)}
+                    </td>
+                    <td class="text-center px-2 py-2 text-gray-600">${total}</td>
+                    <td class="text-center px-2 py-2 text-gray-600">${ps.active || 0}</td>
+                    <td class="text-center px-2 py-2"><span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold text-[10px]">${ps.stable}</span></td>
+                    <td class="text-center px-2 py-2"><span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px]">${ps.risky}</span></td>
+                    <td class="text-center px-2 py-2"><span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold text-[10px]">${ps.dead}</span></td>
+                    <td class="text-center px-2 py-2 font-bold" style="color:${_alieScoreColor(ps.avg_score)}">${ps.avg_score}</td>
+                    <td class="text-center px-2 py-2">
+                        <div class="w-14 h-1.5 bg-gray-100 rounded-full mx-auto overflow-hidden" title="${healthPct}% healthy">
+                            <div class="h-full rounded-full" style="width:${healthPct}%;background:${healthColor}"></div>
+                        </div>
+                    </td>
+                </tr>`;
             });
-            html += `</div></div>`;
+            html += `</tbody></table></div></div>`;
         }
+
+        const needsAction = data.needs_action || [];
+        const deteriorating = data.deteriorating || [];
+        if (needsAction.length > 0 || deteriorating.length > 0) {
+            html += `<div class="mb-5 grid grid-cols-1 lg:grid-cols-2 gap-3">`;
+            if (needsAction.length > 0) {
+                html += `<div class="border border-orange-100 rounded-lg overflow-hidden">
+                    <div class="px-3 py-2 bg-orange-50 border-b border-orange-100 flex items-center justify-between">
+                        <span class="text-xs font-semibold text-orange-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.268 17c-.77 1.333.192 3 1.732 3z"/></svg>
+                            Needs Action (${needsAction.length})
+                        </span>
+                    </div>
+                    <div class="max-h-32 overflow-y-auto">`;
+                needsAction.slice(0, 8).forEach(a => {
+                    html += `<div class="px-3 py-1.5 text-xs flex items-center justify-between border-b border-gray-50 hover:bg-gray-50">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-700">${escHtml(a.slot_name || 'Slot #'+a.id)}</span>
+                            <span class="text-gray-400">${escHtml(a.platform || '')}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${_alieStabBadge(a.status)}
+                            <span class="text-[9px] text-gray-400">${a.cookie_status || ''}</span>
+                        </div>
+                    </div>`;
+                });
+                if (needsAction.length > 8) html += `<div class="px-3 py-1.5 text-[10px] text-center text-gray-400">+${needsAction.length - 8} more</div>`;
+                html += `</div></div>`;
+            }
+            if (deteriorating.length > 0) {
+                html += `<div class="border border-amber-100 rounded-lg overflow-hidden">
+                    <div class="px-3 py-2 bg-amber-50 border-b border-amber-100">
+                        <span class="text-xs font-semibold text-amber-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                            Deteriorating (${deteriorating.length})
+                        </span>
+                    </div>
+                    <div class="max-h-32 overflow-y-auto">`;
+                deteriorating.forEach(a => {
+                    html += `<div class="px-3 py-1.5 text-xs flex items-center justify-between border-b border-gray-50 hover:bg-gray-50">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-700">${escHtml(a.slot_name || 'Slot #'+a.id)}</span>
+                            <span class="text-gray-400">${escHtml(a.platform || '')}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold" style="color:${_alieScoreColor(a.score)}">${a.score}</span>
+                            ${_alieStabBadge(a.status)}
+                        </div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+            html += `</div>`;
+        }
+
         const events = data.recent_events || [];
         if (events.length > 0) {
-            html += `<div><h4 class="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Recent Intelligence Events</h4><div class="space-y-1 max-h-48 overflow-y-auto">`;
-            events.forEach(e => {
+            html += `<div><div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Recent Intelligence Events
+                </h4>
+                <span class="text-[9px] text-gray-400">${events.length} events</span>
+            </div>
+            <div class="overflow-hidden rounded-lg border border-gray-100">
+            <div class="max-h-56 overflow-y-auto">`;
+            events.forEach((e, i) => {
                 const isUp = e.new_score > e.old_score;
-                const icon = isUp ? '<span class="text-emerald-500">&#9650;</span>' : '<span class="text-red-500">&#9660;</span>';
-                const stabColor = e.new_stability === 'STABLE' ? 'text-emerald-600' : e.new_stability === 'RISKY' ? 'text-amber-600' : e.new_stability === 'DEAD' ? 'text-red-600' : 'text-gray-500';
-                html += `<div class="flex items-center justify-between py-1.5 px-2 rounded text-xs hover:bg-gray-50 border-b border-gray-50">
-                    <div class="flex items-center gap-2">
+                const isFlat = e.new_score === e.old_score;
+                const delta = e.new_score - e.old_score;
+                const icon = isUp ? '<span class="text-emerald-500 text-[10px]">&#9650;</span>'
+                    : isFlat ? '<span class="text-gray-300 text-[10px]">&#9679;</span>'
+                    : '<span class="text-red-500 text-[10px]">&#9660;</span>';
+                const deltaText = delta > 0 ? `<span class="text-emerald-600 font-semibold">+${delta}</span>` : delta < 0 ? `<span class="text-red-600 font-semibold">${delta}</span>` : '<span class="text-gray-400">±0</span>';
+                const evtColor = e.event_type === 'auto_clean' ? 'bg-red-50' : e.event_type === 'intelligence_run' ? 'bg-violet-50' : '';
+                const reasonTag = e.reason ? `<span class="text-[8px] text-gray-400 truncate max-w-[120px] inline-block align-middle" title="${escHtml(e.reason)}">${escHtml(e.reason.substring(0,30))}</span>` : '';
+                html += `<div class="flex items-center justify-between py-1.5 px-3 text-xs hover:bg-gray-50 ${evtColor} ${i > 0 ? 'border-t border-gray-50' : ''}">
+                    <div class="flex items-center gap-2 min-w-0">
                         ${icon}
-                        <span class="text-gray-700 font-medium">${escHtml(e.slot_name || 'Slot #' + e.account_id)}</span>
-                        <span class="text-gray-400">${escHtml(e.platform_name || '')}</span>
+                        <span class="text-gray-700 font-medium truncate">${escHtml(e.slot_name || 'Slot #' + e.account_id)}</span>
+                        <span class="text-gray-400 flex-shrink-0">${escHtml(e.platform_name || '')}</span>
+                        ${reasonTag}
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-gray-500">${e.old_score} → <span class="font-semibold">${e.new_score}</span></span>
-                        <span class="${stabColor} font-bold">${e.new_stability}</span>
-                        <span class="text-gray-300">${new Date(e.created_at).toLocaleTimeString()}</span>
+                        ${deltaText}
+                        ${_alieStabBadge(e.new_stability)}
+                        <span class="text-gray-300 text-[10px]">${_alieTimeAgo(e.created_at)}</span>
                     </div>
                 </div>`;
             });
-            html += `</div></div>`;
+            html += `</div></div></div>`;
         }
-        if (s.total_accounts === 0) {
-            html = '<div class="text-center text-gray-400 text-sm py-8"><svg class="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>No accounts yet. Add accounts to start building intelligence.</div>';
-        }
+
+        html += `<div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[9px] text-gray-400">
+            <div class="flex items-center gap-3">
+                <span title="Score 70-100: Healthy account">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-0.5"></span> Stable (70+)
+                </span>
+                <span title="Score 40-69: Needs monitoring">
+                    <span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-0.5"></span> Risky (40-69)
+                </span>
+                <span title="Score 0-39: Dead or expired">
+                    <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-0.5"></span> Dead (&lt;40)
+                </span>
+            </div>
+            <span>Score formula: Success Rate (35%) + Recency (20%) + Cookie Quality (15%) + Expiry (15%) + Login (10%) + Base (5%)</span>
+        </div>`;
+
         container.innerHTML = html;
     } catch (e) {
-        container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Network error.</div>';
+        container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Network error loading intelligence.</div>';
     }
 }
 
@@ -5334,15 +5533,55 @@ async function runIntelligenceCycle() {
     const btn = document.getElementById('alieRunBtn');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Running...';
+    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Starting...';
     try {
         const res = await fetch('api/account_intelligence', {
             method: 'POST', headers: csrfHeaders(), credentials: 'include',
             body: JSON.stringify({ action: 'run_intelligence' })
         });
         const data = await res.json();
-        showAlert(data.message || 'Intelligence run complete.', !data.success);
-        if (data.success) _refreshAll();
+        if (data.success && data.job_id) {
+            _alieJobId = data.job_id;
+            showAlert('Intelligence run started in background.');
+            const jobStatusEl = document.getElementById('alieJobStatus');
+            if (jobStatusEl) {
+                jobStatusEl.classList.remove('hidden');
+                document.getElementById('alieJobText').textContent = 'Scoring accounts...';
+            }
+            _alieJobPollTimer = setInterval(async () => {
+                try {
+                    const pr = await fetch('api/account_intelligence', {
+                        method: 'POST', headers: csrfHeaders(), credentials: 'include',
+                        body: JSON.stringify({ action: 'job_status', job_id: _alieJobId })
+                    });
+                    const pd = await pr.json();
+                    if (pd.success && pd.job) {
+                        const j = pd.job;
+                        if (j.status === 'completed') {
+                            clearInterval(_alieJobPollTimer);
+                            _alieJobPollTimer = null;
+                            _alieJobId = null;
+                            const jobStatusEl2 = document.getElementById('alieJobStatus');
+                            if (jobStatusEl2) jobStatusEl2.classList.add('hidden');
+                            showAlert(`Intelligence run complete. ${j.result?.updated || 0} of ${j.result?.total || 0} accounts updated.`);
+                            _refreshAll();
+                        } else if (j.status === 'failed') {
+                            clearInterval(_alieJobPollTimer);
+                            _alieJobPollTimer = null;
+                            _alieJobId = null;
+                            const jobStatusEl2 = document.getElementById('alieJobStatus');
+                            if (jobStatusEl2) jobStatusEl2.classList.add('hidden');
+                            showAlert('Intelligence run failed: ' + (j.error || 'Unknown error'), true);
+                        } else {
+                            document.getElementById('alieJobText').textContent = `Scoring... ${j.progress || 0}%`;
+                        }
+                    }
+                } catch(_) {}
+            }, 2000);
+        } else {
+            showAlert(data.message || 'Intelligence run failed.', !data.success);
+            if (data.success) _refreshAll();
+        }
     } catch (e) {
         showAlert('Network error running intelligence.', true);
     }
@@ -5350,12 +5589,81 @@ async function runIntelligenceCycle() {
     btn.innerHTML = origHtml;
 }
 
-async function runAutoClean() {
-    if (!confirm('Auto Clean will disable all DEAD, expired, and high-failure accounts and free their active sessions. Continue?')) return;
+async function runAutoCleanPreview() {
     const btn = document.getElementById('alieCleanBtn');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Cleaning...';
+    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Loading...';
+    try {
+        const res = await fetch('api/account_intelligence', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'auto_clean_preview' })
+        });
+        const data = await res.json();
+        if (!data.success) { showAlert(data.message || 'Failed to load preview.', true); btn.disabled = false; btn.innerHTML = origHtml; return; }
+
+        const modal = document.getElementById('autoCleanModal');
+        const content = document.getElementById('autoCleanPreviewContent');
+        const footer = document.getElementById('autoCleanFooter');
+
+        if (data.preview.length === 0) {
+            content.innerHTML = '<div class="text-center py-6"><svg class="w-8 h-8 mx-auto mb-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><div class="text-sm font-medium text-gray-700">All Clear</div><div class="text-xs text-gray-400 mt-1">No accounts need cleaning right now.</div></div>';
+            footer.style.display = 'none';
+        } else {
+            const impact = data.impact;
+            let previewHtml = `<div class="px-1 pb-2">
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="text-center py-2 bg-red-50 rounded-lg border border-red-100">
+                        <div class="text-lg font-bold text-red-600">${impact.accounts_to_disable}</div>
+                        <div class="text-[9px] text-gray-500">Accounts to Disable</div>
+                    </div>
+                    <div class="text-center py-2 bg-orange-50 rounded-lg border border-orange-100">
+                        <div class="text-lg font-bold text-orange-600">${impact.sessions_to_free}</div>
+                        <div class="text-[9px] text-gray-500">Sessions to Free</div>
+                    </div>
+                    <div class="text-center py-2 bg-amber-50 rounded-lg border border-amber-100">
+                        <div class="text-lg font-bold text-amber-600">${impact.platforms_affected.length}</div>
+                        <div class="text-[9px] text-gray-500">Platforms Affected</div>
+                    </div>
+                </div>
+                <div class="text-[10px] text-gray-500 font-medium mb-1.5 uppercase">Accounts to be disabled:</div>
+                <div class="rounded-lg border border-gray-100 overflow-hidden">`;
+            data.preview.forEach((a, i) => {
+                previewHtml += `<div class="flex items-center justify-between px-3 py-1.5 text-xs ${i > 0 ? 'border-t border-gray-50' : ''} hover:bg-gray-50">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-700">${escHtml(a.slot_name)}</span>
+                        <span class="text-gray-400">${escHtml(a.platform)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold" style="color:${_alieScoreColor(a.score)}">${a.score}</span>
+                        ${_alieStabBadge(a.stability)}
+                        <span class="text-[9px] text-gray-400">${escHtml(a.reason)}</span>
+                        ${a.active_sessions > 0 ? '<span class="text-[9px] text-orange-600 font-bold">' + a.active_sessions + ' live</span>' : ''}
+                    </div>
+                </div>`;
+            });
+            previewHtml += `</div></div>`;
+            content.innerHTML = previewHtml;
+            footer.style.display = 'flex';
+        }
+
+        modal.classList.add('active');
+    } catch (e) {
+        showAlert('Network error loading preview.', true);
+    }
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+}
+
+function closeAutoCleanModal() {
+    const modal = document.getElementById('autoCleanModal');
+    modal.classList.remove('active');
+}
+
+async function executeAutoClean() {
+    const btn = document.getElementById('autoCleanConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Cleaning...';
     try {
         const res = await fetch('api/account_intelligence', {
             method: 'POST', headers: csrfHeaders(), credentials: 'include',
@@ -5368,7 +5676,8 @@ async function runAutoClean() {
         showAlert('Network error during auto clean.', true);
     }
     btn.disabled = false;
-    btn.innerHTML = origHtml;
+    btn.textContent = 'Confirm & Clean';
+    closeAutoCleanModal();
 }
 
 let _uaHistory = [];
@@ -6285,6 +6594,7 @@ function closeEditAccountModal() {
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        if (document.getElementById('autoCleanModal')?.classList.contains('active')) { closeAutoCleanModal(); return; }
         if (document.getElementById('editAccountModal').classList.contains('active')) closeEditAccountModal();
         if (document.getElementById('replaceCookieModal').classList.contains('active')) closeReplaceCookieModal();
     }
