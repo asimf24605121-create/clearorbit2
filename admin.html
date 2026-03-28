@@ -944,14 +944,22 @@
                             <span class="text-gray-400">Fallback when cookie has no expiry</span>
                         </div>
                     </div>
-                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
                         <div>
                             <h3 class="font-semibold text-gray-900 text-sm">Slot Capacity Overview</h3>
                             <p class="text-xs text-gray-400 mt-0.5">Real-time slot usage per platform</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
+                            <input id="acctSlotSearch" type="text" class="input text-xs py-1.5 w-36" placeholder="Search slots..." oninput="filterAccountSlots()">
                             <select id="acctSlotFilterPlatform" class="input text-sm py-1.5 w-40" onchange="loadAccountSlots()">
                                 <option value="0">All Platforms</option>
+                            </select>
+                            <select id="acctSlotFilterStatus" class="input text-xs py-1.5 w-28" onchange="filterAccountSlots()">
+                                <option value="">All Status</option>
+                                <option value="VALID">Valid</option>
+                                <option value="EXPIRED">Expired</option>
+                                <option value="DEAD">Dead</option>
+                                <option value="WEAK">Weak</option>
                             </select>
                             <button onclick="recheckAllCookies()" class="btn btn-sm" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -5038,6 +5046,124 @@ function populateAccountSlotDropdowns() {
     }
 }
 
+function renderSlotCardHtml(a) {
+    const pct = a.max_users > 0 ? Math.round((a.active_users / a.max_users) * 100) : 0;
+    const isFull = a.max_users > 0 && a.active_users >= a.max_users;
+    const barColor = isFull ? '#EF4444' : (pct >= 60 ? '#F59E0B' : '#10B981');
+    const cs = a.cookie_status || 'VALID';
+    const statusTag = !a.is_active ? '<span class="badge badge-red">Disabled</span>' :
+        a.is_expired ? '<span class="badge badge-yellow">Expired</span>' :
+        isFull ? '<span class="badge badge-red">Full</span>' :
+        (cs === 'EXPIRED' || cs === 'DEAD') ? '<span class="badge badge-red">Invalid</span>' :
+        '<span class="badge badge-green">Available</span>';
+    const healthBadge = a.health_status === 'unhealthy' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-600">UNHEALTHY</span>' :
+        a.health_status === 'degraded' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-600">DEGRADED</span>' : '';
+    const inCooldown = a.cooldown_until && new Date(a.cooldown_until) > new Date();
+    const cooldownBadge = inCooldown ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-600">COOLDOWN</span>' : '';
+    const cookieStatusBadge = cs === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">VALID</span>'
+        : cs === 'EXPIRED' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">EXPIRED</span>'
+        : cs === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
+        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>';
+    const ls = a.login_status || 'PENDING';
+    const loginBadge = ls === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700" title="Login verified">✓ Login</span>'
+        : ls === 'PARTIAL' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700" title="Partial login">⚠ Partial</span>'
+        : ls === 'INVALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700" title="Login failed">✗ Login</span>'
+        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500" title="Not verified">Unverified</span>';
+    const invalidWarning = (cs === 'EXPIRED' || cs === 'DEAD') ? '<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Invalid cookie — slots disabled</div>'
+        : ls === 'INVALID' ? '<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Login verification failed — account rejected</div>' : '';
+    const expText = a.expires_at ? new Date(a.expires_at).toLocaleDateString() : 'No expiry';
+    const daysRem = a.days_remaining;
+    const exSt = a.expiry_status || 'ACTIVE';
+    const expiryBadge = exSt === 'EXPIRED'
+        ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Expired</span>'
+        : exSt === 'EXPIRING_SOON'
+        ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">${daysRem}d left</span>`
+        : daysRem !== null
+        ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">${daysRem}d left</span>`
+        : '';
+    const iScore = a.intelligence_score || 0;
+    const stab = a.stability_status || 'UNKNOWN';
+    const stabBadge = stab === 'STABLE' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">STABLE</span>'
+        : stab === 'RISKY' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>'
+        : stab === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
+        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500">UNKNOWN</span>';
+    const vaultBadge = a.cookie_id ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-violet-100 text-violet-700" title="Cookie stored in vault (ID: ' + a.cookie_id + ')">Vault</span>' : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-400" title="Legacy cookie storage">Legacy</span>';
+    const score = a.slot_score || 0;
+    const totalFeedback = (a.success_count || 0) + (a.fail_count || 0);
+    const successRate = totalFeedback > 0 ? Math.round(((a.success_count || 0) / totalFeedback) * 100) : 100;
+    const borderColor = cs === 'EXPIRED' || cs === 'DEAD' ? 'border-red-200' : cs === 'RISKY' ? 'border-amber-200' : 'border-gray-100';
+    const slotId = parseInt(a.id);
+    return `
+    <div class="border ${borderColor} rounded-xl p-4 hover:shadow-sm transition-shadow" style="background:${cs === 'EXPIRED' || cs === 'DEAD' ? '#FEF2F2' : cs === 'RISKY' ? '#FFFBEB' : '#fafafa'};">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="slot-cb-${slotId}" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="toggleSlotSelection(${slotId})"${SELECTED_SLOT_IDS.has(slotId) ? ' checked' : ''}>
+                <span class="font-medium text-gray-900 text-sm">${escHtml(a.slot_name)}${healthBadge}${cooldownBadge}</span>
+            </div>
+            <div class="flex items-center gap-1">${vaultBadge}${loginBadge}${cookieStatusBadge}${statusTag}</div>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${barColor};"></div>
+            </div>
+            <span class="text-xs font-semibold ${isFull ? 'text-red-500' : 'text-gray-600'}">${a.active_users}/${a.max_users}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs mb-1">
+            <span class="flex items-center gap-1">
+                ${a.fresh_sessions !== undefined ? '<span class="text-emerald-600 font-medium">' + a.fresh_sessions + ' live</span>' : ''}
+                ${a.stale_sessions > 0 ? '<span class="text-amber-500">' + a.stale_sessions + ' stale</span>' : ''}
+                ${a.free_slots !== undefined ? '<span class="text-blue-500">' + a.free_slots + ' free</span>' : ''}
+                ${a.unique_ips > 0 ? '<span class="text-violet-500">' + a.unique_ips + ' IP' + (a.unique_ips > 1 ? 's' : '') + '</span>' : ''}
+            </span>
+            <span class="text-gray-400">${a.last_heartbeat ? '♥ ' + _timeAgo(a.last_heartbeat) : 'No heartbeat'}</span>
+        </div>
+        ${a.session_details && a.session_details.length > 0 ? '<div class="mt-1 space-y-1">' + a.session_details.map(sd => '<div class="flex items-center justify-between text-[10px] bg-gray-50 rounded px-2 py-0.5"><span class="text-gray-600 truncate max-w-[120px]" title="' + escHtml(sd.device) + '">' + escHtml(sd.device || 'Unknown') + '</span><span class="text-gray-400 truncate max-w-[90px]" title="' + escHtml(sd.ip) + '">' + escHtml(sd.ip || '-') + '</span><span class="text-gray-400">' + _timeAgo(sd.last_active) + '</span></div>').join('') + '</div>' : ''}
+        <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <span>${a.cookie_count > 0 ? a.cookie_count + ' cookies' : 'No cookies'}</span>
+            <span class="flex items-center gap-1">${expiryBadge} ${expText}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs mb-1">
+            <span class="text-gray-500">Score: <span class="font-semibold ${score >= 0 ? 'text-green-600' : 'text-red-500'}">${score}</span></span>
+            <span class="text-gray-500">${successRate}% success <span class="text-gray-400">(${a.success_count || 0}✓ ${a.fail_count || 0}✗)</span></span>
+        </div>
+        <div class="flex items-center justify-between text-xs mb-1">
+            <span class="flex items-center gap-1">${stabBadge} <span class="text-gray-400">IQ: <span class="font-semibold ${iScore >= 50 ? 'text-emerald-600' : iScore >= 0 ? 'text-gray-600' : 'text-red-500'}">${iScore}</span></span></span>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden" title="Health: ${iScore}%">
+                <div class="h-full rounded-full transition-all" style="width:${Math.max(0, Math.min(100, iScore))}%;background:${iScore >= 70 ? 'linear-gradient(90deg,#10B981,#34D399)' : iScore >= 40 ? 'linear-gradient(90deg,#F59E0B,#FBBF24)' : 'linear-gradient(90deg,#EF4444,#F87171)'};"></div>
+            </div>
+            <span class="text-[10px] font-bold ${iScore >= 70 ? 'text-emerald-600' : iScore >= 40 ? 'text-amber-600' : 'text-red-500'}">${iScore}%</span>
+        </div>
+        ${a.last_checked_at ? '<div class="text-[10px] text-gray-400 mb-1">Last checked: ' + _timeAgo(a.last_checked_at) + '</div>' : ''}${invalidWarning}
+        <div class="flex gap-1.5 mt-2 flex-wrap">
+            <button onclick="checkSlot(${a.id}, ${JSON.stringify(a.slot_name)})" class="btn btn-sm flex-1 text-xs py-1" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;" title="Run cookie + login check">Check</button>
+            <button onclick="openEditAccountModal(${a.id})" class="btn btn-secondary btn-sm flex-1 text-xs py-1">Edit</button>
+            <button onclick="openReplaceCookieModal(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.cookie_id ? a.cookie_id : 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#F5F3FF;color:#6C5CE7;border:1px solid #DDD6FE;" title="Replace cookie and cascade to all linked slots">Replace</button>
+            <button onclick="deleteAccountSlot(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.active_users || 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;">Delete</button>
+        </div>
+    </div>`;
+}
+
+function renderPlatformGroup(platformName, platformId, slots, totalActive, totalCap) {
+    let html = `<div class="mb-6 last:mb-0">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="plat-cb-${platformId}" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all ${escHtml(platformName)} slots">
+                <h4 class="font-semibold text-gray-900 text-sm">${escHtml(platformName)}</h4>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs px-2 py-1 rounded-full font-medium" style="background:rgba(108,92,231,0.1);color:#6C5CE7;">${totalActive}/${totalCap} users</span>
+                <span class="text-xs text-gray-400">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
+                <button onclick="deleteAllPlatformSlots(${platformId}, '${escHtml(platformName).replace(/'/g, "\\'")}')" class="btn btn-sm text-[10px] py-0.5 px-2" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;" title="Delete all ${escHtml(platformName)} slots">Delete All</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
+    slots.forEach(a => { html += renderSlotCardHtml(a); });
+    html += '</div></div>';
+    return html;
+}
+
 async function loadAccountSlots() {
     const filterPlatform = document.getElementById('acctSlotFilterPlatform')?.value || '0';
     const container = document.getElementById('accountSlotsContainer');
@@ -5062,6 +5188,12 @@ async function loadAccountSlots() {
             if (!validIds.has(sid)) SELECTED_SLOT_IDS.delete(sid);
         }
         updateBulkBar();
+
+        if (document.getElementById('acctSlotSearch')?.value || document.getElementById('acctSlotFilterStatus')?.value) {
+            filterAccountSlots();
+            return;
+        }
+
         const grouped = {};
         accounts.forEach(a => {
             if (!grouped[a.platform_name]) grouped[a.platform_name] = [];
@@ -5072,117 +5204,7 @@ async function loadAccountSlots() {
             const totalCap = slots.reduce((s, a) => s + (parseInt(a.max_users) || 0), 0);
             const totalActive = slots.reduce((s, a) => s + (parseInt(a.fresh_sessions ?? a.active_users) || 0), 0);
             const platformId = slots[0].platform_id;
-            html += `<div class="mb-6 last:mb-0">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="plat-cb-${platformId}" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all ${escHtml(platformName)} slots">
-                        <h4 class="font-semibold text-gray-900 text-sm">${escHtml(platformName)}</h4>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs px-2 py-1 rounded-full font-medium" style="background:rgba(108,92,231,0.1);color:#6C5CE7;">${totalActive}/${totalCap} users</span>
-                        <span class="text-xs text-gray-400">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
-                        <button onclick="deleteAllPlatformSlots(${platformId}, '${escHtml(platformName).replace(/'/g, "\\'")}')" class="btn btn-sm text-[10px] py-0.5 px-2" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;" title="Delete all ${escHtml(platformName)} slots">Delete All</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
-            slots.forEach(a => {
-                const pct = a.max_users > 0 ? Math.round((a.active_users / a.max_users) * 100) : 0;
-                const isFull = a.max_users > 0 && a.active_users >= a.max_users;
-                const barColor = isFull ? '#EF4444' : (pct >= 60 ? '#F59E0B' : '#10B981');
-                const cs = a.cookie_status || 'VALID';
-                const statusTag = !a.is_active ? '<span class="badge badge-red">Disabled</span>' :
-                    a.is_expired ? '<span class="badge badge-yellow">Expired</span>' :
-                    isFull ? '<span class="badge badge-red">Full</span>' :
-                    (cs === 'EXPIRED' || cs === 'DEAD') ? '<span class="badge badge-red">Invalid</span>' :
-                    '<span class="badge badge-green">Available</span>';
-                const healthBadge = a.health_status === 'unhealthy' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-600">UNHEALTHY</span>' :
-                    a.health_status === 'degraded' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-600">DEGRADED</span>' : '';
-                const inCooldown = a.cooldown_until && new Date(a.cooldown_until) > new Date();
-                const cooldownBadge = inCooldown ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-600">COOLDOWN</span>' : '';
-                const cookieStatusBadge = cs === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">VALID</span>'
-                    : cs === 'EXPIRED' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">EXPIRED</span>'
-                    : cs === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
-                    : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>';
-                const ls = a.login_status || 'PENDING';
-                const loginBadge = ls === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700" title="Login verified">✓ Login</span>'
-                    : ls === 'PARTIAL' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700" title="Partial login">⚠ Partial</span>'
-                    : ls === 'INVALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700" title="Login failed">✗ Login</span>'
-                    : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500" title="Not verified">Unverified</span>';
-                const invalidWarning = (cs === 'EXPIRED' || cs === 'DEAD') ? `<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Invalid cookie — slots disabled</div>`
-                    : ls === 'INVALID' ? `<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Login verification failed — account rejected</div>` : '';
-                const expText = a.expires_at ? new Date(a.expires_at).toLocaleDateString() : 'No expiry';
-                const daysRem = a.days_remaining;
-                const exSt = a.expiry_status || 'ACTIVE';
-                const expiryBadge = exSt === 'EXPIRED'
-                    ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Expired</span>'
-                    : exSt === 'EXPIRING_SOON'
-                    ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">${daysRem}d left</span>`
-                    : daysRem !== null
-                    ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">${daysRem}d left</span>`
-                    : '';
-                const iScore = a.intelligence_score || 0;
-                const stab = a.stability_status || 'UNKNOWN';
-                const stabBadge = stab === 'STABLE' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">STABLE</span>'
-                    : stab === 'RISKY' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>'
-                    : stab === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
-                    : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500">UNKNOWN</span>';
-                const vaultBadge = a.cookie_id ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-violet-100 text-violet-700" title="Cookie stored in vault (ID: ' + a.cookie_id + ')">Vault</span>' : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-400" title="Legacy cookie storage">Legacy</span>';
-                const score = a.slot_score || 0;
-                const totalFeedback = (a.success_count || 0) + (a.fail_count || 0);
-                const successRate = totalFeedback > 0 ? Math.round(((a.success_count || 0) / totalFeedback) * 100) : 100;
-                const borderColor = cs === 'EXPIRED' || cs === 'DEAD' ? 'border-red-200' : cs === 'RISKY' ? 'border-amber-200' : 'border-gray-100';
-                const slotId = parseInt(a.id);
-                html += `
-                <div class="border ${borderColor} rounded-xl p-4 hover:shadow-sm transition-shadow" style="background:${cs === 'EXPIRED' || cs === 'DEAD' ? '#FEF2F2' : cs === 'RISKY' ? '#FFFBEB' : '#fafafa'};">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="slot-cb-${slotId}" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="toggleSlotSelection(${slotId})">
-                            <span class="font-medium text-gray-900 text-sm">${escHtml(a.slot_name)}${healthBadge}${cooldownBadge}</span>
-                        </div>
-                        <div class="flex items-center gap-1">${vaultBadge}${loginBadge}${cookieStatusBadge}${statusTag}</div>
-                    </div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${barColor};"></div>
-                        </div>
-                        <span class="text-xs font-semibold ${isFull ? 'text-red-500' : 'text-gray-600'}">${a.active_users}/${a.max_users}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="flex items-center gap-1">
-                            ${a.fresh_sessions !== undefined ? '<span class="text-emerald-600 font-medium">' + a.fresh_sessions + ' live</span>' : ''}
-                            ${a.stale_sessions > 0 ? '<span class="text-amber-500">' + a.stale_sessions + ' stale</span>' : ''}
-                            ${a.free_slots !== undefined ? '<span class="text-blue-500">' + a.free_slots + ' free</span>' : ''}
-                            ${a.unique_ips > 0 ? '<span class="text-violet-500">' + a.unique_ips + ' IP' + (a.unique_ips > 1 ? 's' : '') + '</span>' : ''}
-                        </span>
-                        <span class="text-gray-400">${a.last_heartbeat ? '♥ ' + _timeAgo(a.last_heartbeat) : 'No heartbeat'}</span>
-                    </div>
-                    ${a.session_details && a.session_details.length > 0 ? '<div class="mt-1 space-y-1">' + a.session_details.map(sd => '<div class="flex items-center justify-between text-[10px] bg-gray-50 rounded px-2 py-0.5"><span class="text-gray-600 truncate max-w-[120px]" title="' + escHtml(sd.device) + '">' + escHtml(sd.device || 'Unknown') + '</span><span class="text-gray-400 truncate max-w-[90px]" title="' + escHtml(sd.ip) + '">' + escHtml(sd.ip || '-') + '</span><span class="text-gray-400">' + _timeAgo(sd.last_active) + '</span></div>').join('') + '</div>' : ''}
-                    <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-                        <span>${a.cookie_count > 0 ? a.cookie_count + ' cookies' : 'No cookies'}</span>
-                        <span class="flex items-center gap-1">${expiryBadge} ${expText}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-gray-500">Score: <span class="font-semibold ${score >= 0 ? 'text-green-600' : 'text-red-500'}">${score}</span></span>
-                        <span class="text-gray-500">${successRate}% success <span class="text-gray-400">(${a.success_count || 0}✓ ${a.fail_count || 0}✗)</span></span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="flex items-center gap-1">${stabBadge} <span class="text-gray-400">IQ: <span class="font-semibold ${iScore >= 50 ? 'text-emerald-600' : iScore >= 0 ? 'text-gray-600' : 'text-red-500'}">${iScore}</span></span></span>
-                    </div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden" title="Health: ${Math.max(0, Math.min(100, iScore + 100))}%">
-                            <div class="h-full rounded-full transition-all" style="width:${Math.max(0, Math.min(100, Math.round((iScore + 100) / 2)))}%;background:${iScore >= 50 ? 'linear-gradient(90deg,#10B981,#34D399)' : iScore >= 0 ? 'linear-gradient(90deg,#F59E0B,#FBBF24)' : 'linear-gradient(90deg,#EF4444,#F87171)'};"></div>
-                        </div>
-                        <span class="text-[10px] font-bold ${iScore >= 50 ? 'text-emerald-600' : iScore >= 0 ? 'text-amber-600' : 'text-red-500'}">${Math.round((iScore + 100) / 2)}%</span>
-                    </div>${invalidWarning}
-                    <div class="flex gap-1.5 mt-2 flex-wrap">
-                        <button onclick="checkSlot(${a.id}, ${JSON.stringify(a.slot_name)})" class="btn btn-sm flex-1 text-xs py-1" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;" title="Run cookie + login check">Check</button>
-                        <button onclick="openEditAccountModal(${a.id})" class="btn btn-secondary btn-sm flex-1 text-xs py-1">Edit</button>
-                        <button onclick="openReplaceCookieModal(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.cookie_id ? a.cookie_id : 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#F5F3FF;color:#6C5CE7;border:1px solid #DDD6FE;" title="Replace cookie and cascade to all linked slots">Replace</button>
-                        <button onclick="deleteAccountSlot(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.active_users || 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;">Delete</button>
-                    </div>
-                </div>`;
-            });
-            html += '</div></div>';
+            html += renderPlatformGroup(platformName, platformId, slots, totalActive, totalCap);
         }
         container.innerHTML = html;
     } catch (e) {
@@ -5996,6 +6018,44 @@ function _setBusy(btn, busy, origText) {
 }
 function _refreshAll() { loadAccountSlots(); loadIntelligenceDashboard(); }
 
+function filterAccountSlots() {
+    const search = (document.getElementById('acctSlotSearch')?.value || '').toLowerCase().trim();
+    const statusFilter = document.getElementById('acctSlotFilterStatus')?.value || '';
+    const container = document.getElementById('accountSlotsContainer');
+    if (!container || !ALL_ACCOUNT_SLOTS) return;
+
+    let filtered = ALL_ACCOUNT_SLOTS;
+    if (search) {
+        filtered = filtered.filter(a =>
+            (a.slot_name || '').toLowerCase().includes(search) ||
+            (a.platform_name || '').toLowerCase().includes(search)
+        );
+    }
+    if (statusFilter) {
+        filtered = filtered.filter(a => (a.cookie_status || 'VALID') === statusFilter);
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 text-sm py-8">No slots match your filter criteria.</div>';
+        return;
+    }
+
+    const grouped = {};
+    filtered.forEach(a => {
+        if (!grouped[a.platform_name]) grouped[a.platform_name] = [];
+        grouped[a.platform_name].push(a);
+    });
+
+    let html = '';
+    for (const [platformName, slots] of Object.entries(grouped)) {
+        const totalCap = slots.reduce((s, a) => s + (parseInt(a.max_users) || 0), 0);
+        const totalActive = slots.reduce((s, a) => s + (parseInt(a.fresh_sessions ?? a.active_users) || 0), 0);
+        const platformId = slots[0].platform_id;
+        html += renderPlatformGroup(platformName, platformId, slots, totalActive, totalCap);
+    }
+    container.innerHTML = html;
+}
+
 let _socket = null;
 function initSocket() {
     try {
@@ -6054,18 +6114,43 @@ async function bulkDeleteSlots() {
 
 async function deleteAllPlatformSlots(platformId, platformName) {
     if (_slotBusy.has('dap-'+platformId)) return;
-    if (!confirm(`Delete ALL slots for "${platformName}"? This removes every account slot and session for this platform and cannot be undone.`)) return;
+
     _slotBusy.add('dap-'+platformId);
     const btn = document.querySelector(`button[onclick*="deleteAllPlatformSlots(${platformId}"]`);
-    _setBusy(btn, true, 'Deleting...');
+
+    if (!confirm(`Delete ALL slots for "${platformName}"? This cannot be undone.`)) {
+        _slotBusy.delete('dap-'+platformId);
+        return;
+    }
+
     try {
-        const res = await fetch('api/manage_platform_accounts', {
+        const probeRes = await fetch('api/manage_platform_accounts', {
             method: 'POST', headers: csrfHeaders(), credentials: 'include',
             body: JSON.stringify({ action: 'delete_by_platform', platform_id: platformId })
         });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) { SELECTED_SLOT_IDS.clear(); updateBulkBar(); _refreshAll(); }
+        const probeData = await probeRes.json();
+
+        if (probeData.requires_confirmation) {
+            const typed = prompt(`⚠️ ${probeData.active_session_count} active session(s) will be revoked.\n\nType "${probeData.platform_name}" to confirm deletion of ALL slots for this platform:`);
+            if (!typed || typed.trim() !== probeData.platform_name) {
+                showAlert('Deletion cancelled — platform name did not match.', true);
+                _slotBusy.delete('dap-'+platformId);
+                return;
+            }
+            _setBusy(btn, true, 'Deleting...');
+            const res = await fetch('api/manage_platform_accounts', {
+                method: 'POST', headers: csrfHeaders(), credentials: 'include',
+                body: JSON.stringify({ action: 'delete_by_platform', platform_id: platformId, confirm_text: typed.trim() })
+            });
+            const data = await res.json();
+            showAlert(data.message, !data.success);
+            if (data.success) { SELECTED_SLOT_IDS.clear(); updateBulkBar(); _refreshAll(); }
+        } else if (probeData.success) {
+            showAlert(probeData.message, false);
+            SELECTED_SLOT_IDS.clear(); updateBulkBar(); _refreshAll();
+        } else {
+            showAlert(probeData.message || 'Failed to delete platform slots.', true);
+        }
     } catch (e) { showAlert('Network error.', true); }
     _slotBusy.delete('dap-'+platformId); _setBusy(btn, false, 'Delete All');
 }
@@ -6145,17 +6230,14 @@ async function createAccountSlot() {
 }
 
 function openEditAccountModal(accountId) {
-    fetch(`api/manage_platform_accounts`, { credentials: 'include' })
-        .then(r => r.json()).then(data => {
-            const acct = (data.accounts || []).find(a => parseInt(a.id) === accountId);
-            if (!acct) { showAlert('Account not found.', true); return; }
-            document.getElementById('editAcctId').value = acct.id;
-            document.getElementById('editAcctName').value = acct.slot_name;
-            document.getElementById('editAcctMaxUsers').value = acct.max_users;
-            document.getElementById('editAcctStatus').value = acct.is_active ? '1' : '0';
-            document.getElementById('editAcctExpiry').value = acct.expires_at ? acct.expires_at.split(' ')[0].split('T')[0] : '';
-            document.getElementById('editAccountModal').classList.add('active');
-        });
+    const acct = (ALL_ACCOUNT_SLOTS || []).find(a => parseInt(a.id) === accountId);
+    if (!acct) { showAlert('Account not found. Try refreshing.', true); return; }
+    document.getElementById('editAcctId').value = acct.id;
+    document.getElementById('editAcctName').value = acct.slot_name;
+    document.getElementById('editAcctMaxUsers').value = acct.max_users;
+    document.getElementById('editAcctStatus').value = acct.is_active ? '1' : '0';
+    document.getElementById('editAcctExpiry').value = acct.expires_at ? acct.expires_at.split(' ')[0].split('T')[0] : '';
+    document.getElementById('editAccountModal').classList.add('active');
 }
 function closeEditAccountModal() {
     document.getElementById('editAccountModal').classList.remove('active');

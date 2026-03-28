@@ -1,0 +1,329 @@
+You are a senior full-stack engineer, senior product architect, senior QA engineer, senior security engineer, and senior SaaS admin dashboard specialist.
+
+I already have an Account Manager module. I do NOT want a shallow explanation.
+I want you to inspect the actual implementation deeply, check its real working, identify broken logic, and improve it to an ultra-production level.
+
+Your mission:
+1. Audit the current Account Manager implementation
+2. Check whether each feature actually works end-to-end
+3. Find bugs, race conditions, missing backend logic, missing validations, and dangerous flows
+4. Improve frontend, backend, database, realtime updates, safety, and admin UX
+5. Refactor weak parts into a clean production-ready system
+6. Keep existing functionality, but make it much stronger, safer, cleaner, and more scalable
+
+==================================================
+CONTEXT OF THE MODULE
+==================================================
+This Account Manager manages:
+- imported cookies
+- linked platform accounts
+- slot allocation / usage
+- account health
+- heartbeat monitoring
+- cookie replacement
+- account verification
+- expiry fallback
+- per-platform grouping
+- bulk actions
+- admin destructive actions
+
+Visible features include:
+- Account Manager header
+- Default Expiry dropdown
+- Slot Capacity Overview
+- Platform filter dropdown
+- Recheck All
+- Refresh
+- Auto-recheck text
+- Platform groups like Coursera / Netflix
+- user counters like 0/1 users, 0/8 users
+- slot counters
+- Delete All per platform
+- account cards
+- badges like Vault, Unverified, VALID, Available, STABLE
+- stats like cookies count, score, IQ, success rate, expiry, no heartbeat
+- card actions: Check, Edit, Replace, Delete
+- checkboxes for bulk selection
+
+==================================================
+WHAT I WANT YOU TO DO
+==================================================
+
+PHASE 1 — REAL CODEBASE AUDIT
+First inspect the actual implementation files, not assumptions.
+Find:
+- frontend components for Account Manager
+- event handlers for all buttons
+- backend routes/actions used by this page
+- database tables and schema used by accounts/cookies/slots
+- recheck logic
+- replace logic
+- delete logic
+- edit logic
+- status computation logic
+- score/IQ calculation logic
+- heartbeat logic
+- websocket / polling logic
+- auto-recheck logic
+- permissions logic
+- audit logging logic
+
+Then explain:
+- what is already correctly implemented
+- what is partially implemented
+- what is fake UI only
+- what is dangerous
+- what is missing completely
+
+PHASE 2 — WORKING VERIFICATION
+I want you to verify the working of every visible control:
+
+1. Default Expiry dropdown
+- does it actually save?
+- does it affect future imports only?
+- does it incorrectly affect old accounts?
+- is fallback logic correct when cookie has no embedded expiry?
+
+2. Platform filter
+- does it properly filter cards?
+- does it update when platforms are added/deleted?
+- does it work with search / pagination / bulk selection?
+
+3. Recheck All
+- does it actually recheck every account?
+- is it debounced?
+- can it run twice concurrently?
+- does it lock the UI correctly?
+- does it produce real updated statuses?
+
+4. Refresh
+- does it reload all data safely?
+- does it preserve filter state?
+- does it race with Recheck All?
+
+5. Platform Delete All
+- does it show confirmation?
+- does it block when active sessions exist?
+- does it log the deletion?
+- is it soft delete or hard delete?
+- can it accidentally wipe active accounts?
+
+6. Card Check
+- does it really validate cookies and refresh score/status?
+- what happens on network fail?
+- what if check is clicked multiple times?
+
+7. Card Edit
+- does it update UI and DB correctly?
+- does it validate maxUsers, name, expiry?
+- what if two admins edit the same account?
+
+8. Card Replace
+- does it parse and validate the new cookies?
+- does it back up the old cookie before replacing?
+- does it cascade to all linked accounts?
+- does it revoke or refresh active sessions using old cookies?
+- does it re-score after replacement?
+
+9. Card Delete
+- does it block active users?
+- does it safely confirm?
+- does it preserve audit history?
+- is delete reversible?
+
+10. Checkboxes / Bulk selection
+- does platform-level select all work?
+- does indeterminate state work?
+- do selected items survive filtering?
+- is there a bulk action bar?
+
+11. Status badges and metrics
+- are they computed correctly?
+- can VALID + No heartbeat coexist incorrectly?
+- can STABLE be shown for a non-verified account?
+- are badge priorities consistent?
+
+PHASE 3 — BUG HUNT
+Find all real bugs and architecture weaknesses such as:
+- concurrency problems
+- race conditions
+- double recheck execution
+- replace while active session exists
+- delete while active user exists
+- stale score after expiry
+- incorrect heartbeat handling
+- wrong availability count
+- platform mismatch cookies
+- duplicate imports
+- missing rollback
+- websocket desync
+- stale platform counters
+- missing locking
+- missing error boundaries
+- missing loading states
+- dangerous destructive actions
+- lack of permission tiering
+- unencrypted cookie storage
+- missing audit logs
+- weak validation
+- N+1 queries
+- no pagination or virtualization
+- broken mobile responsiveness
+- admin UX confusion
+
+For every bug, give:
+- severity
+- exact cause
+- affected files
+- recommended fix
+
+PHASE 4 — IMPROVE TO ULTRA LEVEL
+Upgrade this feature into a premium SaaS admin system.
+
+Implement or improve:
+
+A. SAFETY
+- active session guard for Delete and Delete All
+- active session guard or force revoke flow for Replace
+- two-step confirmation for destructive actions
+- type-to-confirm for Delete All
+- replacement backup history
+- rollback support
+- optimistic concurrency protection for Edit
+- rate limit for Recheck All
+- stronger validation everywhere
+
+B. STATUS SYSTEM
+Create a clean badge system with exact rules:
+- source badge
+- verification badge
+- cookie validity badge
+- availability badge
+- health badge
+- heartbeat badge
+Make sure badge priority, colors, thresholds, and coexistence rules are consistent.
+
+C. HEALTH SYSTEM
+Refactor score/IQ into a proper health score.
+Consider:
+- cookie parse quality
+- expiry distance
+- verification success
+- heartbeat freshness
+- success/fail ratio
+- recent user failures
+- live validation confidence
+
+D. UI/UX
+Make the interface premium, clean, and safer:
+- improve card hierarchy
+- add tooltips
+- add search
+- add sort
+- add status filters
+- add compact table view
+- add bulk action bar
+- improve destructive button styling
+- improve empty states
+- add skeleton loaders
+- add inline warnings
+- add health/history modal
+- add last checked timestamp
+- highlight expiring soon accounts
+- make No heartbeat prominent
+
+E. BACKEND HARDENING
+Refactor endpoints so they are reliable, secure, and explicit.
+Use strong API contracts.
+Ensure:
+- proper validation
+- permission checks
+- audit logging
+- transactional writes
+- rollback-safe replace flow
+- soft delete where appropriate
+- clear error codes
+- queue-based recheck
+- websocket progress updates
+
+F. DATABASE IMPROVEMENTS
+Improve schema for:
+- replacement_history
+- health timeline
+- audit logs
+- imported_by
+- quarantine reason
+- encryption-ready cookie storage
+- version field for optimistic locking
+- proper indexes
+
+G. SECURITY
+Strengthen:
+- admin authz
+- super admin restrictions for Delete All
+- CSRF enforcement
+- cookie encryption at rest
+- safe secret management
+- replay protection
+- mutation audit logs
+- action-specific permission gates
+
+H. PERFORMANCE
+Optimize for large data:
+- pagination
+- virtualization
+- cached aggregates
+- queue concurrency
+- reduced N+1 queries
+- websocket-first updates
+- fallback polling
+- batched refreshes
+
+PHASE 5 — IMPLEMENTATION OUTPUT
+After the audit, give me these outputs in order:
+
+1. CURRENT STATE REPORT
+- what works
+- what is broken
+- what is missing
+- what is risky
+
+2. FILE-BY-FILE CHANGE PLAN
+List exact files to modify and why.
+
+3. API IMPROVEMENT PLAN
+Define improved routes/actions, request/response shapes, validation, and errors.
+
+4. DATABASE MIGRATION PLAN
+Give migration SQL or ORM migration steps.
+
+5. FRONTEND REFACTOR PLAN
+Component structure, state management, modal flow, bulk actions, filters, loaders, error handling.
+
+6. STEP-BY-STEP EXECUTION ORDER
+Tell me the safest build order so nothing breaks.
+
+7. CODE CHANGES
+Then start implementing the improvements directly in the project:
+- fix broken logic
+- improve weak UI
+- add missing safety features
+- add missing backend guards
+- keep code clean and production-ready
+
+==================================================
+IMPORTANT RULES
+==================================================
+- Do not give generic advice only
+- Check the real code first
+- Be brutally honest
+- If something is fake UI, say it clearly
+- If something is dangerous, fix it
+- Preserve existing functionality while upgrading it
+- Prefer robust, maintainable, production-quality code
+- Explain assumptions only when code is unclear
+- Do not stop at analysis — continue into implementation
+- Think like the lead engineer responsible for shipping this safely
+
+Final goal:
+Turn this Account Manager into an ultra-level, production-ready, admin-safe, scalable SaaS operations module.

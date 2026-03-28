@@ -284,17 +284,31 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
 
       invalidateAccountCaches();
       emitAdminEvent('slot_updated', { action: 'recheck', account_id: parseInt(account_id) });
+
+      const reason = parsed.length === 0 ? 'No cookie data present'
+        : isExpired ? 'Cookies have expired'
+        : score >= 70 ? 'All cookies healthy'
+        : score >= 50 ? 'Cookies valid but some may be weak'
+        : score >= 20 ? 'Low quality cookies detected'
+        : 'Critical — cookies are degraded or missing key auth tokens';
+
       return res.json({
         success: true, account_id: parseInt(account_id),
         cookie_count: parsed.length, score, cookie_status: cookieStatus,
         expires_at: expiry, is_expired: isExpired,
         platform_name: account.platform?.name || 'Unknown',
+        reason,
       });
     }
 
     if (action === 'recheck_all') {
-      const accounts = await prisma.platformAccount.findMany({ where: { isActive: 1 } });
-      let checked = 0, healthy = 0, degraded = 0;
+      const { platform_id } = req.body;
+      const where = { isActive: 1 };
+      if (platform_id) where.platformId = parseInt(platform_id);
+
+      const accounts = await prisma.platformAccount.findMany({ where });
+      let checked = 0, updated = 0;
+      const statuses = { VALID: 0, WEAK: 0, EXPIRED: 0, DEAD: 0, MISSING: 0 };
 
       for (const account of accounts) {
         let raw = account.cookieData ? Buffer.from(account.cookieData, 'base64').toString('utf-8') : '';
@@ -302,25 +316,33 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
         const score = parsed.length > 0 ? computeCookieScore(parsed) : 0;
         const expiry = parsed.length > 0 ? extractCookieExpiry(parsed) : null;
         const isExpired = expiry ? new Date(expiry) < new Date() : false;
-        const cookieStatus = parsed.length === 0 ? 'MISSING' : isExpired ? 'EXPIRED' : score >= 50 ? 'VALID' : 'WEAK';
+        const cookieStatus = parsed.length === 0 ? 'MISSING' : isExpired ? 'EXPIRED' : score < 20 ? 'DEAD' : score >= 50 ? 'VALID' : 'WEAK';
+        const newStability = score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD';
         const h = score >= 50 ? 'healthy' : 'degraded';
 
+        statuses[cookieStatus] = (statuses[cookieStatus] || 0) + 1;
+
+        const changed = account.cookieStatus !== cookieStatus || account.intelligenceScore !== score || account.stabilityStatus !== newStability;
         await prisma.platformAccount.update({
           where: { id: account.id },
           data: {
             cookieStatus, intelligenceScore: score,
-            stabilityStatus: score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD',
+            stabilityStatus: newStability,
             healthStatus: h, lastCheckedAt: nowISO(), updatedAt: nowISO(),
           },
         });
 
-        if (h === 'healthy') healthy++; else degraded++;
+        if (changed) updated++;
         checked++;
       }
 
       invalidateAccountCaches();
-      emitAdminEvent('accounts_rechecked', { checked, healthy, degraded });
-      return res.json({ success: true, message: `Rechecked ${checked} accounts`, total: checked, healthy, degraded });
+      emitAdminEvent('accounts_rechecked', { checked, updated, statuses });
+      return res.json({
+        success: true,
+        message: `Rechecked ${checked} accounts`,
+        results: { total: checked, updated, statuses },
+      });
     }
 
     let raw = cookie_string;

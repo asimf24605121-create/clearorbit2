@@ -361,15 +361,34 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
       if (!account_id) return res.status(400).json({ success: false, message: 'Account ID required' });
 
       const account = await prisma.platformAccount.findUnique({ where: { id: parseInt(account_id) } });
+      let revokedCount = 0;
       if (account) {
+        const activeSessions = await prisma.accountSession.findMany({
+          where: { accountId: parseInt(account_id), status: 'active' },
+          select: { id: true, userId: true },
+        });
+        revokedCount = activeSessions.length;
+        for (const s of activeSessions) {
+          sessionStore.releaseAccountSession(s.id);
+        }
+        if (activeSessions.length > 0) {
+          await prisma.accountSession.updateMany({
+            where: { accountId: parseInt(account_id), status: 'active' },
+            data: { status: 'inactive', reason: 'account_deleted' },
+          });
+          const affectedUserIds = [...new Set(activeSessions.map(s => s.userId))];
+          for (const uid of affectedUserIds) {
+            emitAdminEvent('platform_access_revoked', { userId: uid, reason: 'account_deleted' });
+          }
+        }
         await prisma.platformAccount.delete({ where: { id: parseInt(account_id) } });
         await prisma.platform.update({
           where: { id: account.platformId },
           data: { totalAccounts: { decrement: 1 } },
         });
-        await logAdminAction(adminId, 'delete_slot', 'PlatformAccount', parseInt(account_id), { slot_name: account.slotName }, ip);
+        await logAdminAction(adminId, 'delete_slot', 'PlatformAccount', parseInt(account_id), { slot_name: account.slotName, active_sessions_revoked: revokedCount }, ip);
       }
-      return _ok({ message: 'Account deleted' });
+      return _ok({ message: `Account deleted${revokedCount > 0 ? `. ${revokedCount} active session(s) revoked.` : ''}` });
     }
 
     if (action === 'toggle') {
@@ -386,16 +405,45 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
     }
 
     if (action === 'delete_by_platform') {
-      const { platform_id } = req.body;
+      const { platform_id, confirm_text } = req.body;
       if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
 
       const pid = parseInt(platform_id);
+
+      const activeSessions = await prisma.accountSession.findMany({
+        where: { platformId: pid, status: 'active' },
+        select: { id: true, userId: true },
+      });
+
+      const platform = await prisma.platform.findUnique({ where: { id: pid }, select: { name: true } });
+      const platformName = platform?.name || 'Unknown';
+
+      if (activeSessions.length > 0 && confirm_text !== platformName) {
+        return res.json({
+          success: false,
+          message: `This platform has ${activeSessions.length} active session(s). Type the platform name "${platformName}" to confirm deletion.`,
+          requires_confirmation: true,
+          platform_name: platformName,
+          active_session_count: activeSessions.length,
+        });
+      }
+
+      for (const s of activeSessions) {
+        sessionStore.releaseAccountSession(s.id);
+      }
+      if (activeSessions.length > 0) {
+        const affectedUserIds = [...new Set(activeSessions.map(s => s.userId))];
+        for (const uid of affectedUserIds) {
+          emitAdminEvent('platform_access_revoked', { userId: uid, reason: 'platform_slots_deleted' });
+        }
+      }
+
       await prisma.accountSession.deleteMany({ where: { platformId: pid } });
       await prisma.accountIntelligenceLog.deleteMany({ where: { platformId: pid } });
       const { count } = await prisma.platformAccount.deleteMany({ where: { platformId: pid } });
       await prisma.platform.update({ where: { id: pid }, data: { totalAccounts: 0 } });
-      await logAdminAction(adminId, 'delete_platform_slots', 'Platform', pid, { count }, ip);
-      return _ok({ message: `${count} slot(s) deleted for platform` });
+      await logAdminAction(adminId, 'delete_platform_slots', 'Platform', pid, { count, sessions_revoked: activeSessions.length }, ip);
+      return _ok({ message: `${count} slot(s) deleted for ${platformName}. ${activeSessions.length} session(s) revoked.` });
     }
 
     if (action === 'delete_selected' || action === 'delete_multiple') {
@@ -410,6 +458,24 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
         select: { platformId: true },
       });
 
+      const activeSessions = await prisma.accountSession.findMany({
+        where: { accountId: { in: ids }, status: 'active' },
+        select: { id: true, userId: true },
+      });
+      for (const s of activeSessions) {
+        sessionStore.releaseAccountSession(s.id);
+      }
+      if (activeSessions.length > 0) {
+        await prisma.accountSession.updateMany({
+          where: { accountId: { in: ids }, status: 'active' },
+          data: { status: 'inactive', reason: 'bulk_deleted' },
+        });
+        const affectedUserIds = [...new Set(activeSessions.map(s => s.userId))];
+        for (const uid of affectedUserIds) {
+          emitAdminEvent('platform_access_revoked', { userId: uid, reason: 'bulk_deleted' });
+        }
+      }
+
       await prisma.accountSession.deleteMany({ where: { accountId: { in: ids } } });
       await prisma.accountIntelligenceLog.deleteMany({ where: { accountId: { in: ids } } });
       const { count } = await prisma.platformAccount.deleteMany({ where: { id: { in: ids } } });
@@ -420,8 +486,8 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
         await prisma.platform.update({ where: { id: pid }, data: { totalAccounts: remaining } });
       }
 
-      await logAdminAction(adminId, 'delete_multiple_slots', 'PlatformAccount', null, { ids, count }, ip);
-      return _ok({ message: `${count} slot(s) deleted` });
+      await logAdminAction(adminId, 'delete_multiple_slots', 'PlatformAccount', null, { ids, count, sessions_revoked: activeSessions.length }, ip);
+      return _ok({ message: `${count} slot(s) deleted. ${activeSessions.length} session(s) revoked.` });
     }
 
     if (action === 'replace_cookie') {
@@ -439,7 +505,12 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
       const encoded = Buffer.from(cookie_data).toString('base64');
       const fp = generateFingerprint(cookie_data);
 
+      const oldCookieBackup = account.cookieData;
+
       let cascadedCount = 0;
+      let sessionsRevoked = 0;
+
+      const allAccountIds = [];
 
       if (account.cookieId) {
         await prisma.cookieVault.update({
@@ -457,6 +528,7 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
               expiresAt: expiry, stabilityStatus: classifyStability(score), updatedAt: nowISO(),
             },
           });
+          allAccountIds.push(linked.id);
           cascadedCount++;
         }
       } else {
@@ -472,11 +544,38 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
             fingerprint: fp, expiresAt: expiry, stabilityStatus: classifyStability(score), updatedAt: nowISO(),
           },
         });
+        allAccountIds.push(account.id);
         cascadedCount = 1;
       }
 
-      await logAdminAction(adminId, 'replace_cookie', 'PlatformAccount', parseInt(account_id), { cascaded: cascadedCount }, ip);
-      return _ok({ message: `Cookie replaced. ${cascadedCount} slot(s) updated.`, cascaded_count: cascadedCount });
+      if (allAccountIds.length > 0) {
+        const activeSessions = await prisma.accountSession.findMany({
+          where: { accountId: { in: allAccountIds }, status: 'active' },
+          select: { id: true, userId: true },
+        });
+        for (const s of activeSessions) {
+          sessionStore.releaseAccountSession(s.id);
+        }
+        if (activeSessions.length > 0) {
+          await prisma.accountSession.updateMany({
+            where: { accountId: { in: allAccountIds }, status: 'active' },
+            data: { status: 'inactive', reason: 'cookie_replaced' },
+          });
+          sessionsRevoked = activeSessions.length;
+          const affectedUserIds = [...new Set(activeSessions.map(s => s.userId))];
+          for (const uid of affectedUserIds) {
+            emitAdminEvent('platform_access_revoked', { userId: uid, reason: 'cookie_replaced' });
+          }
+        }
+      }
+
+      await logAdminAction(adminId, 'replace_cookie', 'PlatformAccount', parseInt(account_id), {
+        cascaded: cascadedCount,
+        sessions_revoked: sessionsRevoked,
+        old_fingerprint: account.fingerprint,
+        new_fingerprint: fp,
+      }, ip);
+      return _ok({ message: `Cookie replaced. ${cascadedCount} slot(s) updated. ${sessionsRevoked} active session(s) revoked.`, cascaded_count: cascadedCount, sessions_revoked: sessionsRevoked });
     }
 
     if (action === 'extend') {
