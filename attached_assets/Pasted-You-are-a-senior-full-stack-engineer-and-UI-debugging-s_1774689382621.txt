@@ -1,0 +1,192 @@
+You are a senior full-stack engineer and UI debugging specialist.
+
+The compact Account Manager slot cards were redesigned, but now the action buttons on the slot cards are not working properly across all slots.
+
+Current visible buttons on each slot card:
+- Check
+- Edit
+- Replace
+- Del
+
+Problem:
+These buttons are visible in the new compact card UI, but they are not working correctly for all slot cards.
+
+I want you to do a real debugging pass on the implementation and fix the root cause properly.
+
+==================================================
+MAIN TASK
+==================================================
+
+Inspect why the slot card buttons are not working after the compact UI redesign.
+
+Do not guess.
+Check the actual code.
+
+I want you to inspect:
+
+1. how slot cards are rendered
+2. how button HTML is generated
+3. whether buttons use inline onclick or delegated events
+4. whether event listeners are attached after re-render
+5. whether compact card DOM structure broke old selectors
+6. whether a loading overlay or parent layer is blocking pointer events
+7. whether z-index / pointer-events CSS is preventing clicks
+8. whether slot/account IDs are being passed correctly
+9. whether selected state or card state wrappers interfere with clicks
+10. whether buttons work only on first card and fail on others due to duplicate IDs
+11. whether modal open functions receive correct data
+12. whether re-render after filtering/platform grouping removes handlers
+
+==================================================
+DEBUG EVERYTHING BUTTON-BY-BUTTON
+==================================================
+
+For every slot card button, verify:
+
+A. CHECK
+- click fires?
+- correct slot id passed?
+- correct card loading state applied?
+- backend request sent?
+- UI updates after response?
+
+B. EDIT
+- click fires?
+- correct modal opens?
+- correct slot values load?
+- save works after edit?
+- modal opens for all cards, not just first one?
+
+C. REPLACE
+- click fires?
+- replace modal opens?
+- correct slot/account selected?
+- submit works?
+- auto recheck after replace works?
+
+D. DELETE
+- click fires?
+- correct slot targeted?
+- confirmation appears?
+- delete works for selected card?
+- UI removes correct slot?
+
+==================================================
+LIKELY ROOT CAUSES TO CHECK
+==================================================
+
+Check for these exact technical issues:
+
+- duplicate element IDs in repeated slot cards
+- inline onclick broken by escaped quotes/string interpolation
+- event delegation bound to old selectors
+- listeners attached before dynamic render
+- innerHTML re-render wiping listeners
+- new compact button classes not included in event binding
+- buttons inside parent with pointer-events:none
+- overlay still active and blocking clicks
+- absolute positioned elements covering buttons
+- stale references after card refresh
+- wrong dataset attributes
+- wrong slot id / account id mapping
+- stopPropagation / preventDefault misuse
+- modals using global state that only tracks first card
+- CSS z-index issue
+- disabled state not being cleared after previous loading
+- selected card wrapper intercepting clicks
+
+==================================================
+WHAT I WANT FIXED
+==================================================
+
+I want a robust production fix.
+
+Requirements:
+1. All slot buttons must work on every card
+2. Use a reliable event handling approach
+3. Avoid fragile inline handlers if better architecture is possible
+4. Ensure dynamic card re-renders do not break button behavior
+5. Ensure correct slot/account context is always passed
+6. Ensure loading states do not permanently block actions
+7. Ensure no duplicate IDs exist in repeated card HTML
+8. Ensure modals open with correct card data every time
+9. Ensure delete/check/replace/edit all work after filter, refresh, and re-render
+
+==================================================
+BEST IMPLEMENTATION APPROACH
+==================================================
+
+If needed, refactor action handling to a safer pattern such as:
+- data-action attributes
+- data-slot-id attributes
+- event delegation on the slot container
+- centralized action router
+
+Example preferred pattern:
+- each button has data-action="check|edit|replace|delete"
+- each button has data-slot-id="..."
+- one delegated click listener on the slot container
+- listener resolves closest button and slot
+- routes action to correct handler
+
+This should be resilient to dynamic re-rendering.
+
+==================================================
+ALSO CHECK CSS / INTERACTION BUGS
+==================================================
+
+Inspect CSS for:
+- pointer-events
+- z-index
+- overlays
+- absolute positioned bars/chips/buttons
+- disabled states
+- loading states
+- hover/focus layers
+- click area issues
+
+Make sure the compact redesign did not visually look good while functionally blocking interaction.
+
+==================================================
+OUTPUT I WANT
+==================================================
+
+After inspection, give me:
+
+1. ROOT CAUSE REPORT
+- exact reason buttons are not working
+- whether issue is JS, HTML, CSS, or state management
+- whether issue affects all cards or only some
+- whether issue came from compact redesign
+
+2. FILE-BY-FILE FIX PLAN
+- exact file(s) and functions to change
+
+3. IMPLEMENTATION
+- actually fix the issue in code
+
+4. FINAL QA CHECK
+Confirm that on multiple slot cards:
+- Check works
+- Edit works
+- Replace works
+- Delete works
+
+Also verify they still work:
+- after filtering
+- after re-render
+- after refresh
+- after edit/save
+- after replace
+- after deleting another card
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not just explain
+- Debug the actual implementation
+- Fix the real root cause
+- Preserve the compact professional UI
+- Prefer robust event delegation over fragile direct bindings
+- Make this production-safe

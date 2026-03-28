@@ -1,0 +1,122 @@
+Excellent. The production polish pass is now complete.
+
+Current state summary:
+- whitespace reduced
+- slot cards made denser and more scannable
+- modals polished and compacted
+- Check flow hardened with loading, timeout, and error handling
+- Replace flow hardened with validation, parse feedback, confirm step, and auto-recheck
+- Delete flow hardened with stronger confirmations and loading/removal states
+- keyboard and accessibility improved
+- credentials:'include' made consistent
+- tests passing
+- no JS errors
+- server clean
+
+Now do the FINAL SHIP PASS as a senior full-stack engineer and QA lead.
+
+==================================================
+FINAL SHIP PASS
+==================================================
+
+I want you to do the final production-readiness sweep before we consider this Account Manager / Slot Manager complete.
+
+PHASE 1 — REGRESSION AUDIT
+Run a full regression check for:
+- Check button
+- Edit flow
+- Replace flow
+- Delete flow
+- Delete All flow
+- bulk selection
+- platform filtering
+- compact card layout
+- modal open/close behavior
+- keyboard handling
+- loading states
+- error recovery
+- refresh / recheck interactions
+- state updates after mutations
+
+Verify nothing was broken during the polish pass.
+
+PHASE 2 — FINAL UX EDGE CASES
+Check and improve edge cases:
+- very long slot names
+- empty expiry
+- invalid cookie paste
+- duplicate cookie replace
+- network failure during check
+- session expiration during action
+- double clicking action buttons
+- deleting a slot while selected
+- replacing cookies on a slot currently loading
+- filtering while cards are selected
+- modal closing during in-flight actions
+- smaller screen layouts
+- many cards on one page
+
+PHASE 3 — FINAL VISUAL CLEANUP
+Do a last pixel-level cleanup for:
+- alignment
+- wrapping issues
+- chip overflow
+- button spacing
+- platform header consistency
+- card title truncation
+- tooltip placement
+- responsive breakpoints
+- modal footer button balance
+- loading overlay appearance
+- selected card state clarity
+
+PHASE 4 — FINAL CODE QUALITY PASS
+Clean up:
+- dead CSS
+- duplicate utility styles
+- repeated action logic
+- repeated fetch logic
+- naming inconsistencies
+- fragile DOM selectors
+- unnecessary re-renders or refreshes
+- any leftover debug code
+- any inconsistent color/spacing tokens
+
+PHASE 5 — FINAL SAFETY CHECK
+Verify:
+- all mutating actions use credentials:'include'
+- destructive actions have confirmations
+- replace validates input before submit
+- check prevents duplicate execution
+- loading states always clear on fail/success
+- stale UI is not left behind after delete/replace/edit
+- no silent failures
+- no broken modal state
+
+PHASE 6 — FINAL QA OUTPUT
+After finishing, give me:
+
+1. FINAL REGRESSION REPORT
+- what was tested
+- what was fixed
+- what was confirmed working
+
+2. FINAL EDGE CASE REPORT
+- what edge cases were found
+- what was hardened
+
+3. FINAL FILE SUMMARY
+- exact file(s) changed
+- what changed in each one
+
+4. FINAL SHIP STATUS
+Tell me whether this module is now:
+- production-ready
+- what remaining optional upgrades exist
+- what is nice-to-have vs must-have
+
+Important:
+- do not redesign from scratch
+- preserve the current improved structure
+- focus on refinement, regression prevention, and final ship quality
+- act like the engineer responsible for release
