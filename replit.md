@@ -38,6 +38,17 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Session Reconstruction**: Full session reconstruction capability including cookies, localStorage, sessionStorage, and API token verification.
 - **Activity Monitoring**: Active session monitoring, login attempt tracking, and force logout capabilities.
 
+### Account Manager Safety Features
+- **Session Revocation on Delete**: All delete actions (single, bulk, by-platform) now release active sessions from the in-memory session store, mark DB sessions inactive with reason codes, and emit `platform_access_revoked` WebSocket events to affected users before deleting records.
+- **Session Revocation on Cookie Replace**: When cookies are replaced (including vault cascade to linked accounts), all active sessions across affected accounts are revoked, ensuring users get fresh cookies on next access.
+- **Type-to-Confirm for Dangerous Deletes**: `delete_by_platform` requires typing the platform name when active sessions exist, preventing accidental mass revocation.
+- **Recheck All with Platform Filter**: Backend `recheck_all` respects `platform_id` filter and returns structured `{ results: { total, updated, statuses } }` response with per-status counts (VALID, WEAK, EXPIRED, DEAD, MISSING).
+- **Recheck Reason Field**: Single cookie recheck returns a human-readable `reason` explaining the cookie status.
+- **Health Bar**: Uses true 0-100 intelligence score (not the old broken `(score+100)/2` formula).
+- **Search & Status Filter**: Account Manager toolbar includes a text search (by slot/platform name) and a status dropdown filter (VALID/EXPIRED/DEAD/WEAK).
+- **Last Checked Timestamp**: Account cards display "Last checked: X ago" when available.
+- **Cached Edit Modal**: `openEditAccountModal` uses the cached `ALL_ACCOUNT_SLOTS` array instead of re-fetching all accounts from the API.
+
 ### Master Session Enforcement System
 Platform access is fully dependent on the ClearOrbit website session. Key mechanisms:
 
