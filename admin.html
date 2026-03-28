@@ -63,6 +63,21 @@
         .plat-action-btn.primary{background:#EEF2FF;color:#4F46E5;border-color:#C7D2FE}
         .plat-action-btn.primary:hover{background:#E0E7FF}
         .plat-loading-skeleton{background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:platShimmer 1.5s ease-in-out infinite;border-radius:8px}
+        .plat-stale-warn{font-size:10px;font-weight:600;cursor:help}
+        .plat-stale-warn.amber{color:#F59E0B}
+        .plat-stale-warn.red{color:#EF4444}
+        .plat-recommendation{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:6px;margin-top:4px}
+        .plat-recommendation.warn{background:#FFFBEB;color:#A16207;border:1px solid #FDE68A}
+        .plat-recommendation.danger{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA}
+        .plat-recommendation.info{background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE}
+        .plat-recommendation.muted{background:#F9FAFB;color:#6B7280;border:1px solid #E5E7EB}
+        .plat-page-controls{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;font-size:11px;color:#6B7280;border-top:1px solid #F3F4F6}
+        .plat-page-btn{padding:4px 10px;font-size:11px;font-weight:500;border-radius:6px;border:1px solid #E5E7EB;background:#fff;color:#374151;cursor:pointer;transition:all .15s}
+        .plat-page-btn:hover:not(:disabled){background:#F9FAFB;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+        .plat-page-btn:disabled{opacity:.35;cursor:default}
+        .plat-sort-arrow{font-size:8px;margin-left:2px;color:#D1D5DB;transition:color .15s}
+        .plat-sort-arrow.active{color:#4F46E5}
+        .plat-logo-preview{max-width:100%;max-height:120px;border-radius:8px;border:1px solid #E5E7EB;margin-top:8px;object-fit:contain}
         @keyframes platShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:4px 0;font-size:10px;font-weight:600;border-radius:6px;border:1px solid var(--bc,#E5E7EB);background:var(--bg,#F9FAFB);color:var(--c,#374151);cursor:pointer;transition:all .15s;line-height:1;min-height:22px}
         .slot-action-btn:hover{filter:brightness(.93);box-shadow:0 1px 4px rgba(0,0,0,.1)}
@@ -1194,7 +1209,7 @@
                                 <span id="platRegistryCount" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">0</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <select id="platStatusFilter" onchange="filterPlatformRegistry()" class="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 bg-white text-gray-600">
+                                <select id="platStatusFilter" onchange="_platPage=1;filterPlatformRegistry()" class="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 bg-white text-gray-600">
                                     <option value="">All statuses</option>
                                     <option value="healthy">Healthy</option>
                                     <option value="degraded">Degraded</option>
@@ -1202,29 +1217,40 @@
                                     <option value="inactive">Inactive</option>
                                     <option value="dead">Dead</option>
                                 </select>
-                                <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="btn btn-danger btn-sm hidden" style="font-size:11px">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    Delete Selected (<span id="platSelectedCount">0</span>)
+                                <button id="platBulkToggleBtn" onclick="bulkTogglePlatforms()" class="plat-action-btn hidden" style="font-size:10px;padding:4px 10px">
+                                    <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    <span id="platBulkToggleLabel">Disable</span> (<span id="platBulkToggleCount">0</span>)
+                                </button>
+                                <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="plat-action-btn danger hidden" style="font-size:10px;padding:4px 10px">
+                                    <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Delete (<span id="platSelectedCount">0</span>)
                                 </button>
                             </div>
                         </div>
-                        <input id="platSearchInput" type="text" class="input text-sm" placeholder="Search platforms by name or domain..." oninput="filterPlatformRegistry()" style="max-width:320px"/>
+                        <input id="platSearchInput" type="text" class="input text-sm" placeholder="Search platforms by name or domain..." oninput="_platDebouncedSearch()" style="max-width:320px"/>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="data-table">
                             <thead><tr>
                                 <th style="width:36px"><input type="checkbox" id="platSelectAll" class="rounded" onchange="toggleAllPlatformCheckboxes(this.checked)"/></th>
-                                <th class="cursor-pointer select-none" onclick="sortPlatformTable('name')">Platform <span class="text-gray-300">↕</span></th>
+                                <th class="cursor-pointer select-none" onclick="sortPlatformTable('name')">Platform <span id="platSort_name" class="plat-sort-arrow active">▲</span></th>
                                 <th>Domain</th>
-                                <th class="cursor-pointer select-none" onclick="sortPlatformTable('health_score')">Health <span class="text-gray-300">↕</span></th>
-                                <th class="cursor-pointer select-none text-center" onclick="sortPlatformTable('active_accounts')">Accounts <span class="text-gray-300">↕</span></th>
-                                <th class="cursor-pointer select-none text-center" onclick="sortPlatformTable('active_sessions')">Sessions <span class="text-gray-300">↕</span></th>
+                                <th class="cursor-pointer select-none" onclick="sortPlatformTable('health_score')">Health <span id="platSort_health_score" class="plat-sort-arrow">▼</span></th>
+                                <th class="cursor-pointer select-none text-center" onclick="sortPlatformTable('active_accounts')">Accounts <span id="platSort_active_accounts" class="plat-sort-arrow">▼</span></th>
+                                <th class="cursor-pointer select-none text-center" onclick="sortPlatformTable('active_sessions')">Sessions <span id="platSort_active_sessions" class="plat-sort-arrow">▼</span></th>
                                 <th>Status</th>
                                 <th>Last Checked</th>
                                 <th>Actions</th>
                             </tr></thead>
                             <tbody id="platformsBody"></tbody>
                         </table>
+                    </div>
+                    <div id="platPagination" class="plat-page-controls" style="display:none">
+                        <span id="platPageInfo"></span>
+                        <div style="display:flex;gap:4px">
+                            <button class="plat-page-btn" onclick="platChangePage(-1)" id="platPrevBtn" disabled>Prev</button>
+                            <button class="plat-page-btn" onclick="platChangePage(1)" id="platNextBtn" disabled>Next</button>
+                        </div>
                     </div>
                 </div>
 
@@ -3401,6 +3427,10 @@ let _platHealthPollTimer = null;
 let _platDetailPlatformId = null;
 let _platSortKey = 'name';
 let _platSortDir = 1;
+let _platPage = 1;
+const _platPageSize = 25;
+let _platSearchTimer = null;
+let _platFilteredCache = [];
 
 const _platStatusConfig = {
     healthy: { color: '#10B981', bg: '#D1FAE5', label: 'Healthy', icon: '●' },
@@ -3435,6 +3465,43 @@ function _platAbsoluteTime(ts) {
     const d = _alieParseUTC(ts);
     if (!d || isNaN(d.getTime())) return '';
     return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function _platStaleLevel(ts) {
+    if (!ts) return 'none';
+    const age = Date.now() - (_alieParseUTC(ts)?.getTime() || 0);
+    if (age > 259200000) return 'critical';
+    if (age > 86400000) return 'stale';
+    return 'none';
+}
+
+function _platStaleHtml(ts) {
+    const level = _platStaleLevel(ts);
+    if (level === 'critical') return ' <span class="plat-stale-warn red" title="Data is over 72h old. Run a health check immediately.">(critical)</span>';
+    if (level === 'stale') return ' <span class="plat-stale-warn amber" title="Data may be outdated (>24h). Run a health check to refresh.">(stale)</span>';
+    return '';
+}
+
+function _platRecommendation(status) {
+    const map = {
+        healthy: '',
+        degraded: '<div class="plat-recommendation warn">Recommended: Run health check to verify</div>',
+        unused: '<div class="plat-recommendation muted">Tip: Import cookies to activate this platform</div>',
+        inactive: '<div class="plat-recommendation info">Action: Enable platform when ready</div>',
+        dead: '<div class="plat-recommendation danger">Action: Remove or re-import credentials</div>',
+    };
+    return map[status] || '';
+}
+
+function _platDebouncedSearch() {
+    if (_platSearchTimer) clearTimeout(_platSearchTimer);
+    _platSearchTimer = setTimeout(() => { _platPage = 1; filterPlatformRegistry(); }, 250);
+}
+
+function platChangePage(dir) {
+    const totalPages = Math.ceil(_platFilteredCache.length / _platPageSize);
+    _platPage = Math.max(1, Math.min(totalPages, _platPage + dir));
+    renderPlatRows(_platFilteredCache);
 }
 
 async function loadPlatformIntelligence() {
@@ -3488,9 +3555,10 @@ async function loadPlatformIntelligence() {
                 </div>
                 ${healthScoreBar(score)}
                 ${p.status_reason ? `<div style="font-size:10px;color:#9CA3AF;margin-top:6px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(p.status_reason)}</div>` : ''}
+                ${_platRecommendation(hs)}
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #F3F4F6;font-size:10px;color:#9CA3AF">
                     <span>${p.active_accounts || 0}/${p.slot_count || 0} active</span>
-                    ${lastChecked !== '—' ? `<span class="plat-ts" title="${escHtml(lastCheckedAbs)}" style="border-bottom:none">${lastChecked}</span>` : ''}
+                    ${lastChecked !== '—' ? `<span class="plat-ts" title="${escHtml(lastCheckedAbs)}" style="border-bottom:none">${lastChecked}${_platStaleHtml(p.last_health_check)}</span>` : ''}
                 </div>
             </div>`;
         }).join('') : '<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:32px 0;grid-column:1/-1">No platforms detected yet. Import cookies in Account Manager to auto-detect platforms.</div>';
@@ -3524,25 +3592,39 @@ function filterPlatformRegistry() {
         if (typeof va === 'string') return _platSortDir * (va || '').localeCompare(vb || '');
         return _platSortDir * ((va || 0) - (vb || 0));
     });
+    _platFilteredCache = filtered;
     renderPlatRows(filtered);
 }
 
 function sortPlatformTable(key) {
     if (_platSortKey === key) _platSortDir *= -1;
     else { _platSortKey = key; _platSortDir = key === 'name' ? 1 : -1; }
+    document.querySelectorAll('.plat-sort-arrow').forEach(el => { el.classList.remove('active'); });
+    const arrow = document.getElementById('platSort_' + key);
+    if (arrow) { arrow.classList.add('active'); arrow.textContent = _platSortDir === 1 ? '▲' : '▼'; }
+    _platPage = 1;
     filterPlatformRegistry();
 }
 
 function renderPlatRows(platforms) {
     const tbody = document.getElementById('platformsBody');
+    const pagDiv = document.getElementById('platPagination');
     if (!platforms.length) {
         const q = (document.getElementById('platSearchInput').value || '').trim();
         const sf = document.getElementById('platStatusFilter')?.value || '';
         tbody.innerHTML = `<tr><td colspan="9" class="text-center text-gray-400 py-6">${q || sf ? 'No platforms match your filters.' : 'No platforms yet. Import cookies to auto-detect.'}</td></tr>`;
+        pagDiv.style.display = 'none';
         updatePlatSelectionUI();
         return;
     }
-    tbody.innerHTML = platforms.map(p => {
+    const totalPages = Math.ceil(platforms.length / _platPageSize);
+    if (_platPage > totalPages) _platPage = totalPages;
+    const start = (_platPage - 1) * _platPageSize;
+    const page = platforms.slice(start, start + _platPageSize);
+
+    const frag = document.createDocumentFragment();
+    const tmp = document.createElement('tbody');
+    tmp.innerHTML = page.map(p => {
         const bg = escHtml(p.bg_color_hex||'#4F46E5');
         const initial = escHtml((p.name||'?')[0].toUpperCase());
         const logoCell = p.logo_url
@@ -3551,6 +3633,7 @@ function renderPlatRows(platforms) {
         const score = p.health_score ?? 0;
         const hs = p.health_status || 'unused';
         const lastAbs = _platAbsoluteTime(p.last_health_check);
+        const stale = _platStaleHtml(p.last_health_check);
         return `
         <tr data-plat-id="${p.id}" data-plat-status="${hs}" style="transition:opacity .3s,transform .3s">
             <td><input type="checkbox" class="platRowCb rounded" value="${p.id}" onchange="updatePlatSelectionUI()"/></td>
@@ -3560,7 +3643,7 @@ function renderPlatRows(platforms) {
             <td style="text-align:center;font-size:12px"><span style="font-weight:600">${p.active_accounts || 0}</span><span style="color:#D1D5DB">/${p.slot_count || 0}</span></td>
             <td style="text-align:center;font-size:12px">${p.active_sessions || 0}</td>
             <td>${_platStatusBadge(hs)}</td>
-            <td><span class="plat-ts" style="font-size:10px;color:#9CA3AF" title="${escHtml(lastAbs)}">${_platTimeAgo(p.last_health_check)}</span></td>
+            <td><span class="plat-ts" style="font-size:10px;color:#9CA3AF" title="${escHtml(lastAbs)}">${_platTimeAgo(p.last_health_check)}${stale}</span></td>
             <td>
                 <div style="display:flex;gap:4px">
                     <button onclick="openPlatDetailModal(${p.id})" class="plat-action-btn" style="padding:4px 8px" title="Details">
@@ -3574,6 +3657,18 @@ function renderPlatRows(platforms) {
             </td>
         </tr>`;
     }).join('');
+    while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+
+    if (platforms.length > _platPageSize) {
+        pagDiv.style.display = '';
+        document.getElementById('platPageInfo').textContent = `Showing ${start + 1}–${Math.min(start + _platPageSize, platforms.length)} of ${platforms.length}`;
+        document.getElementById('platPrevBtn').disabled = _platPage <= 1;
+        document.getElementById('platNextBtn').disabled = _platPage >= totalPages;
+    } else {
+        pagDiv.style.display = 'none';
+    }
     updatePlatSelectionUI();
 }
 
@@ -3587,7 +3682,19 @@ function updatePlatSelectionUI() {
     const count = cbs.length;
     const total = document.querySelectorAll('.platRowCb').length;
     document.getElementById('platSelectedCount').textContent = count;
+    document.getElementById('platBulkToggleCount').textContent = count;
     document.getElementById('platBulkDeleteBtn').classList.toggle('hidden', count === 0);
+    const toggleBtn = document.getElementById('platBulkToggleBtn');
+    toggleBtn.classList.toggle('hidden', count === 0);
+    if (count > 0) {
+        const ids = Array.from(cbs).map(cb => parseInt(cb.value));
+        const activeCount = ids.filter(id => { const p = _platRegistryData.find(x => x.id === id); return p && p.is_active; }).length;
+        const label = activeCount >= ids.length / 2 ? 'Disable' : 'Enable';
+        document.getElementById('platBulkToggleLabel').textContent = label;
+        toggleBtn.className = `plat-action-btn ${label === 'Disable' ? 'danger' : 'success'}`;
+        toggleBtn.style.fontSize = '10px';
+        toggleBtn.style.padding = '4px 10px';
+    }
     const selectAll = document.getElementById('platSelectAll');
     if (total > 0) { selectAll.checked = count === total; selectAll.indeterminate = count > 0 && count < total; }
 }
@@ -3658,6 +3765,28 @@ async function bulkDeletePlatforms() {
             loadPlatformIntelligence();
         } else { showAlert(data.message, true); ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '1'; }); }
     } catch (e) { showAlert('Bulk delete failed.', true); }
+}
+
+async function bulkTogglePlatforms() {
+    const cbs = document.querySelectorAll('.platRowCb:checked');
+    const ids = Array.from(cbs).map(cb => parseInt(cb.value));
+    if (!ids.length) return;
+    const activeCount = ids.filter(id => { const p = _platRegistryData.find(x => x.id === id); return p && p.is_active; }).length;
+    const disabling = activeCount >= ids.length / 2;
+    const action = disabling ? 'Disable' : 'Enable';
+    if (disabling && !confirm(`Disable ${ids.length} platform(s)?\n\nAll active sessions on these platforms will be terminated.`)) return;
+    if (!disabling && !confirm(`Enable ${ids.length} platform(s)?`)) return;
+    ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
+    let success = 0, failed = 0;
+    for (const id of ids) {
+        try {
+            const res = await fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id }) });
+            const data = await res.json();
+            if (data.success) success++; else failed++;
+        } catch(e) { failed++; }
+    }
+    showAlert(`${action}d ${success} platform(s)${failed ? `, ${failed} failed` : ''}`, failed > 0);
+    loadPlatformIntelligence();
 }
 
 async function runPlatformHealthCheck() {
@@ -3780,14 +3909,14 @@ async function openPlatDetailModal(platformId) {
 
         const lastCheckAbs = _platAbsoluteTime(p.last_health_check);
         const lastCheckRel = _platTimeAgo(p.last_health_check);
-        const isStale = p.last_health_check && (Date.now() - (_alieParseUTC(p.last_health_check)?.getTime() || 0)) > 86400000;
-        const staleWarn = isStale ? '<span style="color:#F59E0B;font-weight:600" title="Data may be outdated. Run a health check to refresh."> (stale)</span>' : '';
+        const staleWarn = _platStaleHtml(p.last_health_check);
 
         body.innerHTML = `
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
                 ${_platStatusBadge(p.health_status)}
                 <span style="font-size:11px;color:#6B7280;font-style:italic;flex:1">${escHtml(p.status_reason || '')}</span>
             </div>
+            ${_platRecommendation(p.health_status) ? `<div style="margin-bottom:12px">${_platRecommendation(p.health_status)}</div>` : ''}
             ${healthScoreBar(score, { wide: true, noLabel: true })}
 
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 20px">
@@ -3819,7 +3948,7 @@ async function openPlatDetailModal(platformId) {
             <div style="overflow-x:auto;border:1px solid #E5E7EB;border-radius:10px">
                 <table class="plat-slots-table">
                     <thead><tr>
-                        <th>Slot</th><th>Score</th><th>Status</th><th>Cookie</th><th style="text-align:center">Pass / Fail</th><th>Last Verified</th>
+                        <th>Slot</th><th>Score</th><th>Status</th><th>Cookie</th><th style="text-align:center">Pass / Fail</th><th>Last Verified</th><th>Created</th>
                     </tr></thead>
                     <tbody>
                         ${p.accounts.map(a => {
@@ -3836,6 +3965,7 @@ async function openPlatDetailModal(platformId) {
                             const lastFailTs = a.last_failed;
                             const lastVerAbs = _platAbsoluteTime(lastVerTs);
                             const lastFailAbs = _platAbsoluteTime(lastFailTs);
+                            const createdAbs = _platAbsoluteTime(a.created_at);
                             return `<tr class="${a.is_active ? '' : 'slot-inactive'}">
                                 <td>
                                     <div style="font-weight:600;color:#111827;font-size:12px">${escHtml(a.slot_name||'Slot')}</div>
@@ -3850,9 +3980,10 @@ async function openPlatDetailModal(platformId) {
                                     <span style="color:#DC2626;font-weight:600">${a.fail_count||0}</span>
                                 </td>
                                 <td style="font-size:11px;color:#6B7280">
-                                    ${lastVerTs ? `<span class="plat-ts" title="${escHtml(lastVerAbs)}">${_platTimeAgo(lastVerTs)}</span>` : '<span style="color:#D1D5DB">—</span>'}
+                                    ${lastVerTs ? `<span class="plat-ts" title="${escHtml(lastVerAbs)}">Verified ${_platTimeAgo(lastVerTs)}</span>` : '<span style="color:#D1D5DB">—</span>'}
                                     ${lastFailTs ? `<div style="font-size:9px;color:#EF4444;margin-top:1px" class="plat-ts" title="${escHtml(lastFailAbs)}">Failed ${_platTimeAgo(lastFailTs)}</div>` : ''}
                                 </td>
+                                <td style="font-size:10px;color:#9CA3AF">${a.created_at ? `<span class="plat-ts" title="${escHtml(createdAbs)}">${_platTimeAgo(a.created_at)}</span>` : '—'}</td>
                             </tr>`;
                         }).join('')}
                     </tbody>
@@ -3898,14 +4029,27 @@ function triggerLogoUpload() {
 async function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file || !_platDetailPlatformId) return;
-    if (file.size > 2 * 1024 * 1024) { showAlert('File too large. Maximum size is 2MB.', true); event.target.value = ''; return; }
+
+    if (file.size > 2 * 1024 * 1024) {
+        showAlert(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 2MB.`, true);
+        event.target.value = '';
+        return;
+    }
 
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-    if (!allowed.includes(file.type)) { showAlert('Only JPG, PNG, WebP, and SVG files are allowed.', true); event.target.value = ''; return; }
+    if (!allowed.includes(file.type)) {
+        showAlert(`Unsupported format: ${file.type.split('/')[1]}. Use JPG, PNG, WebP, or SVG.`, true);
+        event.target.value = '';
+        return;
+    }
 
+    const previewUrl = URL.createObjectURL(file);
     const logoInner = document.getElementById('platDetailLogoInner');
     const origHTML = logoInner.innerHTML;
-    logoInner.innerHTML = '<div class="plat-loading-skeleton" style="width:44px;height:44px;border-radius:12px"></div>';
+    const origBg = logoInner.style.background;
+
+    logoInner.style.background = 'transparent';
+    logoInner.innerHTML = `<img src="${previewUrl}" style="width:44px;height:44px;border-radius:12px;object-fit:cover;opacity:.6;border:2px dashed #C7D2FE"/>`;
 
     const formData = new FormData();
     formData.append('logo', file);
@@ -3915,6 +4059,8 @@ async function handleLogoUpload(event) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         const headers = {};
         if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+        logoInner.innerHTML = '<div class="plat-loading-skeleton" style="width:44px;height:44px;border-radius:12px"></div>';
 
         const res = await fetch('api/upload_logo', {
             method: 'POST', credentials: 'include', headers, body: formData,
@@ -3930,12 +4076,15 @@ async function handleLogoUpload(event) {
             loadPlatformIntelligence();
         } else {
             showAlert(data.message || 'Upload failed', true);
+            logoInner.style.background = origBg;
             logoInner.innerHTML = origHTML;
         }
     } catch(e) {
         showAlert('Logo upload failed.', true);
+        logoInner.style.background = origBg;
         logoInner.innerHTML = origHTML;
     }
+    URL.revokeObjectURL(previewUrl);
     event.target.value = '';
 }
 

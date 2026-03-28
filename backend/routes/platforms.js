@@ -158,7 +158,14 @@ router.post('/update_platform', authenticate, requireAdmin(), async (req, res) =
     if (login_url !== undefined) data.loginUrl = login_url;
     if (max_slots_per_cookie !== undefined) data.maxSlotsPerCookie = parseInt(max_slots_per_cookie);
 
-    await prisma.platform.update({ where: { id: parseInt(platform_id) }, data });
+    const pid = parseInt(platform_id);
+    await prisma.platform.update({ where: { id: pid }, data });
+
+    const changedFields = Object.keys(data).join(', ');
+    await prisma.activityLog.create({
+      data: { userId: req.user.id, action: `Updated platform (ID: ${pid}): ${changedFields}`, ipAddress: req.ip || null, createdAt: nowISO() },
+    });
+
     res.json({ success: true, message: 'Platform updated' });
   } catch (err) {
     console.error('update_platform error:', err);
