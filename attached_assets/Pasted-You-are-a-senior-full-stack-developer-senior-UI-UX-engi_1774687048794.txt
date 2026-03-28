@@ -1,0 +1,327 @@
+You are a senior full-stack developer, senior UI/UX engineer, senior QA engineer, and senior SaaS product architect.
+
+I have an Account Manager / Slot Manager module for platform accounts like Netflix, Coursera, etc.
+
+Current problem:
+The UI is visible, but key actions are not working properly.
+I want you to inspect the real implementation, find why actions are broken, and upgrade the whole module to a professional production-level system.
+
+==================================================
+MAIN ISSUES TO FIX
+==================================================
+
+1. CHECK BUTTON NOT WORKING
+The Check button should actually run a real account validation flow:
+- read the stored cookies for that slot/account
+- test whether the platform account is still logged in
+- confirm cookies are valid
+- confirm account is working properly
+- update status badges and score
+- update heartbeat / last checked
+- show success or failure in UI
+
+Right now it looks like Check is either:
+- not wired to backend
+- using fake/mock logic
+- not updating state properly
+- not testing real login session
+
+I want you to inspect and fix the full Check flow end-to-end.
+
+Expected Check flow:
+- user clicks Check
+- button enters loading state
+- frontend calls backend validate/check endpoint
+- backend loads cookies for selected account
+- backend verifies whether session is alive / account logged in / cookies valid
+- backend returns detailed result:
+  - logged_in: true/false
+  - cookies_valid: true/false
+  - account_status: active / invalid / expired / risky
+  - heartbeat_status
+  - score
+  - warnings
+  - checked_at
+- frontend updates card instantly
+- toast or inline result is shown
+
+Also handle:
+- double click prevention
+- timeout
+- failed network
+- partial check result
+- platform-specific checker
+- queue/background check support if needed
+
+==================================================
+2. EDIT GUI LOOKS BAD / TOO BIG / UNPROFESSIONAL
+==================================================
+
+Current Edit modal looks like a simple large box form and takes too much space.
+I want it redesigned professionally.
+
+Problems:
+- too much empty space
+- basic modal styling
+- not compact
+- not admin-dashboard quality
+- form layout is weak
+- slot cards and forms consume too much room
+
+I want you to redesign Edit into a proper professional modal/drawer:
+- compact layout
+- better spacing
+- 2-column form where appropriate
+- proper labels
+- better input sizing
+- sticky action footer
+- clean header with close button
+- modern admin styling
+- mobile responsive
+- validation messages inline
+- do not waste space
+
+Improve fields like:
+- Slot Name
+- Max Users
+- Status
+- Expiry Date
+
+Also improve edit workflow:
+- preload values correctly
+- dirty state detection
+- disable Save when unchanged
+- validation before submit
+- optimistic locking or version check
+- success toast
+- refresh only affected card after save
+
+==================================================
+3. REPLACE BUTTON NOT WORKING
+==================================================
+
+Replace button should allow replacing cookies/session/account data for a slot safely.
+
+I want you to inspect why Replace is not working and implement the proper flow.
+
+Expected Replace behavior:
+- open professional modal
+- allow paste/import/upload of new cookies
+- validate platform match
+- validate cookie format
+- validate whether new cookies are live
+- back up old cookies before replacing
+- save replacement history
+- optionally revoke active linked users if needed
+- re-run check after replace
+- update UI instantly
+
+Need:
+- replace modal
+- validation errors
+- backup and rollback support
+- audit log entry
+- safe confirmation
+- platform mismatch detection
+- duplicate cookie detection
+
+==================================================
+4. DELETE BUTTON NOT WORKING
+==================================================
+
+Delete button should safely remove a slot/account, but only with proper safeguards.
+
+Inspect why Delete is broken and fix it.
+
+Expected Delete behavior:
+- confirmation modal
+- show account name and affected users
+- block delete if active users/session exist, OR require force revoke first
+- soft delete preferred
+- remove from UI after success
+- save audit log
+- show success/error toast
+
+Also implement Delete All safely:
+- type-to-confirm for destructive bulk delete
+- show total slots affected
+- block if active users exist unless explicit admin override
+- super-admin restriction if appropriate
+
+==================================================
+5. SLOT CARDS TAKE TOO MUCH SPACE
+==================================================
+
+The current card layout wastes space and does not scale.
+I want a more compact and professional layout.
+
+Problems:
+- too much white space
+- too much vertical height
+- cards are bulky
+- not ideal for many slots/accounts
+- difficult for admin to scan quickly
+
+I want you to improve the layout into a professional slot manager UI.
+
+Required improvements:
+- compact card design OR optional table view
+- denser information layout
+- better hierarchy
+- important metrics grouped
+- smaller action row
+- better badges
+- less padding waste
+- responsive grid
+- optional compact mode
+- quick status scan
+- better alignment of stats
+- professional admin dashboard appearance
+
+Suggested layout improvements:
+- top row: account name + platform + status badges + slot usage
+- middle row: health / cookies / expiry / heartbeat / checked time
+- bottom row: actions
+- use compact chips instead of oversized elements
+- add hover tooltips
+- reduce empty margins
+
+Also consider:
+- toggle between card view and table view
+- bulk action toolbar
+- search / sort / filter
+- sticky platform section header
+
+==================================================
+WHAT I WANT YOU TO DO
+==================================================
+
+PHASE 1 — REAL CODE INSPECTION
+Inspect the actual codebase first.
+Find:
+- Account Manager frontend component
+- Slot card component
+- Edit modal component
+- Replace modal or missing component
+- Delete action handler
+- Check action handler
+- backend APIs used by these buttons
+- database schema for slots/accounts/cookies
+- validation logic
+- score/health logic
+- state refresh logic
+
+Then clearly report:
+1. what currently works
+2. what is fake UI only
+3. what click handlers are broken
+4. what backend routes are missing
+5. what state updates are broken
+6. what validations are missing
+
+==================================================
+PHASE 2 — FIX FUNCTIONALITY
+==================================================
+
+Fix all broken flows:
+- Check
+- Edit
+- Replace
+- Delete
+- Delete All
+- modal open/close behavior
+- loading states
+- success/error handling
+- UI refresh after action
+
+For each action:
+- ensure frontend is wired correctly
+- ensure backend endpoint exists
+- ensure DB update works
+- ensure UI state updates after response
+- ensure toast/error states are shown
+- ensure duplicate submissions are blocked
+
+==================================================
+PHASE 3 — PROFESSIONAL UI/UX UPGRADE
+==================================================
+
+Redesign the slot/account manager to look premium and compact.
+
+Improve:
+- slot cards
+- edit modal
+- replace modal
+- delete confirmation modal
+- badges
+- action buttons
+- spacing
+- alignment
+- typography
+- responsiveness
+- empty state
+- loading state
+- error state
+
+Make it feel like a real premium SaaS admin panel.
+
+==================================================
+PHASE 4 — SAFETY & DATA QUALITY
+==================================================
+
+Add proper safeguards:
+- validate cookies before replace
+- backup old cookies before replace
+- block delete when active users exist
+- confirmation modal for destructive actions
+- audit log for every change
+- version/concurrency protection for edit
+- loading lock for Check button
+- prevent multiple simultaneous checks on same slot
+
+==================================================
+PHASE 5 — OUTPUT I WANT
+==================================================
+
+After inspection, give me:
+
+1. ROOT CAUSE REPORT
+- why Check is not working
+- why Edit is weak
+- why Replace is not working
+- why Delete is not working
+- what UI structure is wasting space
+
+2. FILE-BY-FILE FIX PLAN
+List exact files to change and why.
+
+3. IMPLEMENTATION PLAN
+Step-by-step safest order to fix without breaking existing system.
+
+4. CODE CHANGES
+Actually implement the fixes in the project.
+
+5. FINAL IMPROVEMENTS
+Upgrade UI and interactions to professional production level.
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not guess blindly
+- Inspect real code first
+- If a button is only UI and not connected, say it clearly
+- If backend route is missing, create it
+- If state refresh is broken, fix it
+- If modal is ugly or oversized, redesign it
+- Keep the existing system working while improving it
+- Focus on clean, maintainable, production-quality code
+- Make this module compact, professional, safe, and fully functional
+
+Final goal:
+Turn this into a fully working professional Account/Slot Manager where:
+- Check actually verifies cookies and login status
+- Edit works and looks premium
+- Replace works safely
+- Delete works safely
+- layout becomes compact and scalable

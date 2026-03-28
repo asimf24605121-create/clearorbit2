@@ -36,6 +36,18 @@
         .msg-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);padding:1rem}
         .msg-modal-overlay.active{opacity:1;visibility:visible}
         .msg-modal{background:#fff;border-radius:1.125rem;box-shadow:0 25px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);width:100%;max-width:560px;max-height:85vh;overflow:hidden;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:3px 0;font-size:10px;font-weight:600;border-radius:5px;border:1px solid var(--bc);background:var(--bg);color:var(--c);cursor:pointer;transition:all .15s;line-height:1}
+        .slot-action-btn:hover{filter:brightness(.95);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .slot-action-btn:active{transform:scale(.96)}
+        .slot-action-btn:disabled{opacity:.5;pointer-events:none}
+        .compact-modal{background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.15),0 0 0 1px rgba(0,0,0,.04);width:100%;max-height:85vh;overflow-y:auto;transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+        .msg-modal-overlay.active .compact-modal{transform:translateY(0) scale(1)}
+        .compact-modal .cm-header{padding:14px 18px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
+        .compact-modal .cm-body{padding:14px 18px}
+        .compact-modal .cm-footer{padding:10px 18px;border-top:1px solid #F3F4F6;display:flex;gap:8px;justify-content:flex-end}
+        .compact-modal .cm-label{display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+        .compact-modal .cm-input{width:100%;padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:13px;transition:border-color .15s;outline:none;background:#FAFAFA}
+        .compact-modal .cm-input:focus{border-color:#6366F1;background:#fff;box-shadow:0 0 0 2px rgba(99,102,241,.1)}
         .msg-modal-overlay.active .msg-modal{transform:translateY(0) scale(1)}
         .table-responsive{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#D1D5DB transparent}
         .table-responsive::-webkit-scrollbar{height:6px}
@@ -987,62 +999,71 @@
                 </div>
 
                 <div id="editAccountModal" class="msg-modal-overlay" onclick="if(event.target===this)closeEditAccountModal()" style="z-index:80">
-                    <div class="msg-modal" style="max-width:500px;">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-semibold text-gray-900">Edit Account Slot</h3>
-                            <button onclick="closeEditAccountModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    <div class="compact-modal" style="max-width:420px;">
+                        <div class="cm-header">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 text-sm">Edit Slot</h3>
+                            </div>
+                            <button onclick="closeEditAccountModal()" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg">&times;</button>
                         </div>
                         <input type="hidden" id="editAcctId"/>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="label">Slot Name</label>
-                                <input id="editAcctName" class="input"/>
-                            </div>
-                            <div>
-                                <label class="label">Max Users</label>
-                                <input id="editAcctMaxUsers" type="number" class="input" min="1" max="50"/>
-                            </div>
-                            <div>
-                                <label class="label">Status</label>
-                                <select id="editAcctStatus" class="input">
-                                    <option value="1">Active</option>
-                                    <option value="0">Disabled</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="label">Expiry Date</label>
-                                <input id="editAcctExpiry" type="date" class="input"/>
+                        <div class="cm-body">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="col-span-2">
+                                    <label class="cm-label">Slot Name</label>
+                                    <input id="editAcctName" class="cm-input" placeholder="e.g. Netflix-Slot-1"/>
+                                </div>
+                                <div>
+                                    <label class="cm-label">Max Users</label>
+                                    <input id="editAcctMaxUsers" type="number" class="cm-input" min="1" max="50" placeholder="5"/>
+                                </div>
+                                <div>
+                                    <label class="cm-label">Status</label>
+                                    <select id="editAcctStatus" class="cm-input">
+                                        <option value="1">Active</option>
+                                        <option value="0">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="cm-label">Expiry Date</label>
+                                    <input id="editAcctExpiry" type="date" class="cm-input"/>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex gap-2 mt-4">
-                            <button id="editAccountSaveBtn" onclick="saveEditAccount()" class="btn btn-primary flex-1">Save Changes</button>
-                            <button onclick="closeEditAccountModal()" class="btn btn-secondary">Cancel</button>
+                        <div class="cm-footer">
+                            <button onclick="closeEditAccountModal()" class="px-4 py-[7px] text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button id="editAccountSaveBtn" onclick="saveEditAccount()" class="px-5 py-[7px] text-xs font-semibold text-white rounded-lg transition-all hover:shadow-md" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">Save Changes</button>
                         </div>
                     </div>
                 </div>
 
                 <div id="replaceCookieModal" class="msg-modal-overlay" onclick="if(event.target===this)closeReplaceCookieModal()" style="z-index:80">
-                    <div class="msg-modal" style="max-width:520px;">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                Replace Cookie
-                            </h3>
-                            <button onclick="closeReplaceCookieModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    <div class="compact-modal" style="max-width:460px;">
+                        <div class="cm-header">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 text-sm">Replace Cookie</h3>
+                            </div>
+                            <button onclick="closeReplaceCookieModal()" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg">&times;</button>
                         </div>
                         <input type="hidden" id="replaceCookieAccountId"/>
-                        <p id="replaceCookieNote" class="text-xs text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 mb-4"></p>
-                        <div>
-                            <label class="label">New Cookie Data</label>
-                            <textarea id="replaceCookieInput" class="input" rows="7" style="font-family:'JetBrains Mono',monospace;font-size:0.8125rem;" placeholder='Paste new JSON cookie array or plain cookie string...&#10;&#10;[{"name":"NetflixId","value":"...","domain":".netflix.com"}]'></textarea>
+                        <div class="cm-body">
+                            <p id="replaceCookieNote" class="text-[11px] text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 mb-3 leading-relaxed"></p>
+                            <label class="cm-label">New Cookie Data</label>
+                            <textarea id="replaceCookieInput" class="cm-input" rows="5" style="font-family:'JetBrains Mono',monospace;font-size:11px;resize:vertical" placeholder='Paste JSON cookie array or plain cookie string...'></textarea>
                             <div id="replaceCookieStatus" class="mt-2 hidden"></div>
                         </div>
-                        <div class="flex gap-2 mt-4">
-                            <button id="replaceCookieSaveBtn" onclick="saveReplaceCookie()" class="btn flex-1 text-white font-semibold" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);border:none;">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <div class="cm-footer">
+                            <button onclick="closeReplaceCookieModal()" class="px-4 py-[7px] text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button id="replaceCookieSaveBtn" onclick="saveReplaceCookie()" class="px-5 py-[7px] text-xs font-semibold text-white rounded-lg transition-all hover:shadow-md flex items-center gap-1.5" style="background:linear-gradient(135deg,#7C3AED,#6D28D9)">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 <span id="replaceCookieBtnLabel">Replace &amp; Cascade</span>
                             </button>
-                            <button onclick="closeReplaceCookieModal()" class="btn btn-secondary">Cancel</button>
                         </div>
                     </div>
                 </div>
@@ -5049,116 +5070,107 @@ function populateAccountSlotDropdowns() {
 function renderSlotCardHtml(a) {
     const pct = a.max_users > 0 ? Math.round((a.active_users / a.max_users) * 100) : 0;
     const isFull = a.max_users > 0 && a.active_users >= a.max_users;
-    const barColor = isFull ? '#EF4444' : (pct >= 60 ? '#F59E0B' : '#10B981');
     const cs = a.cookie_status || 'VALID';
-    const statusTag = !a.is_active ? '<span class="badge badge-red">Disabled</span>' :
-        a.is_expired ? '<span class="badge badge-yellow">Expired</span>' :
-        isFull ? '<span class="badge badge-red">Full</span>' :
-        (cs === 'EXPIRED' || cs === 'DEAD') ? '<span class="badge badge-red">Invalid</span>' :
-        '<span class="badge badge-green">Available</span>';
-    const healthBadge = a.health_status === 'unhealthy' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-600">UNHEALTHY</span>' :
-        a.health_status === 'degraded' ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-600">DEGRADED</span>' : '';
-    const inCooldown = a.cooldown_until && new Date(a.cooldown_until) > new Date();
-    const cooldownBadge = inCooldown ? '<span class="inline-block ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-600">COOLDOWN</span>' : '';
-    const cookieStatusBadge = cs === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">VALID</span>'
-        : cs === 'EXPIRED' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">EXPIRED</span>'
-        : cs === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
-        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>';
     const ls = a.login_status || 'PENDING';
-    const loginBadge = ls === 'VALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700" title="Login verified">✓ Login</span>'
-        : ls === 'PARTIAL' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700" title="Partial login">⚠ Partial</span>'
-        : ls === 'INVALID' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700" title="Login failed">✗ Login</span>'
-        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500" title="Not verified">Unverified</span>';
-    const invalidWarning = (cs === 'EXPIRED' || cs === 'DEAD') ? '<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Invalid cookie — slots disabled</div>'
-        : ls === 'INVALID' ? '<div class="mt-1.5 px-2 py-1 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-200">Login verification failed — account rejected</div>' : '';
-    const expText = a.expires_at ? new Date(a.expires_at).toLocaleDateString() : 'No expiry';
-    const daysRem = a.days_remaining;
-    const exSt = a.expiry_status || 'ACTIVE';
-    const expiryBadge = exSt === 'EXPIRED'
-        ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">Expired</span>'
-        : exSt === 'EXPIRING_SOON'
-        ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">${daysRem}d left</span>`
-        : daysRem !== null
-        ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-100 text-green-700">${daysRem}d left</span>`
-        : '';
     const iScore = a.intelligence_score || 0;
     const stab = a.stability_status || 'UNKNOWN';
-    const stabBadge = stab === 'STABLE' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-700">STABLE</span>'
-        : stab === 'RISKY' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-700">RISKY</span>'
-        : stab === 'DEAD' ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-100 text-red-700">DEAD</span>'
-        : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-500">UNKNOWN</span>';
-    const vaultBadge = a.cookie_id ? '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-violet-100 text-violet-700" title="Cookie stored in vault (ID: ' + a.cookie_id + ')">Vault</span>' : '<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-400" title="Legacy cookie storage">Legacy</span>';
-    const score = a.slot_score || 0;
-    const totalFeedback = (a.success_count || 0) + (a.fail_count || 0);
-    const successRate = totalFeedback > 0 ? Math.round(((a.success_count || 0) / totalFeedback) * 100) : 100;
-    const borderColor = cs === 'EXPIRED' || cs === 'DEAD' ? 'border-red-200' : cs === 'RISKY' ? 'border-amber-200' : 'border-gray-100';
     const slotId = parseInt(a.id);
-    return `
-    <div class="border ${borderColor} rounded-xl p-4 hover:shadow-sm transition-shadow" style="background:${cs === 'EXPIRED' || cs === 'DEAD' ? '#FEF2F2' : cs === 'RISKY' ? '#FFFBEB' : '#fafafa'};">
-        <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="slot-cb-${slotId}" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="toggleSlotSelection(${slotId})"${SELECTED_SLOT_IDS.has(slotId) ? ' checked' : ''}>
-                <span class="font-medium text-gray-900 text-sm">${escHtml(a.slot_name)}${healthBadge}${cooldownBadge}</span>
-            </div>
-            <div class="flex items-center gap-1">${vaultBadge}${loginBadge}${cookieStatusBadge}${statusTag}</div>
-        </div>
-        <div class="flex items-center gap-2 mb-2">
-            <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${barColor};"></div>
-            </div>
-            <span class="text-xs font-semibold ${isFull ? 'text-red-500' : 'text-gray-600'}">${a.active_users}/${a.max_users}</span>
-        </div>
-        <div class="flex items-center justify-between text-xs mb-1">
-            <span class="flex items-center gap-1">
-                ${a.fresh_sessions !== undefined ? '<span class="text-emerald-600 font-medium">' + a.fresh_sessions + ' live</span>' : ''}
-                ${a.stale_sessions > 0 ? '<span class="text-amber-500">' + a.stale_sessions + ' stale</span>' : ''}
-                ${a.free_slots !== undefined ? '<span class="text-blue-500">' + a.free_slots + ' free</span>' : ''}
-                ${a.unique_ips > 0 ? '<span class="text-violet-500">' + a.unique_ips + ' IP' + (a.unique_ips > 1 ? 's' : '') + '</span>' : ''}
-            </span>
-            <span class="text-gray-400">${a.last_heartbeat ? '♥ ' + _timeAgo(a.last_heartbeat) : 'No heartbeat'}</span>
-        </div>
-        ${a.session_details && a.session_details.length > 0 ? '<div class="mt-1 space-y-1">' + a.session_details.map(sd => '<div class="flex items-center justify-between text-[10px] bg-gray-50 rounded px-2 py-0.5"><span class="text-gray-600 truncate max-w-[120px]" title="' + escHtml(sd.device) + '">' + escHtml(sd.device || 'Unknown') + '</span><span class="text-gray-400 truncate max-w-[90px]" title="' + escHtml(sd.ip) + '">' + escHtml(sd.ip || '-') + '</span><span class="text-gray-400">' + _timeAgo(sd.last_active) + '</span></div>').join('') + '</div>' : ''}
-        <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span>${a.cookie_count > 0 ? a.cookie_count + ' cookies' : 'No cookies'}</span>
-            <span class="flex items-center gap-1">${expiryBadge} ${expText}</span>
-        </div>
-        <div class="flex items-center justify-between text-xs mb-1">
-            <span class="text-gray-500">Score: <span class="font-semibold ${score >= 0 ? 'text-green-600' : 'text-red-500'}">${score}</span></span>
-            <span class="text-gray-500">${successRate}% success <span class="text-gray-400">(${a.success_count || 0}✓ ${a.fail_count || 0}✗)</span></span>
-        </div>
-        <div class="flex items-center justify-between text-xs mb-1">
-            <span class="flex items-center gap-1">${stabBadge} <span class="text-gray-400">IQ: <span class="font-semibold ${iScore >= 50 ? 'text-emerald-600' : iScore >= 0 ? 'text-gray-600' : 'text-red-500'}">${iScore}</span></span></span>
-        </div>
-        <div class="flex items-center gap-2 mb-2">
-            <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden" title="Health: ${iScore}%">
-                <div class="h-full rounded-full transition-all" style="width:${Math.max(0, Math.min(100, iScore))}%;background:${iScore >= 70 ? 'linear-gradient(90deg,#10B981,#34D399)' : iScore >= 40 ? 'linear-gradient(90deg,#F59E0B,#FBBF24)' : 'linear-gradient(90deg,#EF4444,#F87171)'};"></div>
-            </div>
-            <span class="text-[10px] font-bold ${iScore >= 70 ? 'text-emerald-600' : iScore >= 40 ? 'text-amber-600' : 'text-red-500'}">${iScore}%</span>
-        </div>
-        ${a.last_checked_at ? '<div class="text-[10px] text-gray-400 mb-1">Last checked: ' + _timeAgo(a.last_checked_at) + '</div>' : ''}${invalidWarning}
-        <div class="flex gap-1.5 mt-2 flex-wrap">
-            <button onclick="checkSlot(${a.id}, ${JSON.stringify(a.slot_name)})" class="btn btn-sm flex-1 text-xs py-1" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;" title="Run cookie + login check">Check</button>
-            <button onclick="openEditAccountModal(${a.id})" class="btn btn-secondary btn-sm flex-1 text-xs py-1">Edit</button>
-            <button onclick="openReplaceCookieModal(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.cookie_id ? a.cookie_id : 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#F5F3FF;color:#6C5CE7;border:1px solid #DDD6FE;" title="Replace cookie and cascade to all linked slots">Replace</button>
-            <button onclick="deleteAccountSlot(${a.id}, ${JSON.stringify(a.slot_name)}, ${a.active_users || 0})" class="btn btn-sm flex-1 text-xs py-1" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;">Delete</button>
-        </div>
-    </div>`;
+    const totalFb = (a.success_count || 0) + (a.fail_count || 0);
+    const sRate = totalFb > 0 ? Math.round(((a.success_count || 0) / totalFb) * 100) : 100;
+    const daysRem = a.days_remaining;
+    const exSt = a.expiry_status || 'ACTIVE';
+    const inCooldown = a.cooldown_until && new Date(a.cooldown_until) > new Date();
+
+    const _chip = (txt, bg, fg) => `<span style="background:${bg};color:${fg}" class="inline-flex items-center px-1.5 py-[1px] text-[9px] font-bold rounded-[4px] leading-tight">${txt}</span>`;
+
+    const statusChip = !a.is_active ? _chip('OFF','#FEE2E2','#DC2626')
+        : (cs==='EXPIRED'||cs==='DEAD') ? _chip(cs,'#FEE2E2','#DC2626')
+        : isFull ? _chip('FULL','#FEE2E2','#DC2626')
+        : a.is_expired ? _chip('EXP','#FEF3C7','#D97706')
+        : _chip('OK','#D1FAE5','#059669');
+
+    const cookieChip = cs==='VALID' ? _chip('✓','#D1FAE5','#047857')
+        : cs==='EXPIRED' ? _chip('✗','#FEE2E2','#DC2626')
+        : cs==='DEAD' ? _chip('✗','#FEE2E2','#DC2626')
+        : _chip('~','#FEF3C7','#D97706');
+
+    const loginChip = ls==='VALID' ? _chip('✓','#D1FAE5','#047857')
+        : ls==='PARTIAL' ? _chip('~','#FEF3C7','#D97706')
+        : ls==='INVALID' ? _chip('✗','#FEE2E2','#DC2626')
+        : _chip('?','#F3F4F6','#6B7280');
+
+    const stabChip = stab==='STABLE' ? _chip('STABLE','#D1FAE5','#047857')
+        : stab==='RISKY' ? _chip('RISKY','#FEF3C7','#D97706')
+        : stab==='DEAD' ? _chip('DEAD','#FEE2E2','#DC2626')
+        : _chip('—','#F3F4F6','#9CA3AF');
+
+    const barCol = iScore >= 70 ? '#10B981' : iScore >= 40 ? '#F59E0B' : '#EF4444';
+    const usageCol = isFull ? '#EF4444' : pct >= 60 ? '#F59E0B' : '#10B981';
+
+    const cardBg = (cs==='EXPIRED'||cs==='DEAD') ? '#FEF2F2' : cs==='RISKY'||stab==='RISKY' ? '#FFFBEB' : '#FFFFFF';
+    const borderCol = (cs==='EXPIRED'||cs==='DEAD') ? '#FECACA' : cs==='RISKY' ? '#FDE68A' : '#E5E7EB';
+
+    const expStr = exSt==='EXPIRED' ? '<span class="text-red-500 font-semibold">Expired</span>'
+        : exSt==='EXPIRING_SOON' ? `<span class="text-amber-500 font-semibold">${daysRem}d</span>`
+        : daysRem !== null ? `<span class="text-gray-500">${daysRem}d</span>`
+        : '<span class="text-gray-400">∞</span>';
+
+    let sessInfo = '';
+    if (a.fresh_sessions !== undefined || a.stale_sessions > 0 || a.free_slots !== undefined) {
+        const parts = [];
+        if (a.fresh_sessions !== undefined) parts.push(`<span class="text-emerald-600">${a.fresh_sessions}▲</span>`);
+        if (a.stale_sessions > 0) parts.push(`<span class="text-amber-500">${a.stale_sessions}◆</span>`);
+        if (a.free_slots !== undefined) parts.push(`<span class="text-blue-500">${a.free_slots}○</span>`);
+        sessInfo = parts.join(' ');
+    }
+
+    return `<div class="slot-card" style="background:${cardBg};border:1px solid ${borderCol};border-radius:10px;padding:10px 12px;transition:box-shadow .15s" onmouseenter="this.style.boxShadow='0 2px 8px rgba(0,0,0,.08)'" onmouseleave="this.style.boxShadow='none'">
+  <div class="flex items-center justify-between gap-1" style="margin-bottom:6px">
+    <div class="flex items-center gap-1.5 min-w-0">
+      <input type="checkbox" id="slot-cb-${slotId}" class="w-3 h-3 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="toggleSlotSelection(${slotId})"${SELECTED_SLOT_IDS.has(slotId) ? ' checked' : ''}>
+      <span class="font-semibold text-gray-900 text-[13px] truncate" title="${escHtml(a.slot_name)}">${escHtml(a.slot_name)}</span>
+      ${inCooldown ? _chip('CD','#DBEAFE','#2563EB') : ''}
+    </div>
+    <div class="flex items-center gap-[3px] flex-shrink-0">${stabChip}${statusChip}</div>
+  </div>
+  <div class="flex items-center gap-1.5" style="margin-bottom:5px">
+    <div class="flex-1 h-[5px] rounded-full overflow-hidden" style="background:#E5E7EB"><div class="h-full rounded-full" style="width:${pct}%;background:${usageCol};transition:width .3s"></div></div>
+    <span class="text-[10px] font-bold" style="color:${usageCol}">${a.active_users}/${a.max_users}</span>
+  </div>
+  <div class="grid gap-x-3 gap-y-[2px] text-[10px]" style="grid-template-columns:1fr 1fr;margin-bottom:5px">
+    <div class="flex items-center justify-between"><span class="text-gray-400">Cookie</span>${cookieChip}</div>
+    <div class="flex items-center justify-between"><span class="text-gray-400">Login</span>${loginChip}</div>
+    <div class="flex items-center justify-between"><span class="text-gray-400">IQ</span><span class="font-bold" style="color:${barCol}">${iScore}</span></div>
+    <div class="flex items-center justify-between"><span class="text-gray-400">Expiry</span>${expStr}</div>
+    <div class="flex items-center justify-between"><span class="text-gray-400">Rate</span><span class="font-semibold ${sRate>=80?'text-emerald-600':sRate>=50?'text-amber-600':'text-red-500'}">${sRate}%</span></div>
+    <div class="flex items-center justify-between"><span class="text-gray-400">Sessions</span><span class="font-medium">${sessInfo || '—'}</span></div>
+  </div>
+  <div class="flex items-center gap-1.5" style="margin-bottom:5px">
+    <div class="flex-1 h-[3px] rounded-full overflow-hidden" style="background:#E5E7EB" title="IQ: ${iScore}%"><div class="h-full rounded-full" style="width:${Math.max(0,Math.min(100,iScore))}%;background:${barCol}"></div></div>
+    <span class="text-[9px] font-bold" style="color:${barCol}">${iScore}%</span>
+  </div>
+  ${a.last_checked_at ? '<div class="text-[9px] text-gray-400" style="margin-bottom:4px">Checked ' + _timeAgo(a.last_checked_at) + '</div>' : ''}
+  <div class="flex gap-1" style="margin-top:4px">
+    <button onclick="checkSlot(${a.id},${JSON.stringify(a.slot_name)})" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0" title="Verify cookies & login">Check</button>
+    <button onclick="openEditAccountModal(${a.id})" class="slot-action-btn" style="--c:#4F46E5;--bg:#EEF2FF;--bc:#C7D2FE" title="Edit slot settings">Edit</button>
+    <button onclick="openReplaceCookieModal(${a.id},${JSON.stringify(a.slot_name)},${a.cookie_id||0})" class="slot-action-btn" style="--c:#7C3AED;--bg:#F5F3FF;--bc:#DDD6FE" title="Replace cookies">Replace</button>
+    <button onclick="deleteAccountSlot(${a.id},${JSON.stringify(a.slot_name)},${a.active_users||0})" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA" title="Delete slot">Del</button>
+  </div>
+</div>`;
 }
 
 function renderPlatformGroup(platformName, platformId, slots, totalActive, totalCap) {
-    let html = `<div class="mb-6 last:mb-0">
-        <div class="flex items-center justify-between mb-3">
+    let html = `<div style="margin-bottom:16px">
+        <div class="flex items-center justify-between" style="margin-bottom:8px;padding:6px 10px;background:#F8FAFC;border-radius:8px;border:1px solid #E2E8F0">
             <div class="flex items-center gap-2">
-                <input type="checkbox" id="plat-cb-${platformId}" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all ${escHtml(platformName)} slots">
-                <h4 class="font-semibold text-gray-900 text-sm">${escHtml(platformName)}</h4>
+                <input type="checkbox" id="plat-cb-${platformId}" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 cursor-pointer" onchange="togglePlatformSelection(${platformId})" title="Select all">
+                <span class="font-semibold text-gray-800 text-[13px]">${escHtml(platformName)}</span>
+                <span class="text-[10px] font-bold px-1.5 py-[1px] rounded" style="background:rgba(99,102,241,.1);color:#4F46E5">${totalActive}/${totalCap}</span>
+                <span class="text-[10px] text-gray-400">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="text-xs px-2 py-1 rounded-full font-medium" style="background:rgba(108,92,231,0.1);color:#6C5CE7;">${totalActive}/${totalCap} users</span>
-                <span class="text-xs text-gray-400">${slots.length} slot${slots.length !== 1 ? 's' : ''}</span>
-                <button onclick="deleteAllPlatformSlots(${platformId}, '${escHtml(platformName).replace(/'/g, "\\'")}')" class="btn btn-sm text-[10px] py-0.5 px-2" style="background:#FEE2E2;color:#EF4444;border:1px solid #FECACA;" title="Delete all ${escHtml(platformName)} slots">Delete All</button>
-            </div>
+            <button onclick="deleteAllPlatformSlots(${platformId},'${escHtml(platformName).replace(/'/g, "\\'")}')" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA;flex:none;padding:2px 8px;font-size:9px" title="Delete all ${escHtml(platformName)} slots">Delete All</button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
+        <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">`;
     slots.forEach(a => { html += renderSlotCardHtml(a); });
     html += '</div></div>';
     return html;
@@ -6288,7 +6300,7 @@ async function recheckCookie(accountId, slotName) {
         if (data.success) {
             const statusEmoji = data.cookie_status === 'VALID' ? '✅' : data.cookie_status === 'RISKY' ? '⚠️' : '❌';
             showAlert(`${statusEmoji} ${slotName}: ${data.cookie_status} — ${data.reason}`, data.cookie_status === 'DEAD' || data.cookie_status === 'EXPIRED');
-            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'same-origin', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
+            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
             _refreshAll();
         } else {
             showAlert(data.message, true);
@@ -6310,7 +6322,7 @@ async function verifyLogin(accountId, slotName) {
         if (data.success) {
             const icon = data.login_status === 'VALID' ? '✅' : data.login_status === 'PARTIAL' ? '⚠️' : '❌';
             showAlert(`${icon} ${slotName}: Login ${data.login_status} — ${data.reason}`, data.login_status === 'INVALID');
-            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'same-origin', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
+            try { await fetch('api/account_intelligence', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_and_score',account_id:accountId}) }); } catch(_){}
             _refreshAll();
         } else {
             showAlert(data.message, true);
@@ -6529,8 +6541,8 @@ async function checkSlot(accountId, slotName) {
     _setBusy(btn, true, 'Checking...');
     try {
         const [recheckRes, verifyRes] = await Promise.all([
-            fetch('api/validate_cookie', { method:'POST', headers:csrfHeaders(), credentials:'same-origin', body:JSON.stringify({action:'recheck',account_id:accountId}) }),
-            fetch('api/verify_login', { method:'POST', headers:csrfHeaders(), credentials:'same-origin', body:JSON.stringify({action:'verify_single',account_id:accountId}) })
+            fetch('api/validate_cookie', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'recheck',account_id:accountId}) }),
+            fetch('api/verify_login', { method:'POST', headers:csrfHeaders(), credentials:'include', body:JSON.stringify({action:'verify_single',account_id:accountId}) })
         ]);
         const [recheckData, verifyData] = await Promise.all([recheckRes.json(), verifyRes.json()]);
         const cs = recheckData.cookie_status || 'UNKNOWN';
@@ -6538,7 +6550,7 @@ async function checkSlot(accountId, slotName) {
         const csEmoji = cs === 'VALID' ? '✅' : cs === 'RISKY' ? '⚠️' : '❌';
         const lsEmoji = ls === 'VALID' ? '✅' : ls === 'PARTIAL' ? '⚠️' : ls === 'PENDING' ? '⏳' : '❌';
         showAlert(`${slotName} — Cookie: ${csEmoji} ${cs}  |  Login: ${lsEmoji} ${ls}`, cs === 'DEAD' || cs === 'EXPIRED');
-        try { await fetch('api/account_intelligence',{method:'POST',headers:csrfHeaders(),credentials:'same-origin',body:JSON.stringify({action:'verify_and_score',account_id:accountId})}); } catch(_){}
+        try { await fetch('api/account_intelligence',{method:'POST',headers:csrfHeaders(),credentials:'include',body:JSON.stringify({action:'verify_and_score',account_id:accountId})}); } catch(_){}
         _refreshAll();
     } catch(e) { showAlert('Network error during check.', true); }
     _slotBusy.delete('ck-'+accountId); _setBusy(btn, false, 'Check');
@@ -6577,7 +6589,7 @@ async function saveReplaceCookie() {
     statusEl.classList.add('hidden');
     try {
         const res = await fetch('api/manage_platform_accounts', {
-            method:'POST', headers:csrfHeaders(), credentials:'same-origin',
+            method:'POST', headers:csrfHeaders(), credentials:'include',
             body: JSON.stringify({ action:'replace_cookie', account_id:accountId, cookie_data:cookieString })
         });
         const data = await res.json();
