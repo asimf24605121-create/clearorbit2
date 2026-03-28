@@ -1,0 +1,444 @@
+You are a senior full-stack engineer, senior SaaS architect, senior frontend UX architect, senior admin-dashboard product designer, and senior performance engineer.
+
+I want you to REWORK the current Users module into a clean, profile-centered single-page workflow.
+
+IMPORTANT:
+- Do NOT remove Disable and Delete actions
+- The separate Subscriptions page that was added should be REMOVED from the visible admin flow
+- I do NOT want 3 separate cluttered icons for view/edit/subscription in the table
+- I want ONE main user icon / entry point that opens a user-centered workflow with 3 internal pages/states
+
+GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT break the improved backend logic that already exists.
+Do NOT reintroduce heavy client-side arrays or full-page refreshes.
+Preserve server-side pagination/search/filter/sort and lightweight refresh patterns.
+
+==================================================
+FINAL PRODUCT DIRECTION
+==================================================
+
+I want the USERS PAGE to remain the main page.
+
+For each user row:
+- remove the Platforms column/badge
+- keep row cleaner
+- keep Disable and Delete visible as separate actions
+- replace the current cluttered multi-icon approach with ONE main user action/entry point
+
+That ONE main icon/entry point should open a user-centered modal/window with 3 internal pages/states:
+
+1. VIEW PROFILE PAGE
+- read-only
+- full user profile
+- username
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- join date
+- expiry summary
+- account/security info
+- last login IP
+- IP location
+- active subscriptions summary
+- no edit controls
+- no subscription actions directly in this page
+
+2. EDIT PROFILE PAGE
+- separate state/page inside the same user workflow
+- only for editing:
+  - full name
+  - email
+  - phone
+  - country
+  - city
+  - gender
+  - password reset
+  - basic user metadata
+- NO Assign Platforms here
+- NO subscription controls here
+
+3. MANAGE SUBSCRIPTION PAGE
+- separate state/page inside the same user workflow
+- this is the only place for:
+  - add subscription
+  - extend subscription
+  - revoke/delete subscription
+  - show all active subscriptions
+  - show expired/revoked subscriptions
+  - show each platform separately
+  - show next expiry
+  - show per-platform status
+- this should be a strong, clean access manager for that user
+
+==================================================
+STRICT RULES
+==================================================
+
+1. Remove the visible separate Subscriptions page from sidebar/admin flow
+2. Remove the Platforms column from Users table
+3. Keep Disable action
+4. Keep Delete action
+5. Do NOT keep 3 separate cluttered icons for profile/edit/subscription
+6. Use ONE main user icon/entry point for the 3-page user workflow
+7. Inside that workflow:
+   - View Profile page
+   - Edit Profile page
+   - Manage Subscription page
+8. Edit Profile must not contain Assign Platforms
+9. Manage Subscription must contain all subscription operations
+10. The UI must feel premium, simple, powerful, and enterprise-grade
+
+==================================================
+PHASE 1 — REAL AUDIT FIRST
+==================================================
+
+Inspect the current real implementation first.
+
+Audit:
+- Users table
+- current action icons
+- current User Profile modal
+- current Edit User modal
+- current Access / Subscription modal
+- current separate Subscriptions page
+- current Manage Access flow
+- current placement of view/edit/access actions
+- current Platforms column
+- current subscription summary inside modals
+- current IP/location logic
+- backend routes already available for:
+  - get_users
+  - get_user_subscriptions
+  - assign platforms
+  - extend subscription
+  - revoke subscription
+  - delete preview / safety
+  - geo lookup
+- table column layout
+- action icon spacing/clipping issues
+- modal responsibility overlap
+- anything currently mixed/confusing
+
+Then clearly report:
+1. what is currently mixed/confusing
+2. what must be removed
+3. what must stay
+4. what can be reused safely
+5. what table/modal issues exist
+6. what could become slow if redesigned badly
+
+==================================================
+PHASE 2 — USERS TABLE CLEANUP
+==================================================
+
+Redesign the Users table to focus on USER MANAGEMENT only.
+
+Requirements:
+- REMOVE the Platforms column from the row
+- keep:
+  - User
+  - Email
+  - Expiry (high-level only)
+  - Status
+  - Actions
+- keep Disable and Delete as visible row actions
+- reduce icon clutter
+- add ONE main user icon/entry point for opening the 3-page user workflow
+- fix button spacing, clipping, overflow, and alignment
+- keep table compact and premium
+- no oversized/cut buttons
+
+Also improve:
+- row density
+- badge consistency
+- expiry readability
+- hover states
+- responsive behavior
+- empty state
+- skeleton loading
+- action clarity
+
+==================================================
+PHASE 3 — SINGLE USER WORKFLOW MODAL
+==================================================
+
+Create/refine ONE main user-centered modal/window with 3 internal pages/tabs/states:
+
+A. View Profile
+B. Edit Profile
+C. Manage Subscription
+
+This should feel like one structured user workspace, not random separate modals.
+
+Requirements:
+- clear tab/page navigation inside the modal
+- premium header with user identity
+- easy switching between:
+  - View Profile
+  - Edit Profile
+  - Manage Subscription
+- compact but powerful layout
+- state should be obvious to admin
+- good footer/buttons per page
+- no confusion between profile editing and subscription management
+
+==================================================
+PHASE 4 — VIEW PROFILE PAGE
+==================================================
+
+This page must be READ-ONLY.
+
+It must show:
+- avatar/initial
+- username
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- join date
+- account/security info
+- expiry summary
+- last login IP
+- IP location
+- active subscriptions summary in one compact clean row/section
+
+It must NOT contain:
+- edit inputs
+- assign controls
+- extend/revoke buttons in the view page itself
+
+==================================================
+PHASE 5 — EDIT PROFILE PAGE
+==================================================
+
+This page must ONLY handle:
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- password reset
+- basic metadata
+
+This page must NOT contain:
+- Assign Platforms
+- platform picker
+- duration selectors
+- subscription extend/revoke controls
+
+Make it:
+- clean
+- shorter
+- premium
+- easy to understand
+- clearly separate from the view page
+
+==================================================
+PHASE 6 — MANAGE SUBSCRIPTION PAGE
+==================================================
+
+This page is the ONLY place for subscription management.
+
+It must show:
+- all active subscriptions
+- all expired/revoked subscriptions if useful
+- each platform separately
+- platform logo/name
+- start date
+- expiry date
+- days left / next expiry
+- per-platform status
+
+Actions:
+- add subscription
+- extend subscription (+7, +30, custom)
+- revoke/delete subscription
+
+This page should feel like a powerful user access manager.
+
+==================================================
+PHASE 7 — IP LOCATION FIX
+==================================================
+
+There is an issue where IP location is showing the wrong place.
+
+Fix the IP geolocation behavior properly.
+
+Requirements:
+- show last login IP clearly
+- show IP location correctly if possible
+- if the provider gives approximate or uncertain result, display it safely
+- do not show misleading wrong location confidently
+- add graceful fallback if location lookup is unavailable
+- cache geo lookups if needed
+- avoid slow blocking lookups on every render
+- keep it lightweight for 1000+ users
+
+Also check:
+- if the provider/source is inaccurate
+- if another source or cached validation logic is better
+- whether the current geo lookup is using stale/bad data
+
+==================================================
+PHASE 8 — KEEP DISABLE & DELETE
+==================================================
+
+Do NOT remove these actions.
+
+Keep:
+- Disable / Enable
+- Delete
+
+But make them:
+- clearly visible
+- safely designed
+- well-spaced
+- not cluttered
+- with proper confirm UX
+- with loading state and success/error feedback
+
+==================================================
+PHASE 9 — GUI / UX QUALITY TARGET
+==================================================
+
+I want the final GUI to feel:
+- premium
+- compact
+- powerful
+- enterprise-grade
+- clean
+- modern
+- “dabang”
+
+Improve:
+- single user workflow modal
+- table cleanliness
+- icon placement
+- spacing consistency
+- action grouping
+- typography
+- badge system
+- expiry/status clarity
+- active subscription row design
+- hover states
+- loading states
+- empty states
+- responsive layout
+- accessibility
+
+==================================================
+PHASE 10 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+All frontend changes must preserve performance for 1000+ concurrent users.
+
+Requirements:
+- keep server-side users API
+- keep server-side pagination/search/filter/sort
+- do not reintroduce heavy client-side loading
+- no full loadStats-style refresh after every action
+- refresh only the affected user row/current list slice
+- load user details/subscriptions on demand
+- cache or optimize IP geo lookups if needed
+- keep modal lightweight
+- avoid large DOM trees where not needed
+- minimize rerenders
+- keep the table efficient
+
+==================================================
+PHASE 11 — WHAT I WANT IMPLEMENTED
+==================================================
+
+Implement these exact changes:
+
+1. Remove the separate Subscriptions page from the visible admin workflow
+2. Remove the Platforms column from Users table rows
+3. Keep Disable and Delete actions
+4. Reduce the cluttered multi-icon action pattern
+5. Use ONE main user icon/entry point for the 3-page user workflow
+6. Create one structured user modal/window with:
+   - View Profile page
+   - Edit Profile page
+   - Manage Subscription page
+7. Remove Assign Platforms from Edit Profile page
+8. Put all subscription operations only inside Manage Subscription page
+9. Fix wrong IP location issue
+10. Clean and polish the full Users page GUI
+
+==================================================
+PHASE 12 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- what was mixed/confusing
+- why the current UX was wrong
+- why the separate Subscriptions page should be removed
+- what table/modal issues existed
+- what IP/location issue existed
+
+2. PRODUCT DECISION SUMMARY
+- final Users table role
+- final single user workflow modal role
+- final View Profile page role
+- final Edit Profile page role
+- final Manage Subscription page role
+- final Disable/Delete behavior
+- final IP/location behavior
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how performance is preserved for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- Users table cleanup
+- removal of separate subscriptions page from visible flow
+- single user workflow modal with 3 pages
+- View Profile page
+- Edit Profile page
+- Manage Subscription page
+- IP location fix
+- premium GUI polish
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Users page is cleaner
+- Platforms column is removed
+- Disable/Delete are still present
+- separate Subscriptions page is removed from visible flow
+- one main user icon opens the 3-page user workflow
+- View Profile page is read-only
+- Edit Profile page is profile-only
+- Manage Subscription page handles all subscription actions
+- IP location appears correctly or fails gracefully
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Preserve the improved backend architecture
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI compact, premium, and admin-friendly
+- Think like a lead frontend engineer + product designer shipping to production

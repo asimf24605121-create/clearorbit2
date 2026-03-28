@@ -1302,11 +1302,11 @@ router.post('/geo_lookup', authenticate, requireAdmin(), async (req, res) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
     try {
-      const apiRes = await fetch(`http://ip-api.com/json/${encodeURIComponent(cleanIp)}?fields=status,message,country,countryCode,regionName,city,isp,lat,lon,timezone`, { signal: controller.signal });
+      const apiRes = await fetch(`http://ip-api.com/json/${encodeURIComponent(cleanIp)}?fields=status,message,country,countryCode,regionName,city,isp,lat,lon,timezone,proxy,hosting`, { signal: controller.signal });
       clearTimeout(timeout);
       const data = await apiRes.json();
       if (data.status === 'success') {
-        const geo = { country: data.country || 'Unknown', country_code: data.countryCode || '--', region: data.regionName || 'Unknown', city: data.city || 'Unknown', isp: data.isp || 'Unknown', lat: data.lat || 0, lon: data.lon || 0, timezone: data.timezone || '' };
+        const geo = { country: data.country || 'Unknown', country_code: data.countryCode || '--', region: data.regionName || 'Unknown', city: data.city || 'Unknown', isp: data.isp || 'Unknown', lat: data.lat || 0, lon: data.lon || 0, timezone: data.timezone || '', proxy: !!(data.proxy || data.hosting) };
         await prisma.ipGeoCache.upsert({ where: { ipAddress: cleanIp }, update: { country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() }, create: { ipAddress: cleanIp, country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() } });
         return res.json({ success: true, geo: { ...geo, cached: false } });
       }
