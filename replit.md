@@ -105,3 +105,17 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 - **Live Event Poller**: `_alieEventPollInterval` (30s) fetches new events via `events_since`, prepends to list, caps at 30 rows; auto-stops when leaving accounts section
 - **Event Row UX**: Severity left-border (red=DEAD, amber=RISKY), hover-reveal dismiss button, absolute time tooltip, new-event pulse dot indicator, "Clear all" bulk dismiss with confirmation
 - **WebSocket Optimization**: `intelligence_updated` / `intelligence_run_complete` now trigger `loadIntelligenceDashboard()` instead of `_refreshAll()`
+
+### Platform Intelligence System
+- **Status Model**: 5-state classification: `healthy` (score≥75), `degraded` (40-74), `unused` (0 active accounts), `inactive` (admin disabled), `dead` (score<40, all failing)
+- **Score Formula**: Success Rate (35%) + Account Health Ratio (35%) + Avg Intelligence Score (30%); 0 active accounts = score 0 (not 100)
+- **Dashboard API**: `GET /api/platform_health` — cached 15s via `platformCache`, returns `platforms[]`, `summary{}`, `queue_status{}`
+- **Platform Detail**: `GET /api/platform_health?action=detail&platform_id=X` — drilldown with account slots table, session counts, subscriber counts
+- **Delete Impact**: `GET /api/platform_health?action=delete_impact&platform_id=X` — preview of cascade impact before deletion
+- **Async Health Check**: `POST /api/platform_health` `{action:"run_health_check"}` — background job via `platformHealthQueue`, batched writes (BATCH_SIZE=20), returns `job_id` for polling
+- **Job Polling**: `GET /api/platform_health?action=job_status&job_id=X` — 2s poll interval with progress percentage
+- **Safe Delete**: Backend rejects delete for platforms with active sessions/subscriptions unless `force=true`; frontend shows impact preview then force confirmation
+- **Safe Disable**: `POST /api/toggle_platform` — terminates active sessions atomically in transaction; confirmation dialog warns about session termination
+- **Cache Invalidation**: All mutations (toggle/delete/health check) invalidate `platform:dashboard` cache key and account caches
+- **Frontend**: 6 summary cards (Total/Healthy/Degraded/Unused/Inactive/Dead), clickable platform cards with status reason, drilldown modal, registry table with status filter dropdown, health check polling with progress indicator
+- **Status Badges**: Color-coded with icons — green ● Healthy, amber ▲ Degraded, gray ○ Unused, purple ⏸ Inactive, red ✕ Dead

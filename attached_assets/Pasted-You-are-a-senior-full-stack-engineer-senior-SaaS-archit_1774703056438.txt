@@ -1,0 +1,449 @@
+You are a senior full-stack engineer, senior SaaS architect, senior product designer, senior DBA, senior performance engineer, and senior admin-dashboard specialist.
+
+I have audited my Platform Intelligence module and now I want you to upgrade it into a premium, production-grade, operational Platform Intelligence system.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must be optimized for smooth performance and scalability for 1000+ concurrent users.
+Every improvement must consider:
+- low-latency UI rendering
+- efficient DB queries
+- API response efficiency
+- caching with safe invalidation
+- background jobs/queues for expensive work
+- concurrency-safe operations
+- no blocking admin actions
+- minimal unnecessary DOM re-renders
+- safe bulk actions
+- scalable data model
+
+==================================================
+AUDIT FINDINGS YOU MUST USE
+==================================================
+
+These are the current critical issues found in the audit:
+
+1. HEALTH SCORE / STATUS CONTRADICTION
+Current bug:
+- platforms with 0 activity get score = 100
+- but status = dead when active === 0
+This produces nonsense like:
+- 100% health
+- Dead status
+
+This must be fixed properly at the product logic level, not just visually.
+
+2. BLOCKING HEALTH CHECK
+Current Health Check runs synchronously and does sequential DB writes.
+This is not scalable and can block requests or time out.
+
+3. DELETE IS DANGEROUS
+Delete can permanently remove platforms without a proper impact summary or enough safety checks.
+No strong linked-account / active-session protection.
+
+4. DISABLE HAS NO OPERATIONAL SIDE EFFECTS
+Disable only toggles is_active and does not:
+- stop active assignments
+- terminate/revoke active sessions
+- block future assignment logic properly
+This makes the action misleading and incomplete.
+
+5. STATUS MODEL IS TOO WEAK
+Current statuses like active / warning / dead are not enough.
+The product needs more accurate semantics such as:
+- Healthy
+- Degraded
+- Unused
+- Inactive
+- Dead
+- Needs Review
+
+6. NO CACHING
+GET endpoint has no cache, which will be wasteful for 1000+ concurrent users.
+
+7. MISSING API FIELDS / FRONTEND MISMATCH
+Frontend expects fields like slot_count and active_users that are not properly returned by API.
+
+8. NO LAST CHECKED / TREND / DRILLDOWN
+No last health check, no history, no trend visibility, no platform details.
+
+9. UI REDUNDANCY
+Platform cards + registry table duplicate similar information without enough extra value.
+
+==================================================
+GOAL
+==================================================
+
+Take the current Platform Intelligence module and transform it into a complete, professional, production-ready platform operations dashboard.
+
+It should answer:
+- Which platforms are healthy?
+- Which are degraded?
+- Which are merely unused vs actually dead?
+- Which platforms need admin action now?
+- What changed since the last health run?
+- Which platforms have active accounts/users?
+- What happens if I disable or delete a platform?
+- Can this scale safely to 1000+ concurrent users?
+
+==================================================
+PHASE 1 — FIX PRODUCT LOGIC FIRST
+==================================================
+
+Before redesigning the UI, fix the logic model properly.
+
+A. REDESIGN STATUS SEMANTICS
+Implement a better status model such as:
+- Healthy = active accounts exist and performance is strong
+- Degraded = active accounts exist but health is poor
+- Unused = registered platform with 0 linked accounts
+- Inactive = manually disabled by admin
+- Dead = accounts exist but all/most are failed/expired/unusable
+- Needs Review = inconsistent data or stale/no recent checks
+
+Make sure:
+- status and health score never contradict each other
+- a platform with 0 accounts is not shown as 100% healthy and dead
+- score meaning and status meaning are clearly separated
+
+B. REDESIGN HEALTH SCORE LOGIC
+Define a proper score formula using platform-level signals such as:
+- active account ratio
+- success/failure rate
+- recent verification/check outcomes
+- account expiry/failure signals
+- active session health
+- stale-check penalty
+- confidence/coverage of recent checks
+
+If a platform has no accounts:
+- do NOT give it 100 health by default
+- either mark as Unused with a neutral/empty score state
+- or show "No data" instead of fake 100%
+
+C. DEFINE DIFFERENCE BETWEEN:
+- registry existence
+- activity/usage
+- operational health
+- admin state (enabled/disabled)
+
+Do not mix them into a single misleading indicator.
+
+==================================================
+PHASE 2 — BACKEND REBUILD / HARDENING
+==================================================
+
+Refactor the backend routes and services for Platform Intelligence.
+
+I want you to inspect and improve:
+
+1. STATUS ENDPOINT
+Create a clean dashboard/status endpoint that returns:
+- summary KPIs
+- platform list
+- proper fields for cards and table
+- last checked info
+- trend/delta if available
+- account/user/session counts
+- source info
+- reason for current status
+- actionability flags
+
+2. HEALTH CHECK EXECUTION
+Make Health Check asynchronous and queue-based.
+Requirements:
+- no blocking full request
+- one health-check job at a time or concurrency-safe locking
+- progress tracking
+- batched DB writes
+- transactional updates where needed
+- efficient account aggregation
+- audit log for job start/finish/failure
+
+3. CACHING
+Add a cache layer for dashboard/status responses.
+Requirements:
+- 15–30 second TTL or sensible short cache
+- invalidate cache on:
+  - health check completion
+  - disable/enable
+  - delete
+  - account changes affecting platform stats
+- keep dashboard fast for 1000+ users
+
+4. SEARCH / FILTER / SORT / PAGINATION
+Improve backend support for:
+- search by platform name/domain
+- filter by status/source
+- sort by health/accounts/users/last_checked
+- pagination if needed
+- efficient indexes
+
+5. DELETE SAFETY
+Delete must be much safer.
+Implement:
+- impact summary endpoint or payload
+- linked accounts count
+- active sessions count
+- active users count
+- subscribers count if relevant
+- block delete if dangerous unless force path is explicitly allowed
+- strong confirmation flow
+- audit logging
+- transactional delete
+- cascade visibility and safety warnings
+
+6. DISABLE / ENABLE SIDE EFFECTS
+Disabling a platform should:
+- block future account assignments from that platform
+- optionally revoke/expire active sessions depending on business rules
+- update platform state consistently
+- be reflected in all operational logic
+- write audit logs
+
+7. DRILLDOWN SUPPORT
+Add backend support for per-platform detail view:
+- linked accounts
+- active users
+- recent health checks
+- recent failures
+- trend summary
+- recent events
+- last imported/seen
+- source/detection details
+
+==================================================
+PHASE 3 — FRONTEND / GUI PROFESSIONAL REDESIGN
+==================================================
+
+Now redesign the Platform Intelligence UI into a premium admin dashboard.
+
+A. TOP SUMMARY AREA
+Improve summary cards to show more meaningful KPIs:
+- Total Platforms
+- Healthy
+- Degraded
+- Unused
+- Inactive
+- Dead
+- Needs Review
+- Last Health Check / Last Run
+- Platforms Requiring Action
+
+Cards should:
+- have clear color semantics
+- optionally be clickable filters
+- show deltas/trends if available
+- not be misleading
+
+B. PLATFORM OVERVIEW AREA
+Decide whether top platform cards should remain or be improved into:
+- more actionable cards
+- or a compact summary strip
+- or filterable health buckets
+
+Do not duplicate the registry table meaninglessly.
+If both cards and table remain, each must serve a different purpose.
+
+C. REGISTRY TABLE REDESIGN
+Make the registry table far more useful.
+
+Columns should consider:
+- Platform
+- Domain
+- Status
+- Health Score / Health State
+- Accounts
+- Active Users
+- Active Sessions
+- Source
+- Last Checked
+- Trend
+- Recommended Action
+- Actions
+
+Add:
+- sorting
+- filtering
+- search
+- bulk actions
+- row click drilldown
+- status chip clarity
+- tooltips for unclear metrics
+- empty states
+- loading skeletons
+
+D. ACTIONS UX
+Improve action buttons:
+- Health Check
+- Refresh
+- Disable / Enable
+- Delete
+- Bulk actions
+
+For each action:
+- clear purpose
+- loading states
+- disabled states
+- permission checks
+- confirm modals
+- progress feedback
+- safe success/error messages
+
+E. PLATFORM DETAIL MODAL / PAGE
+Add a drilldown modal or page when clicking a platform.
+Show:
+- status explanation
+- health reason breakdown
+- linked accounts
+- active users/sessions
+- recent health trend
+- recent failures
+- source info
+- last checked
+- recommended actions
+- recent related events/logs
+
+==================================================
+PHASE 4 — SAFETY / OPERATIONAL RULES
+==================================================
+
+Implement production-safe admin behavior.
+
+1. PERMISSIONS
+- only authorized admins can disable/delete
+- super-admin restrictions for destructive bulk actions if needed
+
+2. CONFIRMATION FLOWS
+- delete confirm must show impact summary
+- disable confirm must explain operational effect
+- bulk actions must show affected count
+
+3. AUDIT LOGS
+Write audit logs for:
+- health check start/complete/fail
+- disable/enable
+- delete
+- bulk actions
+- settings/config changes
+
+4. LINKED-DATA SAFETY
+Do not allow silent destructive actions if active accounts/users/sessions exist.
+
+==================================================
+PHASE 5 — PERFORMANCE & 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+The module must stay fast for 1000+ concurrent users.
+
+Implement and optimize:
+- short-lived cache for dashboard aggregates
+- indexed queries
+- summary aggregation strategy
+- background queue for health computation
+- batching instead of sequential updates
+- request deduplication
+- incremental frontend refresh
+- no unnecessary full rerender
+- efficient drilldown loading
+- paginated lists where useful
+- optional websocket/SSE progress only if lightweight and already supported
+
+Explicitly avoid:
+- synchronous expensive health runs
+- full-table recalculation on every page view
+- repeated identical queries for every admin session
+- giant frontend payloads if not needed
+
+==================================================
+PHASE 6 — STATUS/HEALTH PRODUCT DEFINITION
+==================================================
+
+I want a clean product definition in the implementation:
+
+Example:
+- Health Score = operational quality score
+- Status = admin + operational state
+- Usage = how much the platform is actively used
+- Last Checked = freshness of status confidence
+
+Make this distinction visible in the UI.
+
+Add:
+- tooltip/help text for health score
+- tooltip/help for status meanings
+- "No data" state where appropriate
+- "Last checked X ago" badge or muted timestamp
+
+==================================================
+PHASE 7 — WHAT TO BUILD NOW
+==================================================
+
+I want you to implement the highest-value improvements first.
+
+Priority order:
+1. Fix score/status contradiction
+2. Fix API/frontend field mismatches
+3. Add caching
+4. Move Health Check to background job
+5. Add safer delete/disable flows
+6. Add better statuses (Unused/Inactive/etc.)
+7. Add last checked + reason fields
+8. Add drilldown
+9. Improve table filters/sorting
+10. Polish GUI
+
+==================================================
+PHASE 8 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, I want this exact output:
+
+1. CURRENT PROBLEM SUMMARY
+- what was wrong
+- what was misleading
+- what was dangerous
+- what would be slow at 1000+ users
+
+2. PRODUCT DECISION SUMMARY
+- final status model
+- final health score model
+- final delete/disable behavior
+- final caching/job strategy
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files modified
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of execution
+- how regressions are avoided
+- how performance is preserved
+
+5. CODE IMPLEMENTATION
+Actually implement the improvements in the project.
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- no 100% + Dead contradiction
+- API fields match frontend
+- caching works
+- health check is non-blocking
+- delete/disable are safe
+- UI is clearer and more professional
+- performance remains good for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect and modify the real code
+- Fix the product logic before polishing the UI
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve existing functionality while upgrading it
+- Be brutally honest about weak logic
+- Think like a lead engineer shipping this to production

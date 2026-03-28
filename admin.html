@@ -1138,7 +1138,8 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="refreshPlatformHealth()" id="platHealthBtn" class="btn btn-sm text-xs" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;border:none;" data-testid="btn-platform-health">
+                                <span id="platHealthJobStatus" class="hidden text-[10px] text-violet-600 font-medium"></span>
+                                <button onclick="runPlatformHealthCheck()" id="platHealthBtn" class="btn btn-sm text-xs" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;border:none;" data-testid="btn-platform-health">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                     Health Check
                                 </button>
@@ -1150,7 +1151,7 @@
                         </div>
                     </div>
                     <div class="p-5">
-                        <div id="platSummaryCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5"></div>
+                        <div id="platSummaryCards" class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-5"></div>
                         <div id="platIntelGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="text-center text-gray-400 text-sm py-8 col-span-full">Loading platform data...</div>
                         </div>
@@ -1159,15 +1160,25 @@
 
                 <div class="card">
                     <div class="px-5 py-4 border-b border-gray-100">
-                        <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                             <div class="flex items-center gap-2">
                                 <h3 class="font-semibold text-gray-900 text-sm">Platform Registry</h3>
                                 <span id="platRegistryCount" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">0</span>
                             </div>
-                            <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="btn btn-danger btn-sm hidden" style="font-size:11px">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                Delete Selected (<span id="platSelectedCount">0</span>)
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <select id="platStatusFilter" onchange="filterPlatformRegistry()" class="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 bg-white text-gray-600">
+                                    <option value="">All statuses</option>
+                                    <option value="healthy">Healthy</option>
+                                    <option value="degraded">Degraded</option>
+                                    <option value="unused">Unused</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="dead">Dead</option>
+                                </select>
+                                <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="btn btn-danger btn-sm hidden" style="font-size:11px">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Delete Selected (<span id="platSelectedCount">0</span>)
+                                </button>
+                            </div>
                         </div>
                         <input id="platSearchInput" type="text" class="input text-sm" placeholder="Search platforms by name or domain..." oninput="filterPlatformRegistry()" style="max-width:320px"/>
                     </div>
@@ -1175,10 +1186,22 @@
                         <table class="data-table">
                             <thead><tr>
                                 <th style="width:36px"><input type="checkbox" id="platSelectAll" class="rounded" onchange="toggleAllPlatformCheckboxes(this.checked)"/></th>
-                                <th>Platform</th><th>Domain</th><th>Health</th><th>Accounts</th><th>Users</th><th>Status</th><th>Source</th><th>Actions</th>
+                                <th>Platform</th><th>Domain</th><th>Health</th><th>Accounts</th><th>Sessions</th><th>Status</th><th>Last Checked</th><th>Actions</th>
                             </tr></thead>
                             <tbody id="platformsBody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div id="platDetailModal" class="msg-modal-overlay">
+                    <div class="msg-modal" style="max-width:640px">
+                        <div class="msg-modal-header">
+                            <h3 id="platDetailTitle" class="text-sm font-semibold">Platform Details</h3>
+                            <button onclick="closePlatDetailModal()" class="msg-modal-close">&times;</button>
+                        </div>
+                        <div id="platDetailBody" class="p-5 max-h-[70vh] overflow-y-auto">
+                            <div class="text-center text-gray-400 py-8">Loading...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3283,7 +3306,8 @@ async function saveUserEdit() {
 }
 
 function renderPlatformsList(platforms) {
-    renderPlatformIntelligenceTable(platforms);
+    _platRegistryData = platforms;
+    filterPlatformRegistry();
 }
 
 function healthScoreBar(score) {
@@ -3297,100 +3321,121 @@ function healthStatusBadge(status) {
     return '<span class="badge badge-red">Dead</span>';
 }
 
+let _platRegistryData = [];
+let _platHealthJobId = null;
+let _platHealthPollTimer = null;
+
+const _platStatusConfig = {
+    healthy: { color: '#10B981', bg: '#D1FAE5', label: 'Healthy', icon: '●' },
+    degraded: { color: '#F59E0B', bg: '#FEF3C7', label: 'Degraded', icon: '▲' },
+    unused: { color: '#6B7280', bg: '#F3F4F6', label: 'Unused', icon: '○' },
+    inactive: { color: '#8B5CF6', bg: '#EDE9FE', label: 'Inactive', icon: '⏸' },
+    dead: { color: '#EF4444', bg: '#FEE2E2', label: 'Dead', icon: '✕' },
+};
+
+function _platStatusBadge(status) {
+    const c = _platStatusConfig[status] || _platStatusConfig.unused;
+    return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>`;
+}
+
 async function loadPlatformIntelligence() {
     try {
-        const res = await fetch('api/platform_health?action=status', { credentials: 'include' });
+        const res = await fetch('api/platform_health', { credentials: 'include' });
         if (res.status === 401) { window.location.href = 'index.html'; return; }
         const data = await res.json();
         if (!data.success) {
-            const el = document.getElementById('platSummaryCards');
-            if (el) el.innerHTML = '<div class="col-span-4 text-center text-gray-400 py-4">Failed to load platform intelligence</div>';
-            const grid = document.getElementById('platIntelGrid');
-            if (grid) grid.innerHTML = '<div class="text-center text-gray-400 text-sm py-8 col-span-full">Failed to load platform data.</div>';
+            document.getElementById('platSummaryCards').innerHTML = '<div class="col-span-full text-center text-gray-400 py-4">Failed to load platform intelligence</div>';
+            document.getElementById('platIntelGrid').innerHTML = '<div class="text-center text-gray-400 text-sm py-8 col-span-full">Failed to load platform data.</div>';
             return;
         }
 
         const platforms = data.platforms || [];
         const s = data.summary || {};
 
-        document.getElementById('platSummaryCards').innerHTML = `
+        document.getElementById('platSummaryCards').innerHTML = [
+            { val: s.total||0, label: 'Total', color: '#6366F1' },
+            { val: s.healthy||0, label: 'Healthy', color: '#10B981' },
+            { val: s.degraded||0, label: 'Degraded', color: '#F59E0B' },
+            { val: s.unused||0, label: 'Unused', color: '#6B7280' },
+            { val: s.inactive||0, label: 'Inactive', color: '#8B5CF6' },
+            { val: s.dead||0, label: 'Dead', color: '#EF4444' },
+        ].map(c => `
             <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold text-indigo-600">${s.total || 0}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Total Platforms</div>
-            </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold text-emerald-600">${s.active || 0}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Healthy</div>
-            </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold text-amber-500">${s.warning || 0}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Warning</div>
-            </div>
-            <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                <div class="text-xl font-bold text-red-500">${s.dead || 0}</div>
-                <div class="text-[10px] text-gray-500 font-medium mt-0.5">Dead</div>
-            </div>`;
+                <div class="text-xl font-bold" style="color:${c.color}">${c.val}</div>
+                <div class="text-[10px] text-gray-500 font-medium mt-0.5">${c.label}</div>
+            </div>`).join('');
 
         document.getElementById('platIntelGrid').innerHTML = platforms.length ? platforms.map(p => {
             const logoHtml = p.logo_url
                 ? `<img src="${escHtml(p.logo_url)}" class="w-10 h-10 rounded-lg object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="display:none;background:${escHtml(p.bg_color_hex||'#4F46E5')}">${escHtml((p.name||'?')[0])}</div>`
                 : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="background:${escHtml(p.bg_color_hex||'#4F46E5')}">${escHtml((p.name||'?')[0])}</div>`;
-            const hs = p.health_status || 'active';
-            const score = p.health_score ?? 100;
-            const borderColor = hs === 'active' ? '#D1FAE5' : hs === 'warning' ? '#FEF3C7' : '#FEE2E2';
+            const hs = p.health_status || 'unused';
+            const score = p.health_score ?? 0;
+            const cfg = _platStatusConfig[hs] || _platStatusConfig.unused;
             return `
-            <div class="rounded-xl border-2 p-4 transition-all hover:shadow-md" style="border-color:${borderColor}">
+            <div class="rounded-xl border-2 p-4 transition-all hover:shadow-md cursor-pointer" style="border-color:${cfg.bg}" onclick="openPlatDetailModal(${p.id})">
                 <div class="flex items-center gap-3 mb-3">
                     ${logoHtml}
                     <div class="flex-1 min-w-0">
                         <div class="font-semibold text-sm text-gray-900 truncate">${escHtml(p.name)}</div>
                         <div class="text-[10px] text-gray-400">${escHtml(p.cookie_domain || '—')}</div>
                     </div>
-                    ${healthStatusBadge(hs)}
+                    ${_platStatusBadge(hs)}
                 </div>
                 ${healthScoreBar(score)}
-                <div class="flex items-center justify-between mt-3 text-[10px] text-gray-400">
+                <div class="text-[10px] text-gray-400 mt-2 italic">${escHtml(p.status_reason || '')}</div>
+                <div class="flex items-center justify-between mt-2 text-[10px] text-gray-400">
                     <span>${p.slot_count || 0} slot(s)</span>
+                    <span>${p.active_accounts || 0} active</span>
                     <span>${p.active_users || 0} user(s)</span>
-                    <span>${p.auto_detected ? 'Auto' : 'Manual'}</span>
                 </div>
             </div>`;
         }).join('') : '<div class="text-center text-gray-400 text-sm py-8 col-span-full">No platforms detected yet. Import cookies in Account Manager to auto-detect platforms.</div>';
 
         const regCount = document.getElementById('platRegistryCount');
         if (regCount) regCount.textContent = platforms.length;
+        _platRegistryData = platforms;
+        document.getElementById('platSelectAll').checked = false;
+        updatePlatSelectionUI();
+        filterPlatformRegistry();
 
-        renderPlatformIntelligenceTable(platforms);
-
+        if (data.queue_status && (data.queue_status.stats.running > 0 || data.queue_status.stats.pending > 0)) {
+            _startPlatHealthPoll();
+        }
     } catch(e) {
         console.error('loadPlatformIntelligence error:', e);
-        const grid = document.getElementById('platIntelGrid');
-        if (grid) grid.innerHTML = '<div class="text-center text-gray-400 text-sm py-8 col-span-full">Unable to load platform data. Please try again.</div>';
+        document.getElementById('platIntelGrid').innerHTML = '<div class="text-center text-gray-400 text-sm py-8 col-span-full">Unable to load platform data. Please try again.</div>';
     }
-}
-
-let _platRegistryData = [];
-
-function renderPlatformIntelligenceTable(platforms) {
-    _platRegistryData = platforms;
-    document.getElementById('platSelectAll').checked = false;
-    updatePlatSelectionUI();
-    filterPlatformRegistry();
 }
 
 function filterPlatformRegistry() {
     const q = (document.getElementById('platSearchInput').value || '').toLowerCase().trim();
-    const filtered = q ? _platRegistryData.filter(p =>
+    const statusFilter = (document.getElementById('platStatusFilter')?.value || '').toLowerCase();
+    let filtered = _platRegistryData;
+    if (q) filtered = filtered.filter(p =>
         (p.name || '').toLowerCase().includes(q) || (p.cookie_domain || '').toLowerCase().includes(q)
-    ) : _platRegistryData;
+    );
+    if (statusFilter) filtered = filtered.filter(p => p.health_status === statusFilter);
     renderPlatRows(filtered);
+}
+
+function _platLastCheckedLabel(ts) {
+    if (!ts) return '—';
+    const d = _alieParseUTC(ts);
+    if (!d || isNaN(d.getTime())) return '—';
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
 }
 
 function renderPlatRows(platforms) {
     const tbody = document.getElementById('platformsBody');
     if (!platforms.length) {
         const q = (document.getElementById('platSearchInput').value || '').trim();
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-gray-400 py-6">${q ? 'No platforms match your search.' : 'No platforms yet. Import cookies to auto-detect.'}</td></tr>`;
+        const sf = document.getElementById('platStatusFilter')?.value || '';
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-gray-400 py-6">${q || sf ? 'No platforms match your filters.' : 'No platforms yet. Import cookies to auto-detect.'}</td></tr>`;
         updatePlatSelectionUI();
         return;
     }
@@ -3399,21 +3444,24 @@ function renderPlatRows(platforms) {
         const logoCell = logoSrc
             ? `<img src="${escHtml(logoSrc)}" alt="${escHtml(p.name)}" class="w-7 h-7 rounded object-cover" onerror="this.outerHTML='<div class=\\'w-7 h-7 rounded flex items-center justify-center text-white text-[10px] font-bold\\' style=\\'background:${escHtml(p.bg_color_hex||'#4F46E5')}\\'>${escHtml((p.name||'?')[0])}</div>'"/>`
             : `<div class="w-7 h-7 rounded flex items-center justify-center text-white text-[10px] font-bold" style="background:${escHtml(p.bg_color_hex || '#4F46E5')}">${escHtml((p.name||'?')[0].toUpperCase())}</div>`;
-        const score = p.health_score ?? 100;
-        const hs = p.health_status || 'active';
+        const score = p.health_score ?? 0;
+        const hs = p.health_status || 'unused';
         return `
-        <tr data-plat-id="${p.id}" style="transition:opacity .3s,transform .3s">
+        <tr data-plat-id="${p.id}" data-plat-status="${hs}" style="transition:opacity .3s,transform .3s">
             <td><input type="checkbox" class="platRowCb rounded" value="${p.id}" onchange="updatePlatSelectionUI()"/></td>
-            <td><div class="flex items-center gap-2">${logoCell}<span class="font-medium text-sm">${escHtml(p.name)}</span></div></td>
+            <td><div class="flex items-center gap-2 cursor-pointer" onclick="openPlatDetailModal(${p.id})">${logoCell}<span class="font-medium text-sm hover:text-indigo-600">${escHtml(p.name)}</span></div></td>
             <td class="text-xs text-gray-500">${escHtml(p.cookie_domain || '—')}</td>
             <td>${healthScoreBar(score)}</td>
-            <td class="text-center text-xs">${p.slot_count ?? p.total_accounts ?? 0}</td>
-            <td class="text-center text-xs">${p.active_users ?? 0}</td>
-            <td>${p.is_active ? healthStatusBadge(hs) : '<span class="badge badge-red">Disabled</span>'}</td>
-            <td><span class="text-[10px] px-1.5 py-0.5 rounded ${p.auto_detected ? 'bg-violet-50 text-violet-600' : 'bg-gray-100 text-gray-500'}">${p.auto_detected ? 'Auto' : 'Manual'}</span></td>
+            <td class="text-center text-xs">${p.active_accounts || 0} / ${p.slot_count || 0}</td>
+            <td class="text-center text-xs">${p.active_sessions || 0}</td>
+            <td>${_platStatusBadge(hs)}</td>
+            <td class="text-[10px] text-gray-400">${_platLastCheckedLabel(p.last_health_check)}</td>
             <td>
                 <div class="flex gap-1">
-                    <button onclick="togglePlatformHealth(${p.id})" class="btn ${p.is_active ? 'btn-danger' : 'btn-success'} btn-sm text-[10px]">${p.is_active ? 'Disable' : 'Enable'}</button>
+                    <button onclick="openPlatDetailModal(${p.id})" class="btn btn-secondary btn-sm text-[10px]" title="Details">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+                    <button onclick="togglePlatformIntel(${p.id},'${escHtml(p.name)}',${p.is_active?1:0})" class="btn ${p.is_active ? 'btn-danger' : 'btn-success'} btn-sm text-[10px]">${p.is_active ? 'Disable' : 'Enable'}</button>
                     <button onclick="deleteSinglePlatform(${p.id},'${escHtml(p.name)}')" class="btn btn-sm text-[10px]" style="background:#FEE2E2;color:#DC2626;border:1px solid #FECACA" title="Delete">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
@@ -3439,20 +3487,49 @@ function updatePlatSelectionUI() {
     if (total > 0) { selectAll.checked = count === total; selectAll.indeterminate = count > 0 && count < total; }
 }
 
+async function togglePlatformIntel(platformId, name, currentlyActive) {
+    if (currentlyActive) {
+        if (!confirm(`Disable platform "${name}"?\n\nThis will terminate all active sessions for this platform. Users currently using it will be disconnected.`)) return;
+    }
+    try {
+        const res = await fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: platformId }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) loadPlatformIntelligence();
+    } catch(e) { showAlert('Toggle failed.', true); }
+}
+
 async function deleteSinglePlatform(id, name) {
-    if (!confirm(`Delete platform "${name}"? This will also remove all associated subscriptions, accounts, and cookies. This cannot be undone.`)) return;
+    try {
+        const impactRes = await fetch(`api/platform_health?action=delete_impact&platform_id=${id}`, { credentials: 'include' });
+        const impactData = await impactRes.json();
+        const impact = impactData.impact || {};
+        let msg = `Delete platform "${name}"?\n\nThis will permanently remove:\n`;
+        msg += `• ${impact.accounts || 0} account(s)\n`;
+        if (impact.active_sessions > 0) msg += `• ${impact.active_sessions} active session(s) will be terminated\n`;
+        if (impact.active_subscriptions > 0) msg += `• ${impact.active_subscriptions} active subscription(s) will be cancelled\n`;
+        msg += `\nThis cannot be undone.`;
+        if (!confirm(msg)) return;
+    } catch(e) {
+        if (!confirm(`Delete platform "${name}"? This cannot be undone.`)) return;
+    }
     try {
         const row = document.querySelector(`tr[data-plat-id="${id}"]`);
         if (row) { row.style.opacity = '0'; row.style.transform = 'translateX(20px)'; }
-        const res = await fetch('api/delete_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id }) });
-        const data = await res.json();
+        let res = await fetch('api/delete_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id }) });
+        let data = await res.json();
+        if (data.requires_force) {
+            if (!confirm(data.message + '\n\nForce delete anyway?')) { if (row) { row.style.opacity = '1'; row.style.transform = ''; } return; }
+            res = await fetch('api/delete_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id, force: true }) });
+            data = await res.json();
+        }
         if (data.success) {
             showAlert(data.message);
             _platRegistryData = _platRegistryData.filter(p => p.id !== id);
-            ALL_PLATFORMS = ALL_PLATFORMS.filter(p => p.id !== id);
+            if (typeof ALL_PLATFORMS !== 'undefined') ALL_PLATFORMS = ALL_PLATFORMS.filter(p => p.id !== id);
             setTimeout(() => filterPlatformRegistry(), 300);
-            const cnt = document.getElementById('platRegistryCount');
-            if (cnt) cnt.textContent = _platRegistryData.length;
+            document.getElementById('platRegistryCount').textContent = _platRegistryData.length;
+            loadPlatformIntelligence();
         } else { showAlert(data.message, true); if (row) { row.style.opacity = '1'; row.style.transform = ''; } }
     } catch (e) { showAlert('Delete failed.', true); }
 }
@@ -3462,51 +3539,156 @@ async function bulkDeletePlatforms() {
     const ids = Array.from(cbs).map(cb => parseInt(cb.value));
     if (!ids.length) return;
     if (!confirm(`Delete ${ids.length} platform(s)? This will remove all associated data and cannot be undone.`)) return;
-    ids.forEach(id => {
-        const row = document.querySelector(`tr[data-plat-id="${id}"]`);
-        if (row) { row.style.opacity = '0.3'; }
-    });
+    ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
     try {
         const res = await fetch('api/delete_platforms_bulk', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_ids: ids }) });
         const data = await res.json();
         if (data.success) {
             showAlert(data.message);
             _platRegistryData = _platRegistryData.filter(p => !ids.includes(p.id));
-            ALL_PLATFORMS = ALL_PLATFORMS.filter(p => !ids.includes(p.id));
+            if (typeof ALL_PLATFORMS !== 'undefined') ALL_PLATFORMS = ALL_PLATFORMS.filter(p => !ids.includes(p.id));
             filterPlatformRegistry();
-            const cnt = document.getElementById('platRegistryCount');
-            if (cnt) cnt.textContent = _platRegistryData.length;
+            document.getElementById('platRegistryCount').textContent = _platRegistryData.length;
+            loadPlatformIntelligence();
         } else { showAlert(data.message, true); ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '1'; }); }
     } catch (e) { showAlert('Bulk delete failed.', true); }
 }
 
-async function refreshPlatformHealth() {
+async function runPlatformHealthCheck() {
     const btn = document.getElementById('platHealthBtn');
-    const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Checking...';
+    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Starting...';
     try {
-        const res = await fetch('api/platform_health?action=refresh_health', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include'
+        const res = await fetch('api/platform_health', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'run_health_check' })
         });
         const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) loadPlatformIntelligence();
-    } catch(e) { showAlert('Health check failed.', true); }
-    btn.disabled = false;
-    btn.innerHTML = origHtml;
+        if (data.success && data.job_id) {
+            _platHealthJobId = data.job_id;
+            _startPlatHealthPoll();
+            showAlert('Health check started');
+        } else {
+            showAlert(data.message || 'Health check could not start', !data.success);
+            _resetPlatHealthBtn();
+        }
+    } catch(e) {
+        showAlert('Health check failed.', true);
+        _resetPlatHealthBtn();
+    }
 }
 
-async function togglePlatformHealth(platformId) {
+function _startPlatHealthPoll() {
+    if (_platHealthPollTimer) return;
+    const statusEl = document.getElementById('platHealthJobStatus');
+    statusEl.classList.remove('hidden');
+    statusEl.textContent = 'Running...';
+    document.getElementById('platHealthBtn').disabled = true;
+    _platHealthPollTimer = setInterval(async () => {
+        try {
+            const qs = _platHealthJobId ? `&job_id=${_platHealthJobId}` : '';
+            const res = await fetch(`api/platform_health?action=job_status${qs}`, { credentials: 'include' });
+            const data = await res.json();
+            if (data.job) {
+                const j = data.job;
+                if (j.status === 'running') {
+                    statusEl.textContent = `Running ${j.progress || 0}%`;
+                } else if (j.status === 'completed') {
+                    _stopPlatHealthPoll();
+                    showAlert('Health check complete');
+                    loadPlatformIntelligence();
+                } else if (j.status === 'failed') {
+                    _stopPlatHealthPoll();
+                    showAlert('Health check failed: ' + (j.error || 'Unknown error'), true);
+                }
+            } else if (data.stats && data.stats.running === 0 && data.stats.pending === 0) {
+                _stopPlatHealthPoll();
+                loadPlatformIntelligence();
+            }
+        } catch(e) { console.error('platHealthPoll error:', e); }
+    }, 2000);
+}
+
+function _stopPlatHealthPoll() {
+    if (_platHealthPollTimer) { clearInterval(_platHealthPollTimer); _platHealthPollTimer = null; }
+    _platHealthJobId = null;
+    _resetPlatHealthBtn();
+    const statusEl = document.getElementById('platHealthJobStatus');
+    statusEl.classList.add('hidden');
+    statusEl.textContent = '';
+}
+
+function _resetPlatHealthBtn() {
+    const btn = document.getElementById('platHealthBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> Health Check';
+}
+
+async function openPlatDetailModal(platformId) {
+    const modal = document.getElementById('platDetailModal');
+    const body = document.getElementById('platDetailBody');
+    modal.classList.add('active');
+    body.innerHTML = '<div class="text-center text-gray-400 py-8">Loading platform details...</div>';
     try {
-        const res = await fetch('api/platform_health?action=toggle', {
-            method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ platform_id: platformId })
-        });
+        const res = await fetch(`api/platform_health?action=detail&platform_id=${platformId}`, { credentials: 'include' });
         const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) loadPlatformIntelligence();
-    } catch(e) { showAlert('Toggle failed.', true); }
+        if (!data.success || !data.platform) { body.innerHTML = '<div class="text-center text-red-400 py-8">Failed to load details.</div>'; return; }
+        const p = data.platform;
+        document.getElementById('platDetailTitle').textContent = p.name;
+        const cfg = _platStatusConfig[p.health_status] || _platStatusConfig.unused;
+        body.innerHTML = `
+            <div class="flex items-center gap-3 mb-4">
+                ${p.logo_url ? `<img src="${escHtml(p.logo_url)}" class="w-12 h-12 rounded-xl object-cover" onerror="this.style.display='none'"/>` : ''}
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">${_platStatusBadge(p.health_status)} <span class="text-[10px] text-gray-400">${escHtml(p.cookie_domain||'')}</span></div>
+                    <div class="text-xs text-gray-500 mt-1 italic">${escHtml(p.status_reason || '')}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold" style="color:${cfg.color}">${p.health_score}%</div>
+                    <div class="text-[10px] text-gray-400">Health Score</div>
+                </div>
+            </div>
+            ${healthScoreBar(p.health_score)}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-5">
+                <div class="text-center py-2 rounded-lg bg-gray-50 border"><div class="text-sm font-bold text-gray-900">${p.total_accounts||0}</div><div class="text-[9px] text-gray-400">Total Accounts</div></div>
+                <div class="text-center py-2 rounded-lg bg-gray-50 border"><div class="text-sm font-bold text-emerald-600">${p.active_accounts||0}</div><div class="text-[9px] text-gray-400">Active</div></div>
+                <div class="text-center py-2 rounded-lg bg-gray-50 border"><div class="text-sm font-bold text-blue-600">${p.active_sessions||0}</div><div class="text-[9px] text-gray-400">Sessions</div></div>
+                <div class="text-center py-2 rounded-lg bg-gray-50 border"><div class="text-sm font-bold text-violet-600">${p.active_subscribers||0}</div><div class="text-[9px] text-gray-400">Subscribers</div></div>
+            </div>
+            <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-semibold text-gray-700">Account Slots</h4>
+                <span class="text-[10px] text-gray-400">Last checked: ${_platLastCheckedLabel(p.last_health_check)}</span>
+            </div>
+            ${p.accounts && p.accounts.length ? `
+            <div class="overflow-x-auto">
+                <table class="data-table text-xs">
+                    <thead><tr>
+                        <th>Slot</th><th>Score</th><th>Status</th><th>Cookie</th><th>Success / Fail</th><th>Last Success</th>
+                    </tr></thead>
+                    <tbody>
+                        ${p.accounts.map(a => {
+                            const aScore = a.intelligence_score || 0;
+                            const aStatus = a.health_status || 'unknown';
+                            return `<tr style="${a.is_active ? '' : 'opacity:0.5'}">
+                                <td class="font-medium">${escHtml(a.slot_name||'Slot')}</td>
+                                <td>${healthScoreBar(aScore)}</td>
+                                <td>${_platStatusBadge(aStatus === 'healthy' ? 'healthy' : aStatus === 'degraded' ? 'degraded' : 'dead')}</td>
+                                <td><span class="badge ${(a.cookie_status||'').toLowerCase()==='valid'?'badge-green':(a.cookie_status||'').toLowerCase()==='expired'?'badge-red':'badge-yellow'}">${escHtml(a.cookie_status||'—')}</span></td>
+                                <td class="text-center"><span class="text-emerald-600">${a.success_count||0}</span> / <span class="text-red-500">${a.fail_count||0}</span></td>
+                                <td class="text-gray-400">${a.last_success ? _platLastCheckedLabel(a.last_success) : '—'}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>` : '<div class="text-center text-gray-400 text-sm py-4">No accounts linked to this platform.</div>'}
+        `;
+    } catch(e) {
+        body.innerHTML = '<div class="text-center text-red-400 py-8">Error loading platform details.</div>';
+    }
+}
+
+function closePlatDetailModal() {
+    document.getElementById('platDetailModal').classList.remove('active');
 }
 
 function renderCookiesTable(cookies) {
@@ -4201,22 +4383,14 @@ async function handleLogoUpload(input) {
 }
 
 async function togglePlatform(platformId) {
-    try {
-        const res = await fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: platformId }) });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) loadStats();
-    } catch (e) { showAlert('Network error.', true); }
+    const p = _platRegistryData.find(x => x.id === platformId);
+    await togglePlatformIntel(platformId, p?.name || '', p?.is_active ? 1 : 0);
+    loadStats();
 }
 
 async function deletePlatform(platformId, name) {
-    if (!confirm(`Permanently delete platform "${name}"? All subscriptions and cookies for this platform will be removed.`)) return;
-    try {
-        const res = await fetch('api/delete_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: platformId }) });
-        const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) loadStats();
-    } catch (e) { showAlert('Network error.', true); }
+    await deleteSinglePlatform(platformId, name);
+    loadStats();
 }
 
 function syncColor(hex) {

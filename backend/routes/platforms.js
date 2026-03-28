@@ -7,8 +7,43 @@ import {
   extractCookieExpiry, computeCookieScore,
   classifyCookieCompleteness, detectRequiredSessionComponents,
 } from '../utils/cookieEngine.js';
-import { invalidateAccountCaches } from '../utils/cache.js';
+import { invalidateAccountCaches, platformCache } from '../utils/cache.js';
+import { platformHealthQueue } from '../utils/jobQueue.js';
 import { recheckLimiter } from '../middleware/rateLimit.js';
+
+const BATCH_SIZE = 20;
+
+function classifyPlatformStatus(p, activeAccounts, healthScore) {
+  if (!p.isActive) return 'inactive';
+  if (activeAccounts === 0) return 'unused';
+  if (healthScore >= 75) return 'healthy';
+  if (healthScore >= 40) return 'degraded';
+  return 'dead';
+}
+
+function computePlatformHealth(accounts) {
+  const active = accounts.filter(a => a.isActive);
+  if (active.length === 0) return { score: 0, activeCount: 0, healthyCount: 0 };
+  const totalSuccess = active.reduce((s, a) => s + (a.successCount || 0), 0);
+  const totalFail = active.reduce((s, a) => s + (a.failCount || 0), 0);
+  const totalAttempts = totalSuccess + totalFail;
+  const successRate = totalAttempts > 0 ? (totalSuccess / totalAttempts) * 100 : 50;
+  const healthyAccounts = active.filter(a => (a.intelligenceScore || 0) >= 70).length;
+  const accountHealthRatio = active.length > 0 ? (healthyAccounts / active.length) * 100 : 0;
+  const avgIntelScore = active.length > 0
+    ? active.reduce((s, a) => s + (a.intelligenceScore || 0), 0) / active.length : 0;
+  const score = Math.round(successRate * 0.35 + accountHealthRatio * 0.35 + avgIntelScore * 0.30);
+  return { score: Math.max(0, Math.min(100, score)), activeCount: active.length, healthyCount: healthyAccounts };
+}
+
+function statusReason(status, score, activeCount, totalAccounts, lastCheck) {
+  if (status === 'inactive') return 'Manually disabled by admin';
+  if (status === 'unused') return totalAccounts > 0 ? 'All accounts are deactivated' : 'No accounts linked';
+  if (status === 'healthy') return `${activeCount} active account(s), ${score}% health`;
+  if (status === 'degraded') return `Performance below threshold (${score}%)`;
+  if (status === 'dead') return `Critical failures across accounts (${score}%)`;
+  return '';
+}
 
 const router = Router();
 
@@ -109,13 +144,31 @@ router.post('/delete_platform', authenticate, requireAdmin('super_admin'), async
     const { platform_id } = req.body;
     if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
 
-    await prisma.platform.delete({ where: { id: parseInt(platform_id) } });
+    const pid = parseInt(platform_id);
+    const platform = await prisma.platform.findUnique({ where: { id: pid } });
+    if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
+
+    if (!req.body.force) {
+      const activeSessions = await prisma.accountSession.count({ where: { platformId: pid, status: 'active' } });
+      const activeSubs = await prisma.userSubscription.count({ where: { platformId: pid, isActive: 1 } });
+      if (activeSessions > 0 || activeSubs > 0) {
+        return res.status(409).json({
+          success: false,
+          message: `Platform "${platform.name}" has ${activeSessions} active session(s) and ${activeSubs} active subscription(s). Disable it first or pass force=true.`,
+          requires_force: true,
+        });
+      }
+    }
+
+    await prisma.platform.delete({ where: { id: pid } });
 
     await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Deleted platform ID: ${platform_id}`, ipAddress: req.ip || null, createdAt: nowISO() },
+      data: { userId: req.user.id, action: `Deleted platform "${platform.name}" (ID: ${platform_id})`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
 
-    res.json({ success: true, message: 'Platform deleted' });
+    platformCache.invalidate('platform:dashboard');
+    invalidateAccountCaches();
+    res.json({ success: true, message: `Platform "${platform.name}" deleted` });
   } catch (err) {
     console.error('delete_platform error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -133,6 +186,8 @@ router.post('/delete_platforms_bulk', authenticate, requireAdmin('super_admin'),
     await prisma.activityLog.create({
       data: { userId: req.user.id, action: `Bulk deleted ${deleted.count} platform(s)`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
+    platformCache.invalidate('platform:dashboard');
+    invalidateAccountCaches();
     res.json({ success: true, message: `${deleted.count} platform(s) deleted`, count: deleted.count });
   } catch (err) {
     console.error('delete_platforms_bulk error:', err);
@@ -149,9 +204,35 @@ router.post('/toggle_platform', authenticate, requireAdmin(), async (req, res) =
     if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
 
     const newStatus = platform.isActive ? 0 : 1;
-    await prisma.platform.update({ where: { id: platform.id }, data: { isActive: newStatus } });
 
-    res.json({ success: true, message: `Platform ${newStatus ? 'enabled' : 'disabled'}`, is_active: newStatus });
+    const txOps = [];
+    let terminatedSessions = 0;
+    if (!newStatus) {
+      const activeCount = await prisma.accountSession.count({ where: { platformId: platform.id, status: 'active' } });
+      terminatedSessions = activeCount;
+      txOps.push(prisma.accountSession.updateMany({
+        where: { platformId: platform.id, status: 'active' },
+        data: { status: 'terminated' },
+      }));
+      txOps.push(prisma.platform.update({ where: { id: platform.id }, data: { isActive: 0, healthStatus: 'inactive' } }));
+      txOps.push(prisma.activityLog.create({
+        data: { userId: req.user.id, action: `Disabled platform "${platform.name}" (ID: ${platform.id}), terminated ${terminatedSessions} session(s)`, ipAddress: req.ip || null, createdAt: nowISO() },
+      }));
+    } else {
+      txOps.push(prisma.platform.update({ where: { id: platform.id }, data: { isActive: 1 } }));
+      txOps.push(prisma.activityLog.create({
+        data: { userId: req.user.id, action: `Enabled platform "${platform.name}" (ID: ${platform.id})`, ipAddress: req.ip || null, createdAt: nowISO() },
+      }));
+    }
+
+    await prisma.$transaction(txOps);
+    platformCache.invalidate('platform:dashboard');
+    invalidateAccountCaches();
+
+    const msg = newStatus
+      ? `Platform "${platform.name}" enabled`
+      : `Platform "${platform.name}" disabled. ${terminatedSessions} active session(s) terminated.`;
+    res.json({ success: true, message: msg, is_active: newStatus, terminated_sessions: terminatedSessions });
   } catch (err) {
     console.error('toggle_platform error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -477,46 +558,132 @@ router.post('/cookie_cleanup', authenticate, requireAdmin(), async (req, res) =>
 
 router.get('/platform_health', authenticate, requireAdmin(), async (req, res) => {
   try {
+    const { action } = req.query;
+
+    if (action === 'detail') {
+      const platformId = parseInt(req.query.platform_id);
+      if (!platformId) return res.status(400).json({ success: false, message: 'platform_id required' });
+      const platform = await prisma.platform.findUnique({
+        where: { id: platformId },
+        include: {
+          platformAccounts: {
+            select: {
+              id: true, slotName: true, isActive: true, healthStatus: true,
+              intelligenceScore: true, stabilityStatus: true,
+              successCount: true, failCount: true, cookieStatus: true,
+              lastSuccessAt: true, expiresAt: true, createdAt: true,
+            },
+            orderBy: { intelligenceScore: 'desc' },
+            take: 50,
+          },
+          _count: {
+            select: {
+              accountSessions: { where: { status: 'active' } },
+              subscriptions: { where: { isActive: 1 } },
+              platformAccounts: true,
+            },
+          },
+        },
+      });
+      if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
+      const { score, activeCount, healthyCount } = computePlatformHealth(platform.platformAccounts);
+      const status = classifyPlatformStatus(platform, activeCount, score);
+      return res.json({
+        success: true,
+        platform: {
+          id: platform.id, name: platform.name,
+          logo_url: platform.logoUrl || '', bg_color_hex: platform.bgColorHex || '#4F46E5',
+          cookie_domain: platform.cookieDomain || '', login_url: platform.loginUrl || '',
+          is_active: platform.isActive, auto_detected: platform.autoDetected,
+          health_score: score, health_status: status,
+          status_reason: statusReason(status, score, activeCount, platform._count.platformAccounts, platform.lastHealthCheck),
+          last_health_check: platform.lastHealthCheck,
+          total_accounts: platform._count.platformAccounts,
+          active_accounts: activeCount, healthy_accounts: healthyCount,
+          active_sessions: platform._count.accountSessions,
+          active_subscribers: platform._count.subscriptions,
+          accounts: platform.platformAccounts.map(a => ({
+            id: a.id, slot_name: a.slotName, is_active: a.isActive,
+            health_status: a.healthStatus, intelligence_score: a.intelligenceScore || 0,
+            stability: a.stabilityStatus, cookie_status: a.cookieStatus,
+            success_count: a.successCount, fail_count: a.failCount,
+            last_success: a.lastSuccessAt, expires_at: a.expiresAt,
+          })),
+        },
+      });
+    }
+
+    if (action === 'delete_impact') {
+      const platformId = parseInt(req.query.platform_id);
+      if (!platformId) return res.status(400).json({ success: false, message: 'platform_id required' });
+      const [accounts, sessions, subs] = await Promise.all([
+        prisma.platformAccount.count({ where: { platformId } }),
+        prisma.accountSession.count({ where: { platformId, status: 'active' } }),
+        prisma.userSubscription.count({ where: { platformId, isActive: 1 } }),
+      ]);
+      return res.json({
+        success: true,
+        impact: { accounts, active_sessions: sessions, active_subscriptions: subs, has_active_usage: sessions > 0 || subs > 0 },
+      });
+    }
+
+    if (action === 'job_status') {
+      const jobId = req.query.job_id;
+      if (!jobId) return res.json({ success: true, ...platformHealthQueue.getAll() });
+      const status = platformHealthQueue.getStatus(jobId);
+      return res.json({ success: true, job: status });
+    }
+
+    const cached = platformCache.get('platform:dashboard');
+    if (cached) return res.json(cached);
+
     const platforms = await prisma.platform.findMany({
       include: {
         platformAccounts: {
-          select: { isActive: true, healthStatus: true, successCount: true, failCount: true },
+          select: { isActive: true, healthStatus: true, successCount: true, failCount: true, intelligenceScore: true },
         },
-        _count: { select: { subscriptions: { where: { isActive: 1 } } } },
+        _count: {
+          select: {
+            accountSessions: { where: { status: 'active' } },
+            subscriptions: { where: { isActive: 1 } },
+            platformAccounts: true,
+          },
+        },
       },
     });
 
     const health = platforms.map(p => {
-      const accounts = p.platformAccounts;
-      const active = accounts.filter(a => a.isActive).length;
-      const healthy = accounts.filter(a => a.healthStatus === 'healthy').length;
-      const totalSuccess = accounts.reduce((s, a) => s + a.successCount, 0);
-      const totalFail = accounts.reduce((s, a) => s + a.failCount, 0);
-      const score = totalSuccess + totalFail > 0 ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : 100;
-      const status = active === 0 ? 'dead' : score >= 80 ? 'active' : score >= 50 ? 'warning' : 'dead';
-
+      const { score, activeCount, healthyCount } = computePlatformHealth(p.platformAccounts);
+      const status = classifyPlatformStatus(p, activeCount, score);
       return {
         id: p.id, name: p.name, health_score: score,
         health_status: status,
+        status_reason: statusReason(status, score, activeCount, p._count.platformAccounts, p.lastHealthCheck),
         logo_url: p.logoUrl || '', bg_color_hex: p.bgColorHex || '#4F46E5',
         cookie_domain: p.cookieDomain || '',
         is_active: p.isActive, auto_detected: p.autoDetected,
-        active_accounts: active, healthy_accounts: healthy,
-        total_accounts: p.totalAccounts,
-        total_success: totalSuccess, total_fail: totalFail,
-        active_subscribers: p._count.subscriptions,
+        slot_count: p._count.platformAccounts,
+        active_accounts: activeCount, healthy_accounts: healthyCount,
+        active_users: p._count.subscriptions,
+        active_sessions: p._count.accountSessions,
         last_health_check: p.lastHealthCheck,
       };
     });
 
     const summary = {
       total: health.length,
-      active: health.filter(h => h.health_status === 'active').length,
-      warning: health.filter(h => h.health_status === 'warning').length,
+      healthy: health.filter(h => h.health_status === 'healthy').length,
+      degraded: health.filter(h => h.health_status === 'degraded').length,
+      unused: health.filter(h => h.health_status === 'unused').length,
+      inactive: health.filter(h => h.health_status === 'inactive').length,
       dead: health.filter(h => h.health_status === 'dead').length,
     };
 
-    res.json({ success: true, platforms: health, summary });
+    const queueStatus = platformHealthQueue.getAll();
+
+    const result = { success: true, platforms: health, summary, queue_status: queueStatus };
+    platformCache.set('platform:dashboard', result, 15000);
+    return res.json(result);
   } catch (err) {
     console.error('platform_health error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -525,49 +692,61 @@ router.get('/platform_health', authenticate, requireAdmin(), async (req, res) =>
 
 router.post('/platform_health', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const platforms = await prisma.platform.findMany({
-      include: {
-        platformAccounts: {
-          select: { id: true, isActive: true, successCount: true, failCount: true, cookieStatus: true },
-        },
-      },
-    });
+    const { action } = req.body;
 
-    const now = nowISO();
-    let healthyCount = 0, warningCount = 0, deadCount = 0;
+    if (action === 'run_health_check') {
+      const queueState = platformHealthQueue.getAll();
+      if (queueState.stats.running > 0 || queueState.stats.pending > 0) {
+        return res.json({ success: false, message: 'Health check already running' });
+      }
 
-    for (const p of platforms) {
-      const accounts = p.platformAccounts;
-      const active = accounts.filter(a => a.isActive).length;
-      const totalSuccess = accounts.reduce((s, a) => s + a.successCount, 0);
-      const totalFail = accounts.reduce((s, a) => s + a.failCount, 0);
-      const score = totalSuccess + totalFail > 0 ? Math.round((totalSuccess / (totalSuccess + totalFail)) * 100) : (active > 0 ? 100 : 0);
-      const status = active === 0 ? 'dead' : score >= 80 ? 'active' : score >= 50 ? 'warning' : 'dead';
+      const jobId = platformHealthQueue.add('platform_health_check', async (data, updateProgress) => {
+        const platforms = await prisma.platform.findMany({
+          include: {
+            platformAccounts: {
+              select: { id: true, isActive: true, successCount: true, failCount: true, intelligenceScore: true, cookieStatus: true },
+            },
+          },
+        });
 
-      if (status === 'active') healthyCount++;
-      else if (status === 'warning') warningCount++;
-      else deadCount++;
+        const now = nowISO();
+        let processed = 0;
+        const total = platforms.length;
+        const updates = [];
 
-      await prisma.platform.update({
-        where: { id: p.id },
-        data: { healthScore: score, healthStatus: status, lastHealthCheck: now },
+        for (const p of platforms) {
+          const { score, activeCount } = computePlatformHealth(p.platformAccounts);
+          const status = classifyPlatformStatus(p, activeCount, score);
+          updates.push({ id: p.id, score, status });
+
+          if (updates.length >= BATCH_SIZE || processed + 1 === total) {
+            await prisma.$transaction(
+              updates.map(u => prisma.platform.update({
+                where: { id: u.id },
+                data: { healthScore: u.score, healthStatus: u.status, lastHealthCheck: now },
+              }))
+            );
+            updates.length = 0;
+          }
+
+          processed++;
+          updateProgress(Math.round((processed / total) * 100));
+        }
+
+        platformCache.invalidate('platform:dashboard');
+        emitAdminEvent('platform_health_complete', { total: platforms.length });
+
+        return { total: platforms.length };
       });
 
-      for (const acc of accounts) {
-        const accScore = acc.successCount + acc.failCount > 0
-          ? Math.round((acc.successCount / (acc.successCount + acc.failCount)) * 100) : 100;
-        const accHealth = accScore >= 80 ? 'healthy' : accScore >= 50 ? 'degraded' : 'unhealthy';
-        await prisma.platformAccount.update({
-          where: { id: acc.id },
-          data: { healthStatus: accHealth },
-        });
-      }
+      await prisma.activityLog.create({
+        data: { userId: req.user.id, action: 'Started platform health check', ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return res.json({ success: true, message: 'Health check started', job_id: jobId });
     }
 
-    res.json({
-      success: true,
-      message: `Health check complete: ${healthyCount} healthy, ${warningCount} warning, ${deadCount} dead`,
-    });
+    return res.status(400).json({ success: false, message: 'Unknown action' });
   } catch (err) {
     console.error('platform_health POST error:', err);
     res.status(500).json({ success: false, message: 'Health check failed' });

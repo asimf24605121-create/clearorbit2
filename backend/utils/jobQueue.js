@@ -132,11 +132,13 @@ class JobQueue {
 export const accountQueue = new JobQueue({ concurrency: 2 });
 export const intelligenceQueue = new JobQueue({ concurrency: 1 });
 export const importQueue = new JobQueue({ concurrency: 1 });
+export const platformHealthQueue = new JobQueue({ concurrency: 1 });
 
 export function getQueues() {
   return {
     accounts: accountQueue.getAll(),
     intelligence: intelligenceQueue.getAll(),
     imports: importQueue.getAll(),
+    platformHealth: platformHealthQueue.getAll(),
   };
 }
