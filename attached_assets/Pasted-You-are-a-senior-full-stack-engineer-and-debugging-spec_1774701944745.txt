@@ -1,0 +1,160 @@
+You are a senior full-stack engineer and debugging specialist.
+
+The Recent Intelligence Events timing is STILL not correct.
+
+Current symptom:
+The UI shows relative timestamps like:
+- 5h ago
+- 1d ago
+
+but the timing still does not feel correct or trustworthy.
+I want you to deeply debug the real cause, not just patch the frontend.
+
+IMPORTANT GLOBAL REQUIREMENT:
+Do not make the platform slow.
+All fixes must be lightweight and scalable for 1000+ concurrent users.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Debug why Recent Intelligence Events timing is still wrong and fix it properly end-to-end.
+
+I want a real root-cause analysis across:
+- database timestamps
+- backend API serialization
+- timezone handling
+- frontend relative-time rendering
+- live updater logic
+- event polling / prepend logic
+
+==================================================
+PHASE 1 — ROOT CAUSE AUDIT
+==================================================
+
+Inspect the real implementation and verify:
+
+1. DATABASE LAYER
+- what timestamp field is stored for intelligence events?
+- created_at?
+- updated_at?
+- event_time?
+- inserted_at?
+- is the correct field being used?
+- are timestamps saved in UTC?
+- are there old events being reused incorrectly?
+
+2. BACKEND API
+- what timestamp field is returned to the frontend?
+- is it ISO formatted properly?
+- is timezone preserved?
+- is the API returning local server time or UTC?
+- are any timestamps transformed incorrectly before response?
+
+3. FRONTEND RENDERING
+- what function generates "5h ago" / "1d ago"?
+- does it parse timestamps correctly?
+- does it assume local timezone?
+- does it round correctly?
+- does it use stale in-memory values?
+- does the updater re-read timestamps from data attributes or only reuse old text?
+
+4. LIVE UPDATE LOGIC
+- when new events are prepended, is the correct timestamp attached?
+- does the time updater update all visible rows?
+- does filtering break timestamp refresh?
+- does pagination break timestamp refresh?
+
+5. PRODUCT SEMANTICS
+- should this show:
+  - event created time
+  - intelligence processed time
+  - account checked time
+  - last updated time
+- verify that the UI is showing the correct business timestamp
+
+==================================================
+PHASE 2 — FIND THE REAL BUG
+==================================================
+
+I want you to identify the exact cause.
+
+Possible causes to verify:
+- wrong timestamp field selected in SQL
+- timezone mismatch between DB and browser
+- missing "Z" / invalid ISO UTC serialization
+- frontend parsing local time as UTC or UTC as local
+- stale event rows not updated after polling
+- relative time based on old cached payload
+- event created earlier than expected because same event is being reused instead of new event inserted
+- updater interval works but source timestamp is wrong
+- "1d ago" threshold logic too aggressive
+- timestamps are correct in DB but displayed incorrectly in UI
+
+Be precise.
+
+==================================================
+PHASE 3 — FIX THE TIMING PROPERLY
+==================================================
+
+I want a production-safe timing fix.
+
+Requirements:
+1. Use the correct canonical event timestamp
+2. Store timestamps in UTC consistently
+3. Return ISO timestamps clearly from backend
+4. Parse them safely on frontend
+5. Show:
+   - relative time in UI
+   - exact absolute time in tooltip
+6. Update relative times automatically every minute
+7. Keep it lightweight for 1000+ concurrent users
+8. No full dashboard refreshes
+
+Also improve formatting rules:
+- just now
+- 1m ago
+- 2m ago
+- 1h ago
+- 23h ago
+- yesterday
+- 2d ago
+- exact date for older events if better UX
+
+==================================================
+PHASE 4 — VALIDATE WITH REAL EXAMPLES
+==================================================
+
+After fixing, verify with real event examples:
+- event created just now
+- event 5 minutes ago
+- event 1 hour ago
+- event 23 hours ago
+- event yesterday
+- event 2+ days ago
+
+Make sure the output is correct and trustworthy.
+
+==================================================
+PHASE 5 — OUTPUT I WANT
+==================================================
+
+After inspection, give me:
+
+1. ROOT CAUSE REPORT
+- exact reason timing was wrong
+
+2. FILE-BY-FILE FIX PLAN
+- exact files/functions changed
+
+3. IMPLEMENTATION
+- actually fix the code
+
+4. FINAL VERIFICATION
+- confirm relative timing is now correct
+- confirm absolute tooltip time is correct
+- confirm no performance regression for 1000+ users
+
+IMPORTANT:
+Do not only tweak the UI.
+Find the actual source of the wrong timing and fix it properly.
