@@ -25,6 +25,11 @@ model User {
   gender           String?
   profileImage     String?  @map("profile_image")
   profileCompleted Int      @default(0) @map("profile_completed")
+  geoLat           Float?   @map("geo_lat")
+  geoLon           Float?   @map("geo_lon")
+  geoCity          String?  @map("geo_city")
+  geoCountry       String?  @map("geo_country")
+  geoUpdatedAt     String?  @map("geo_updated_at")
   resellerId       Int?     @map("reseller_id")
   createdAt        String   @default("") @map("created_at")
 

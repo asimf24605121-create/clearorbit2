@@ -977,6 +977,7 @@
                                     <div class="vu-info-cell"><div class="vu-info-cell-label">Expiry Date</div><div class="vu-info-cell-value" id="vuExpiry">—</div></div>
                                     <div class="vu-info-cell"><div class="vu-info-cell-label">Last Login IP</div><div class="vu-info-cell-value" id="vuIP">—</div></div>
                                     <div class="vu-info-cell"><div class="vu-info-cell-label">IP Location</div><div class="vu-info-cell-value" id="vuGeoLocation" style="font-size:11px">—</div></div>
+                                    <div class="vu-info-cell" style="grid-column:1/-1"><div class="vu-info-cell-label">Device Location</div><div class="vu-info-cell-value" id="vuDeviceGeo" style="font-size:11px">—</div></div>
                                     <div class="vu-info-cell"><div class="vu-info-cell-label">Device Lock</div><div class="vu-info-cell-value" id="vuDevice">—</div></div>
                                     <div class="vu-info-cell"><div class="vu-info-cell-label">Profile Complete</div><div class="vu-info-cell-value" id="vuProfileComplete">—</div></div>
                                 </div>
@@ -3656,8 +3657,39 @@ function uwLoadViewTab() {
     } else {
         geoEl.textContent = '—';
     }
+
+    const devGeoEl = document.getElementById('vuDeviceGeo');
+    if (u.geo_lat != null && u.geo_lon != null) {
+        const parts = [u.geo_city, u.geo_country].filter(Boolean);
+        const locText = parts.length ? parts.join(', ') : `${u.geo_lat.toFixed(4)}, ${u.geo_lon.toFixed(4)}`;
+        const flag = u.geo_country ? vuGetCountryFlag(u.geo_country) : '';
+        const mapsLink = `https://www.google.com/maps?q=${u.geo_lat},${u.geo_lon}`;
+        const updatedAgo = u.geo_updated_at ? vuTimeAgo(u.geo_updated_at) : '';
+        devGeoEl.innerHTML = `${flag}<span style="color:#059669;font-weight:600">${escHtml(locText)}</span>
+            <span style="background:#ECFDF5;color:#065F46;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600;vertical-align:middle;margin-left:4px">GPS</span>
+            <a href="${mapsLink}" target="_blank" rel="noopener" style="margin-left:4px;color:#6B7280;font-size:10px;text-decoration:underline" title="View on Google Maps">Map</a>
+            ${updatedAgo ? `<br/><span style="color:#9CA3AF;font-size:9px">Updated ${escHtml(updatedAgo)}</span>` : ''}`;
+    } else {
+        devGeoEl.innerHTML = '<span style="color:#9CA3AF;font-size:10px">Not available — user hasn\'t granted location permission</span>';
+    }
+
     vuLoadUserSubs(u.id);
     vuLoadUserSlots(u.id);
+}
+
+function vuGetCountryFlag(countryName) {
+    const countryMap = {'Pakistan':'pk','United States':'us','India':'in','United Kingdom':'gb','Canada':'ca','Australia':'au','Germany':'de','France':'fr','China':'cn','Japan':'jp','Brazil':'br','Russia':'ru','Turkey':'tr','Saudi Arabia':'sa','UAE':'ae','United Arab Emirates':'ae','Egypt':'eg','Bangladesh':'bd','Indonesia':'id','Malaysia':'my','Singapore':'sg','Thailand':'th','Philippines':'ph','South Korea':'kr','Italy':'it','Spain':'es','Netherlands':'nl','Sweden':'se','Norway':'no','Denmark':'dk','Finland':'fi','Poland':'pl','Switzerland':'ch','Austria':'at','Belgium':'be','Portugal':'pt','Greece':'gr','Ireland':'ie','Mexico':'mx','Argentina':'ar','Colombia':'co','Chile':'cl','Peru':'pe','Nigeria':'ng','South Africa':'za','Kenya':'ke','Ghana':'gh','Morocco':'ma','Nepal':'np','Sri Lanka':'lk','Myanmar':'mm','Vietnam':'vn','Iran':'ir','Iraq':'iq','Afghanistan':'af','Ukraine':'ua','Romania':'ro','Czech Republic':'cz','Hungary':'hu','New Zealand':'nz'};
+    const code = countryMap[countryName];
+    if (!code) return '';
+    return `<img src="https://flagcdn.com/16x12/${code}.png" style="display:inline;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'"/>`;
+}
+
+function vuTimeAgo(isoStr) {
+    const diff = Date.now() - new Date(isoStr).getTime();
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+    return Math.floor(diff / 86400000) + 'd ago';
 }
 
 function uwLoadEditTab() {

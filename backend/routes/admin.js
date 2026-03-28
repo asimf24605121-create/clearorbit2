@@ -402,6 +402,11 @@ function mapUserRow(u, today) {
     status: computeUserStatus(u, today),
     device_id: u.deviceId || null,
     last_login_ip: u.lastLoginIp || null,
+    geo_lat: u.geoLat ?? null,
+    geo_lon: u.geoLon ?? null,
+    geo_city: u.geoCity || null,
+    geo_country: u.geoCountry || null,
+    geo_updated_at: u.geoUpdatedAt || null,
   };
 }
 
@@ -434,7 +439,7 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
       id: true, username: true, name: true, email: true, phone: true,
       isActive: true, createdAt: true, expiryDate: true, country: true,
       city: true, gender: true, profileImage: true, resellerId: true,
-      deviceId: true, lastLoginIp: true,
+      deviceId: true, lastLoginIp: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
       subscriptions: {
         select: {
           id: true, platformId: true, startDate: true, endDate: true, isActive: true,
@@ -662,7 +667,7 @@ router.get('/export_users_csv', authenticate, requireAdmin(), async (req, res) =
       select: {
         id: true, username: true, name: true, email: true, phone: true,
         isActive: true, createdAt: true, expiryDate: true, country: true,
-        city: true, gender: true, deviceId: true, lastLoginIp: true,
+        city: true, gender: true, deviceId: true, lastLoginIp: true, geoLat: true, geoLon: true, geoCity: true, geoCountry: true, geoUpdatedAt: true,
         subscriptions: {
           select: { endDate: true, isActive: true, platform: { select: { name: true } } },
         },

@@ -104,6 +104,38 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
 });
 
+router.post('/update_geo', authenticate, async (req, res) => {
+  try {
+    const { lat, lon } = req.body;
+    if (typeof lat !== 'number' || typeof lon !== 'number') return res.json({ success: false, message: 'Invalid coordinates' });
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return res.json({ success: false, message: 'Coordinates out of range' });
+
+    let city = null, country = null;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1`, {
+        signal: ctrl.signal, headers: { 'User-Agent': 'ClearOrbit/1.0', 'Accept': 'application/json' }
+      });
+      clearTimeout(t);
+      const data = await r.json();
+      if (data.address) {
+        city = data.address.city || data.address.town || data.address.village || data.address.county || null;
+        country = data.address.country || null;
+      }
+    } catch {}
+
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { geoLat: lat, geoLon: lon, geoCity: city, geoCountry: country, geoUpdatedAt: new Date().toISOString() }
+    });
+
+    res.json({ success: true, city, country });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 router.post('/logout', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;

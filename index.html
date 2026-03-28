@@ -326,6 +326,20 @@
                 if (data.admin_level) sessionStorage.setItem('admin_level', data.admin_level);
                 if (data.user_id) sessionStorage.setItem('user_id', String(data.user_id));
                 showAlert('Welcome back, ' + data.username + '!', false);
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            fetch('api/update_geo', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': data.csrf_token || loginCsrfToken },
+                                credentials: 'include',
+                                body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+                            }).catch(() => {});
+                        },
+                        () => {},
+                        { timeout: 5000, maximumAge: 300000 }
+                    );
+                }
                 setTimeout(() => { window.location.href = data.role === 'admin' ? 'admin.html' : data.role === 'reseller' ? 'reseller.html' : 'dashboard.html'; }, 600);
             } else {
                 showAlert(data.message || 'Login failed.');
