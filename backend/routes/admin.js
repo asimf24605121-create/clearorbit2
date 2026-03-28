@@ -1302,12 +1302,11 @@ router.post('/geo_lookup', authenticate, requireAdmin(), async (req, res) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
     try {
-      const apiRes = await fetch(`https://ipwho.is/${encodeURIComponent(cleanIp)}`, { signal: controller.signal });
+      const apiRes = await fetch(`https://ipwhois.app/json/${encodeURIComponent(cleanIp)}`, { signal: controller.signal });
       clearTimeout(timeout);
       const data = await apiRes.json();
       if (data.success) {
-        const conn = data.connection || {};
-        const geo = { country: data.country || 'Unknown', country_code: data.country_code || '--', region: data.region || 'Unknown', city: data.city || 'Unknown', isp: conn.org || conn.isp || 'Unknown', lat: data.latitude || 0, lon: data.longitude || 0, timezone: data.timezone?.id || '', proxy: !!(data.security?.proxy || data.security?.vpn || data.security?.tor) };
+        const geo = { country: data.country || 'Unknown', country_code: data.country_code || '--', region: data.region || 'Unknown', city: data.city || 'Unknown', isp: data.isp || data.connection?.org || data.connection?.isp || 'Unknown', lat: data.latitude || 0, lon: data.longitude || 0, timezone: (typeof data.timezone === 'string' ? data.timezone : data.timezone?.id) || '', proxy: !!(data.security?.proxy || data.security?.vpn || data.security?.tor) };
         await prisma.ipGeoCache.upsert({ where: { ipAddress: cleanIp }, update: { country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() }, create: { ipAddress: cleanIp, country: geo.country, countryCode: geo.country_code, region: geo.region, city: geo.city, isp: geo.isp, lat: geo.lat, lon: geo.lon, timezone: geo.timezone, lookedUpAt: new Date().toISOString() } });
         return res.json({ success: true, geo: { ...geo, cached: false } });
       }
