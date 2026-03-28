@@ -5169,10 +5169,10 @@ function renderSlotCardHtml(a) {
     ${checkedAgo ? `<span style="font-size:8px;color:#9CA3AF;white-space:nowrap" title="Last checked">${checkedAgo}</span>` : ''}
   </div>
   <div style="display:flex;gap:3px">
-    <button onclick="checkSlot(${a.id},${JSON.stringify(a.slot_name)})" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0" title="Verify cookies & login">Check</button>
-    <button onclick="openEditAccountModal(${a.id})" class="slot-action-btn" style="--c:#4F46E5;--bg:#EEF2FF;--bc:#C7D2FE" title="Edit slot settings">Edit</button>
-    <button onclick="openReplaceCookieModal(${a.id},${JSON.stringify(a.slot_name)},${a.cookie_id||0})" class="slot-action-btn" style="--c:#7C3AED;--bg:#F5F3FF;--bc:#DDD6FE" title="Replace cookies">Replace</button>
-    <button onclick="deleteAccountSlot(${a.id},${JSON.stringify(a.slot_name)},${a.active_users||0})" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA" title="Delete slot">Del</button>
+    <button data-action="check" class="slot-action-btn" style="--c:#059669;--bg:#ECFDF5;--bc:#A7F3D0" title="Verify cookies & login">Check</button>
+    <button data-action="edit" class="slot-action-btn" style="--c:#4F46E5;--bg:#EEF2FF;--bc:#C7D2FE" title="Edit slot settings">Edit</button>
+    <button data-action="replace" class="slot-action-btn" style="--c:#7C3AED;--bg:#F5F3FF;--bc:#DDD6FE" title="Replace cookies">Replace</button>
+    <button data-action="delete" class="slot-action-btn" style="--c:#DC2626;--bg:#FEF2F2;--bc:#FECACA" title="Delete slot">Del</button>
   </div>
 </div>`;
 }
@@ -6047,13 +6047,12 @@ function clearSlotSelection() {
 }
 
 const _slotBusy = new Set();
-function _slotBtn(id, label) {
-    const all = document.querySelectorAll(`button[onclick*="${label}("]`);
-    for (const b of all) {
-        const m = b.getAttribute('onclick').match(new RegExp(label + '\\((\\d+)'));
-        if (m && parseInt(m[1]) === id) return b;
-    }
-    return null;
+function _slotBtn(id, action) {
+    const card = document.querySelector(`.slot-card[data-slot-id="${id}"]`);
+    return card ? card.querySelector(`button[data-action="${action}"]`) : null;
+}
+function _getSlotData(slotId) {
+    return (ALL_ACCOUNT_SLOTS || []).find(a => parseInt(a.id) === slotId) || null;
 }
 const _spinner = '<svg class="w-3.5 h-3.5 animate-spin inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
 function _setBusy(btn, busy, origText) {
@@ -6063,6 +6062,27 @@ function _setBusy(btn, busy, origText) {
     else { btn.innerHTML = btn._origHtml || origText || btn.innerHTML; btn.style.opacity='1'; }
 }
 function _refreshAll() { loadAccountSlots(); loadIntelligenceDashboard(); }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const slotsContainer = document.getElementById('accountSlotsContainer');
+    if (slotsContainer) {
+        slotsContainer.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const card = btn.closest('.slot-card');
+            if (!card) return;
+            const slotId = parseInt(card.dataset.slotId);
+            if (isNaN(slotId)) return;
+            const slot = _getSlotData(slotId);
+            if (!slot) { showAlert('Slot data not found. Try refreshing.', true); return; }
+            const action = btn.dataset.action;
+            if (action === 'check') checkSlot(slotId, slot.slot_name);
+            else if (action === 'edit') openEditAccountModal(slotId);
+            else if (action === 'replace') openReplaceCookieModal(slotId, slot.slot_name, slot.cookie_id || 0);
+            else if (action === 'delete') deleteAccountSlot(slotId, slot.slot_name, slot.active_users || 0);
+        });
+    }
+});
 
 function filterAccountSlots() {
     const search = (document.getElementById('acctSlotSearch')?.value || '').toLowerCase().trim();
@@ -6358,7 +6378,7 @@ async function resetSlotStats(accountId, slotName) {
 
 async function recheckCookie(accountId, slotName) {
     if (_slotBusy.has('rc-'+accountId)) return; _slotBusy.add('rc-'+accountId);
-    const btn = _slotBtn(accountId, 'recheckCookie');
+    const btn = _slotBtn(accountId, 'check');
     _setBusy(btn, true, 'Checking...');
     try {
         const res = await fetch('api/validate_cookie', {
@@ -6380,7 +6400,7 @@ async function recheckCookie(accountId, slotName) {
 
 async function verifyLogin(accountId, slotName) {
     if (_slotBusy.has('vl-'+accountId)) return; _slotBusy.add('vl-'+accountId);
-    const btn = _slotBtn(accountId, 'verifyLogin');
+    const btn = _slotBtn(accountId, 'check');
     _setBusy(btn, true, 'Verifying...');
     try {
         const res = await fetch('api/verify_login', {
@@ -6514,7 +6534,7 @@ async function deleteAccountSlot(accountId, slotName, activeUsers) {
     if (!confirm(impactMsg)) return;
     if (activeUsers > 0 && !confirm(`FINAL CONFIRMATION: ${activeUsers} user(s) will lose access immediately. Proceed?`)) return;
     _slotBusy.add('del-'+accountId);
-    const btn = _slotBtn(accountId, 'deleteAccountSlot');
+    const btn = _slotBtn(accountId, 'delete');
     _setBusy(btn, true, 'Deleting...');
     _setCardLoading(accountId, true);
     try {
@@ -6625,7 +6645,7 @@ async function updateDefaultExpiry() {
 
 async function checkSlot(accountId, slotName) {
     if (_slotBusy.has('ck-'+accountId)) return; _slotBusy.add('ck-'+accountId);
-    const btn = _slotBtn(accountId, 'checkSlot');
+    const btn = _slotBtn(accountId, 'check');
     _setBusy(btn, true, 'Checking...');
     _setCardLoading(accountId, true);
     const card = _cardEl(accountId);
