@@ -1,0 +1,284 @@
+You are a senior full-stack engineer, senior SaaS architect, senior UI/UX auditor, and senior performance engineer.
+
+I want you to deeply inspect my “Platform Intelligence” module before making any changes.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must not feel slow.
+Everything must be optimized for smooth performance and scalability for 1000+ concurrent users.
+Any audit and future recommendations must consider:
+- fast UI rendering
+- efficient DB queries
+- caching where needed
+- minimal unnecessary re-renders
+- scalable APIs
+- queue/background jobs for heavy operations
+- safe concurrency handling
+- no blocking admin actions
+
+==================================================
+GOAL
+==================================================
+
+I do NOT want a shallow explanation.
+I want you to inspect the real implementation of the Platform Intelligence module and tell me:
+
+1. what it currently does
+2. how it currently works
+3. what is missing
+4. what is visually weak
+5. what is logically wrong or confusing
+6. what backend/data issues exist
+7. what performance/scaling issues exist
+8. what should be improved next
+
+Do not redesign blindly.
+Audit first.
+
+==================================================
+VISIBLE UI CONTEXT
+==================================================
+
+The Platform Intelligence section currently appears to include:
+
+- Title: Platform Intelligence
+- Subtitle: Auto-detected platforms with health monitoring
+- Buttons:
+  - Health Check
+  - Refresh
+- Summary cards:
+  - Total Platforms
+  - Healthy
+  - Warning
+  - Dead
+- Platform cards showing:
+  - platform logo/icon
+  - platform name
+  - domain
+  - health bar / percentage
+  - slot count
+  - user count
+  - source (example: Manual)
+  - status badge (Healthy / Dead / Warning)
+- Platform Registry section below with:
+  - search box
+  - row checkboxes
+  - columns:
+    - Platform
+    - Domain
+    - Health
+    - Accounts
+    - Users
+    - Status
+    - Source
+    - Actions
+  - action buttons like:
+    - Disable
+    - Delete icon
+
+This looks like a platform discovery + registry + health monitoring module.
+
+==================================================
+PHASE 1 — REAL IMPLEMENTATION AUDIT
+==================================================
+
+Inspect the actual codebase and identify:
+
+- frontend files/components for Platform Intelligence
+- backend routes/APIs used by this page
+- database schema/tables related to platforms
+- how platforms are auto-detected
+- how platform health is computed
+- what Health Check actually does
+- what Refresh actually does
+- what Disable does
+- what Delete does
+- what search does
+- whether summary cards are real or derived
+- whether platform registry actions are fully wired
+- whether the top cards and the registry are consistent with each other
+- whether platform cards and table rows use the same data source
+- whether this module is production-safe and performant
+
+Then explain clearly:
+
+1. what currently works
+2. what is partially implemented
+3. what is fake UI only
+4. what is inconsistent
+5. what is dangerous
+6. what is missing completely
+
+==================================================
+PHASE 2 — EXPLAIN THE CURRENT WORKING
+==================================================
+
+For each visible element, explain exactly what it currently does and what it SHOULD do:
+
+1. Health Check button
+2. Refresh button
+3. Total Platforms card
+4. Healthy card
+5. Warning card
+6. Dead card
+7. Platform card
+8. Platform health bar
+9. Slot count
+10. User count
+11. Source label
+12. Search box
+13. Registry table
+14. Disable button
+15. Delete button
+16. Row checkbox
+
+For each one define:
+- current behavior
+- expected behavior
+- backend/API requirement
+- edge cases
+- permission/safety requirement
+
+==================================================
+PHASE 3 — FIND LOGIC PROBLEMS
+==================================================
+
+I want you to identify logic flaws and product confusion, for example:
+
+- Why does a platform show 100% health but status Dead?
+- Why are so many platforms Dead with 0 users / 0 slots?
+- Does “platform” represent:
+  - a detected cookie source?
+  - an enabled marketplace platform?
+  - an account family?
+  - a registry entry only?
+- Is health based on real activity, account status, or placeholder logic?
+- Is source “Manual” meaningful enough?
+- Are summary cards accurate if most platforms have no linked accounts?
+- Should a platform with 0 accounts really be Dead?
+- Should there be statuses like:
+  - Inactive
+  - Unused
+  - Detected
+  - Needs Review
+  instead of Dead?
+- Is Disable/Delete safe if linked accounts still exist?
+- Is the registry actually operational or just administrative metadata?
+
+I want a brutally honest product/logic audit.
+
+==================================================
+PHASE 4 — FIND MISSING FEATURES
+==================================================
+
+Tell me what a professional Platform Intelligence module should also have, such as:
+
+- last health check time
+- health reason/explanation
+- platform activity trend
+- linked accounts count
+- linked active users count
+- platform detection source
+- auto-detect confidence
+- needs review state
+- platform enable/disable history
+- audit logs
+- confirm modal for disable/delete
+- bulk actions
+- filters by status/source
+- platform detail modal/page
+- account linkage drilldown
+- recommended action
+- stale platform cleanup
+- usage over time
+- last seen/imported timestamp
+
+Only recommend features that add real operational value.
+
+==================================================
+PHASE 5 — UI/UX AUDIT
+==================================================
+
+Audit the GUI deeply.
+
+Tell me:
+- what looks visually weak
+- what is confusing
+- what wastes space
+- what is not actionable enough
+- what hierarchy is weak
+- whether cards + table duplication is useful or redundant
+- whether the top platform cards should be summary cards or real platform cards
+- whether the table is too flat/basic
+- whether status colors and health percentages are misleading
+- whether actions are too risky or unclear
+
+I want improvement ideas for:
+- layout
+- hierarchy
+- card clarity
+- table usability
+- filters
+- status semantics
+- warnings
+- empty states
+- responsive behavior
+- safer actions
+- admin efficiency
+
+==================================================
+PHASE 6 — BACKEND / DATA / PERFORMANCE AUDIT
+==================================================
+
+Inspect and report:
+
+- how platform records are created
+- how health scores are computed
+- whether queries are efficient
+- whether summary metrics are cached
+- whether refresh is expensive
+- whether Health Check is synchronous or queued
+- whether 1000+ concurrent users would make this slow
+- whether platform detection should run in background jobs
+- whether search is indexed
+- whether delete/disable is transaction-safe
+- whether linked account constraints exist
+- whether stale platforms are cleaned automatically
+
+IMPORTANT:
+This platform must remain fast for 1000+ concurrent users.
+I want you to explicitly identify all bottlenecks and scaling risks.
+
+==================================================
+PHASE 7 — OUTPUT FORMAT
+==================================================
+
+After auditing, give me the answer in this exact structure:
+
+1. CURRENT WORKING SUMMARY
+- What the Platform Intelligence module currently does
+
+2. WHAT WORKS
+- Fully working features
+
+3. WHAT IS BROKEN / WEAK / MISSING
+- Logic issues
+- UX issues
+- backend/data issues
+- safety issues
+- performance/scaling issues
+
+4. WHAT THIS MODULE SHOULD REALLY BE
+- Best product definition of Platform Intelligence in this system
+
+5. WHAT SHOULD BE IMPROVED NEXT
+- Priority improvements in order
+
+6. FILE-BY-FILE NOTES
+- Which files contain the main logic
+
+IMPORTANT:
+- Inspect real code first
+- Do not redesign first
+- Be brutally honest
+- Think like a lead engineer
+- Keep performance and 1000+ users scalability in mind
