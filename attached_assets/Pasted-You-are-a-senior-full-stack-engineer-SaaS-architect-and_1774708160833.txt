@@ -1,0 +1,249 @@
+You are a senior full-stack engineer, SaaS architect, and admin-dashboard product designer.
+
+The Platform Intelligence module is missing an important feature:
+there is no proper Edit Platform option for updating platform metadata such as link/domain and related platform details.
+
+I want you to add a complete, production-grade Edit Platform feature.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do not add heavy frontend logic or expensive repeated backend refreshes.
+Keep updates lightweight, safe, and fast.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Add a proper Edit Platform flow so admins can update platform metadata safely and professionally.
+
+This should include:
+- platform name
+- domain / link
+- source
+- optional notes / description if useful
+- logo-related metadata if relevant
+- active/inactive state only if product logic supports editing it here
+- any other useful non-destructive platform settings
+
+Do NOT mix destructive actions with edit unnecessarily.
+Edit should be a clean metadata/configuration workflow.
+
+==================================================
+PHASE 1 — REAL AUDIT
+==================================================
+
+Inspect the current real implementation first.
+
+Check:
+- platform schema / DB fields
+- current platform detail modal
+- existing actions in cards and registry table
+- existing update routes
+- whether any edit/update backend already exists partially
+- whether domain/link is stored cleanly
+- whether source is editable or derived
+- what fields are safe to edit
+- what fields should remain read-only
+
+Then report:
+1. what can already be edited
+2. what is missing
+3. what fields should be editable
+4. what should remain read-only
+5. what validation is needed
+6. what performance/safety issues must be considered for 1000+ users
+
+==================================================
+PHASE 2 — EDIT PLATFORM PRODUCT DESIGN
+==================================================
+
+Design a proper Edit Platform flow.
+
+I want a professional edit experience with:
+- Edit button in registry table row actions
+- Edit button or menu option inside platform detail modal
+- clean edit modal or side panel
+- prefilled values
+- inline validation
+- save/cancel actions
+- dirty-state detection
+- disabled save button if nothing changed
+- success/error feedback
+- partial UI refresh only after save
+
+Recommended editable fields:
+- Platform Name
+- Domain / Link
+- Source label (if truly admin-managed)
+- Notes / Description (optional)
+- External URL / homepage if useful
+- Display order / sort priority if useful
+- Custom status note if useful
+
+Recommended read-only fields:
+- computed health score
+- computed status
+- active sessions counts
+- linked account counts
+- last checked timestamps
+unless there is a separate dedicated admin flow for those
+
+==================================================
+PHASE 3 — VALIDATION RULES
+==================================================
+
+Implement strong validation.
+
+Validate:
+- platform name required
+- domain/link format valid
+- domain normalized consistently
+- duplicate domain prevention
+- duplicate platform name rules if needed
+- max lengths
+- trim whitespace
+- safe character handling
+- source allowed values if source is editable
+
+Also define:
+- whether domain should store full URL or clean domain only
+- whether admin can edit domain if accounts already linked
+- whether changing domain affects auto-detection logic
+- whether linked accounts must be warned before changing domain
+
+==================================================
+PHASE 4 — BACKEND / API IMPLEMENTATION
+==================================================
+
+Add or improve the backend update route for platforms.
+
+Requirements:
+- safe PATCH/POST update endpoint
+- validation on server side
+- permission checks
+- audit logging
+- duplicate checks
+- cache invalidation
+- return updated platform data
+- avoid full expensive refresh
+
+Also define:
+- route
+- method
+- request body
+- response shape
+- error messages
+- permission restrictions
+
+==================================================
+PHASE 5 — FRONTEND IMPLEMENTATION
+==================================================
+
+Add the Edit Platform UI professionally.
+
+I want:
+- visible Edit action in registry table
+- visible Edit action in platform detail modal
+- polished edit modal / drawer
+- clear labels
+- clean spacing
+- compact premium layout
+- inline validation errors
+- loading state on save
+- save success toast
+- update only changed row/card/modal instead of full page reload if possible
+
+Make it consistent with the rest of the Platform Intelligence design.
+
+==================================================
+PHASE 6 — SAFETY / OPERATIONAL RULES
+==================================================
+
+Be careful with domain/link editing.
+
+If changing platform domain/link can affect:
+- auto-detection
+- account-platform association
+- health check logic
+- cookie routing
+- imports
+
+then:
+- warn the admin clearly
+- show impact summary
+- require confirmation if needed
+- log the old value and new value in audit logs
+
+Audit logs must record:
+- who edited the platform
+- what fields changed
+- old values
+- new values
+- timestamp
+
+==================================================
+PHASE 7 — PERFORMANCE / 1000+ USERS
+==================================================
+
+Keep this fast and scalable.
+
+Requirements:
+- no unnecessary full module reloads
+- cache invalidation only where needed
+- lightweight update response
+- minimal DOM patching
+- efficient duplicate lookup/index use
+- no slow blocking operations
+
+==================================================
+PHASE 8 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT ISSUE SUMMARY
+- why edit was missing
+- what metadata could not be changed
+- what risks existed
+
+2. PRODUCT DECISION SUMMARY
+- what fields are editable
+- what fields are read-only
+- how edit flow works
+- what validation/confirmation rules apply
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions are prevented
+- how performance is preserved
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- Edit Platform action
+- edit modal/drawer
+- backend update route
+- validation
+- audit logs
+- UI update after save
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Edit button exists
+- domain/link can be updated safely
+- validation works
+- audit log works
+- UI updates correctly
+- performance remains smooth for 1000+ concurrent users
+
+IMPORTANT:
+- inspect real code first
+- do not redesign blindly
+- do not make the platform slow
+- optimize for 1000+ concurrent users
+- preserve current working functionality
+- make the result professional and admin-friendly

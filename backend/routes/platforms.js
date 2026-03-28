@@ -150,28 +150,102 @@ router.post('/update_platform', authenticate, requireAdmin(), async (req, res) =
     const { platform_id, name, logo_url, bg_color_hex, cookie_domain, login_url, max_slots_per_cookie } = req.body;
     if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
 
-    const data = {};
-    if (name !== undefined) data.name = name;
-    if (logo_url !== undefined) data.logoUrl = logo_url;
-    if (bg_color_hex !== undefined) data.bgColorHex = bg_color_hex;
-    if (cookie_domain !== undefined) data.cookieDomain = cookie_domain;
-    if (login_url !== undefined) data.loginUrl = login_url;
-    if (max_slots_per_cookie !== undefined) data.maxSlotsPerCookie = parseInt(max_slots_per_cookie);
-
     const pid = parseInt(platform_id);
-    await prisma.platform.update({ where: { id: pid }, data });
+    const current = await prisma.platform.findUnique({ where: { id: pid } });
+    if (!current) return res.status(404).json({ success: false, message: 'Platform not found' });
 
-    const changedFields = Object.keys(data).join(', ');
+    const data = {};
+    const changes = [];
+
+    if (name !== undefined) {
+      const trimmed = (name || '').trim();
+      if (!trimmed) return res.status(400).json({ success: false, message: 'Platform name is required' });
+      if (trimmed.length > 100) return res.status(400).json({ success: false, message: 'Platform name must be under 100 characters' });
+      if (trimmed !== current.name) {
+        const dup = await prisma.platform.findFirst({ where: { name: { equals: trimmed }, id: { not: pid } } });
+        if (dup) return res.status(409).json({ success: false, message: `A platform named "${trimmed}" already exists` });
+        changes.push({ field: 'name', old: current.name, new: trimmed });
+        data.name = trimmed;
+      }
+    }
+
+    if (cookie_domain !== undefined) {
+      const cleaned = (cookie_domain || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+      if (cleaned && cleaned.length > 255) return res.status(400).json({ success: false, message: 'Domain must be under 255 characters' });
+      if (cleaned !== (current.cookieDomain || '')) {
+        if (cleaned) {
+          const dupDomain = await prisma.platform.findFirst({ where: { cookieDomain: cleaned, id: { not: pid } } });
+          if (dupDomain) return res.status(409).json({ success: false, message: `Domain "${cleaned}" is already used by "${dupDomain.name}"` });
+        }
+        const linkedAccounts = await prisma.platformAccount.count({ where: { platformId: pid } });
+        if (linkedAccounts > 0 && cleaned !== (current.cookieDomain || '')) {
+          changes.push({ field: 'cookie_domain', old: current.cookieDomain || '', new: cleaned, warning: `${linkedAccounts} linked account(s) may be affected` });
+        } else {
+          changes.push({ field: 'cookie_domain', old: current.cookieDomain || '', new: cleaned });
+        }
+        data.cookieDomain = cleaned || null;
+      }
+    }
+
+    if (login_url !== undefined) {
+      const trimmedUrl = (login_url || '').trim();
+      if (trimmedUrl && trimmedUrl.length > 500) return res.status(400).json({ success: false, message: 'Login URL must be under 500 characters' });
+      if (trimmedUrl !== (current.loginUrl || '')) {
+        changes.push({ field: 'login_url', old: current.loginUrl || '', new: trimmedUrl });
+        data.loginUrl = trimmedUrl || null;
+      }
+    }
+
+    if (bg_color_hex !== undefined) {
+      const hex = (bg_color_hex || '').trim();
+      if (hex && !/^#[0-9a-fA-F]{6}$/.test(hex)) return res.status(400).json({ success: false, message: 'Invalid color format. Use #RRGGBB' });
+      if (hex !== (current.bgColorHex || '')) {
+        changes.push({ field: 'bg_color_hex', old: current.bgColorHex || '', new: hex });
+        data.bgColorHex = hex || '#1e293b';
+      }
+    }
+
+    if (max_slots_per_cookie !== undefined) {
+      const slots = parseInt(max_slots_per_cookie);
+      if (isNaN(slots) || slots < 1 || slots > 50) return res.status(400).json({ success: false, message: 'Max slots must be between 1 and 50' });
+      if (slots !== current.maxSlotsPerCookie) {
+        changes.push({ field: 'max_slots_per_cookie', old: current.maxSlotsPerCookie, new: slots });
+        data.maxSlotsPerCookie = slots;
+      }
+    }
+
+    if (logo_url !== undefined && logo_url !== current.logoUrl) {
+      data.logoUrl = logo_url;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return res.json({ success: true, message: 'No changes detected', platform: _formatPlatformResponse(current) });
+    }
+
+    const updated = await prisma.platform.update({ where: { id: pid }, data });
+
+    const changeDesc = changes.map(c => `${c.field}: "${c.old}" → "${c.new}"`).join('; ');
     await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Updated platform (ID: ${pid}): ${changedFields}`, ipAddress: req.ip || null, createdAt: nowISO() },
+      data: { userId: req.user.id, action: `Updated platform "${current.name}" (ID: ${pid}): ${changeDesc || Object.keys(data).join(', ')}`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
 
-    res.json({ success: true, message: 'Platform updated' });
+    platformCache.invalidate('platform:dashboard');
+
+    res.json({ success: true, message: 'Platform updated', platform: _formatPlatformResponse(updated), changes });
   } catch (err) {
     console.error('update_platform error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+function _formatPlatformResponse(p) {
+  return {
+    id: p.id, name: p.name, logo_url: p.logoUrl, bg_color_hex: p.bgColorHex,
+    cookie_domain: p.cookieDomain, login_url: p.loginUrl, is_active: p.isActive,
+    max_slots_per_cookie: p.maxSlotsPerCookie, health_score: p.healthScore,
+    health_status: p.healthStatus, auto_detected: p.autoDetected,
+  };
+}
 
 router.post('/delete_platform', authenticate, requireAdmin('super_admin'), async (req, res) => {
   try {
@@ -682,6 +756,7 @@ router.get('/platform_health', authenticate, requireAdmin(), async (req, res) =>
           id: platform.id, name: platform.name,
           logo_url: platform.logoUrl || '', bg_color_hex: platform.bgColorHex || '#4F46E5',
           cookie_domain: platform.cookieDomain || '', login_url: platform.loginUrl || '',
+          max_slots_per_cookie: platform.maxSlotsPerCookie || 5,
           is_active: platform.isActive, auto_detected: platform.autoDetected,
           health_score: score, health_status: status,
           status_reason: statusReason(status, score, activeCount, platform._count.platformAccounts, platform.lastHealthCheck),

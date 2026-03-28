@@ -78,6 +78,16 @@
         .plat-sort-arrow{font-size:8px;margin-left:2px;color:#D1D5DB;transition:color .15s}
         .plat-sort-arrow.active{color:#4F46E5}
         .plat-logo-preview{max-width:100%;max-height:120px;border-radius:8px;border:1px solid #E5E7EB;margin-top:8px;object-fit:contain}
+        .plat-edit-group{margin-bottom:14px}
+        .plat-edit-label{display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:4px}
+        .plat-edit-input{width:100%;padding:8px 10px;font-size:13px;border:1px solid #E5E7EB;border-radius:8px;color:#111827;background:#fff;transition:border-color .15s,box-shadow .15s;outline:none}
+        .plat-edit-input:focus{border-color:#818CF8;box-shadow:0 0 0 3px rgba(129,140,248,.12)}
+        .plat-edit-input.error{border-color:#EF4444;box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+        .plat-edit-error{font-size:10px;color:#EF4444;margin-top:2px;min-height:14px}
+        .plat-edit-hint{font-size:10px;color:#9CA3AF;margin-top:2px}
+        .plat-edit-color-preview{display:inline-block;width:20px;height:20px;border-radius:6px;border:1px solid #E5E7EB;vertical-align:middle;margin-left:6px}
+        .plat-edit-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .plat-edit-warning{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;margin-bottom:14px}
         @keyframes platShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .slot-action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:4px 0;font-size:10px;font-weight:600;border-radius:6px;border:1px solid var(--bc,#E5E7EB);background:var(--bg,#F9FAFB);color:var(--c,#374151);cursor:pointer;transition:all .15s;line-height:1;min-height:22px}
         .slot-action-btn:hover{filter:brightness(.93);box-shadow:0 1px 4px rgba(0,0,0,.1)}
@@ -1221,7 +1231,7 @@
                                     <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                     <span id="platBulkToggleLabel">Disable</span> (<span id="platBulkToggleCount">0</span>)
                                 </button>
-                                <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="plat-action-btn danger hidden" style="font-size:10px;padding:4px 10px">
+                                <button id="platBulkDeleteBtn" onclick="bulkDeletePlatforms()" class="plat-action-btn danger hidden" data-rbac="super_admin" style="font-size:10px;padding:4px 10px">
                                     <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     Delete (<span id="platSelectedCount">0</span>)
                                 </button>
@@ -1284,8 +1294,12 @@
                         </div>
                         <div id="platDetailFooter" class="msg-modal-footer" style="display:none">
                             <div style="display:flex;align-items:center;gap:6px">
+                                <button id="platDetailEditBtn" class="plat-action-btn primary" style="padding:5px 12px">
+                                    <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    Edit
+                                </button>
                                 <button id="platDetailToggleBtn" class="plat-action-btn">Disable</button>
-                                <button id="platDetailDeleteBtn" class="plat-action-btn danger">
+                                <button id="platDetailDeleteBtn" class="plat-action-btn danger" data-rbac="super_admin">
                                     <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     Delete
                                 </button>
@@ -1301,6 +1315,61 @@
                     </div>
                 </div>
             </div>
+
+            <div id="platEditModal" class="msg-modal-overlay" onclick="if(event.target===this)closePlatEditModal()">
+                    <div class="msg-modal" style="max-width:520px">
+                        <div class="msg-modal-header" style="background:linear-gradient(135deg,#F8F7FF 0%,#EEF2FF 100%);padding:14px 20px;border-bottom:1px solid #E5E7EB">
+                            <div style="display:flex;align-items:center;gap:10px;flex:1">
+                                <svg style="width:18px;height:18px;color:#4F46E5;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <h3 id="platEditTitle" style="font-size:14px;font-weight:700;color:#111827;margin:0">Edit Platform</h3>
+                            </div>
+                            <button onclick="closePlatEditModal()" class="msg-modal-close" aria-label="Close">
+                                <svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div id="platEditBody" style="padding:20px;overflow-y:auto;flex:1;min-height:0">
+                            <div id="platEditWarning" class="plat-edit-warning" style="display:none">
+                                <svg style="width:16px;height:16px;flex-shrink:0;color:#F59E0B" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.068 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                                <span id="platEditWarningText"></span>
+                            </div>
+                            <div class="plat-edit-group">
+                                <label class="plat-edit-label">Platform Name <span style="color:#EF4444">*</span></label>
+                                <input type="text" id="platEditName" class="plat-edit-input" maxlength="100" oninput="_platEditDirtyCheck()"/>
+                                <div id="platEditNameError" class="plat-edit-error"></div>
+                            </div>
+                            <div class="plat-edit-group">
+                                <label class="plat-edit-label">Cookie Domain</label>
+                                <input type="text" id="platEditDomain" class="plat-edit-input" placeholder="e.g. netflix.com" maxlength="255" oninput="_platEditDirtyCheck()"/>
+                                <div id="platEditDomainError" class="plat-edit-error"></div>
+                                <div class="plat-edit-hint">Auto-strips http:// and trailing slashes</div>
+                            </div>
+                            <div class="plat-edit-group">
+                                <label class="plat-edit-label">Login URL</label>
+                                <input type="text" id="platEditLoginUrl" class="plat-edit-input" placeholder="https://..." maxlength="500" oninput="_platEditDirtyCheck()"/>
+                                <div id="platEditLoginUrlError" class="plat-edit-error"></div>
+                            </div>
+                            <div class="plat-edit-row">
+                                <div class="plat-edit-group">
+                                    <label class="plat-edit-label">Max Slots per Cookie</label>
+                                    <input type="number" id="platEditMaxSlots" class="plat-edit-input" min="1" max="50" oninput="_platEditDirtyCheck()"/>
+                                    <div id="platEditMaxSlotsError" class="plat-edit-error"></div>
+                                </div>
+                                <div class="plat-edit-group">
+                                    <label class="plat-edit-label">Brand Color <span id="platEditColorPreview" class="plat-edit-color-preview"></span></label>
+                                    <input type="text" id="platEditColor" class="plat-edit-input" placeholder="#4F46E5" maxlength="7" oninput="_platEditColorUpdate();_platEditDirtyCheck()"/>
+                                    <div id="platEditColorError" class="plat-edit-error"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="msg-modal-footer">
+                            <button onclick="closePlatEditModal()" class="plat-action-btn">Cancel</button>
+                            <button id="platEditSaveBtn" onclick="savePlatformEdit()" class="plat-action-btn primary" disabled>
+                                <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
             <div id="sec-pricing" class="section">
                 <div class="card mb-6">
@@ -3464,7 +3533,9 @@ function _platAbsoluteTime(ts) {
     if (!ts) return '';
     const d = _alieParseUTC(ts);
     if (!d || isNaN(d.getTime())) return '';
-    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const local = d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const utc = d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+    return `${local} (${utc} UTC)`;
 }
 
 function _platStaleLevel(ts) {
@@ -3649,10 +3720,13 @@ function renderPlatRows(platforms) {
                     <button onclick="openPlatDetailModal(${p.id})" class="plat-action-btn" style="padding:4px 8px" title="Details">
                         <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
-                    <button onclick="togglePlatformIntel(${p.id},'${escHtml(p.name)}',${p.is_active?1:0})" class="plat-action-btn ${p.is_active ? 'danger' : 'success'}" style="padding:4px 8px;font-size:10px">${p.is_active ? 'Disable' : 'Enable'}</button>
-                    <button onclick="deleteSinglePlatform(${p.id},'${escHtml(p.name)}')" class="plat-action-btn danger" style="padding:4px 8px" title="Delete">
-                        <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <button onclick="openPlatEditModal(${p.id})" class="plat-action-btn" style="padding:4px 8px" title="Edit">
+                        <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
+                    <button onclick="togglePlatformIntel(${p.id},'${escHtml(p.name)}',${p.is_active?1:0})" class="plat-action-btn ${p.is_active ? 'danger' : 'success'}" style="padding:4px 8px;font-size:10px">${p.is_active ? 'Disable' : 'Enable'}</button>
+                    ${ADMIN_LEVEL === 'super_admin' ? `<button onclick="deleteSinglePlatform(${p.id},'${escHtml(p.name)}')" class="plat-action-btn danger" style="padding:4px 8px" title="Delete">
+                        <svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>` : ''}
                 </div>
             </td>
         </tr>`;
@@ -3683,7 +3757,7 @@ function updatePlatSelectionUI() {
     const total = document.querySelectorAll('.platRowCb').length;
     document.getElementById('platSelectedCount').textContent = count;
     document.getElementById('platBulkToggleCount').textContent = count;
-    document.getElementById('platBulkDeleteBtn').classList.toggle('hidden', count === 0);
+    document.getElementById('platBulkDeleteBtn').classList.toggle('hidden', count === 0 || ADMIN_LEVEL !== 'super_admin');
     const toggleBtn = document.getElementById('platBulkToggleBtn');
     toggleBtn.classList.toggle('hidden', count === 0);
     if (count > 0) {
@@ -3751,7 +3825,15 @@ async function bulkDeletePlatforms() {
     const cbs = document.querySelectorAll('.platRowCb:checked');
     const ids = Array.from(cbs).map(cb => parseInt(cb.value));
     if (!ids.length) return;
-    if (!confirm(`Delete ${ids.length} platform(s)? This will remove all associated data and cannot be undone.`)) return;
+    const selected = ids.map(id => _platRegistryData.find(x => x.id === id)).filter(Boolean);
+    const totalAccounts = selected.reduce((s, p) => s + (p.total_accounts || 0), 0);
+    const totalSessions = selected.reduce((s, p) => s + (p.active_sessions || 0), 0);
+    const names = selected.slice(0, 5).map(p => p.name).join(', ') + (selected.length > 5 ? ` +${selected.length - 5} more` : '');
+    let msg = `Delete ${ids.length} platform(s)?\n\n${names}\n\nImpact summary:\n`;
+    msg += `  ${totalAccounts} total account(s) will be removed\n`;
+    if (totalSessions > 0) msg += `  ${totalSessions} active session(s) will be terminated\n`;
+    msg += `\nThis cannot be undone.`;
+    if (!confirm(msg)) return;
     ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
     try {
         const res = await fetch('api/delete_platforms_bulk', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_ids: ids }) });
@@ -3771,19 +3853,33 @@ async function bulkTogglePlatforms() {
     const cbs = document.querySelectorAll('.platRowCb:checked');
     const ids = Array.from(cbs).map(cb => parseInt(cb.value));
     if (!ids.length) return;
-    const activeCount = ids.filter(id => { const p = _platRegistryData.find(x => x.id === id); return p && p.is_active; }).length;
+    const selected = ids.map(id => _platRegistryData.find(x => x.id === id)).filter(Boolean);
+    const activeCount = selected.filter(p => p.is_active).length;
     const disabling = activeCount >= ids.length / 2;
     const action = disabling ? 'Disable' : 'Enable';
-    if (disabling && !confirm(`Disable ${ids.length} platform(s)?\n\nAll active sessions on these platforms will be terminated.`)) return;
-    if (!disabling && !confirm(`Enable ${ids.length} platform(s)?`)) return;
-    ids.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
+    if (disabling) {
+        const totalSessions = selected.filter(p => p.is_active).reduce((s, p) => s + (p.active_sessions || 0), 0);
+        const names = selected.filter(p => p.is_active).slice(0, 5).map(p => p.name).join(', ') + (activeCount > 5 ? ` +${activeCount - 5} more` : '');
+        let msg = `Disable ${activeCount} platform(s)?\n\n${names}\n\nImpact summary:\n`;
+        msg += `  ${totalSessions} active session(s) will be terminated\n`;
+        msg += `  Users currently connected will be disconnected`;
+        if (!confirm(msg)) return;
+    } else {
+        if (!confirm(`Enable ${ids.length} platform(s)?\n\nThey will become available for user access.`)) return;
+    }
+    const targetIds = disabling
+        ? ids.filter(id => { const p = _platRegistryData.find(x => x.id === id); return p && p.is_active; })
+        : ids.filter(id => { const p = _platRegistryData.find(x => x.id === id); return p && !p.is_active; });
+    if (!targetIds.length) { showAlert('No platforms to ' + action.toLowerCase(), true); return; }
+    targetIds.forEach(id => { const row = document.querySelector(`tr[data-plat-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
+    const batchSize = 5;
     let success = 0, failed = 0;
-    for (const id of ids) {
-        try {
-            const res = await fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id }) });
-            const data = await res.json();
-            if (data.success) success++; else failed++;
-        } catch(e) { failed++; }
+    for (let i = 0; i < targetIds.length; i += batchSize) {
+        const batch = targetIds.slice(i, i + batchSize);
+        const results = await Promise.allSettled(batch.map(id =>
+            fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: id }) }).then(r => r.json())
+        ));
+        results.forEach(r => { if (r.status === 'fulfilled' && r.value.success) success++; else failed++; });
     }
     showAlert(`${action}d ${success} platform(s)${failed ? `, ${failed} failed` : ''}`, failed > 0);
     loadPlatformIntelligence();
@@ -4003,6 +4099,9 @@ async function openPlatDetailModal(platformId) {
         toggleBtn.onclick = () => { closePlatDetailModal(); togglePlatformIntel(p.id, p.name, p.is_active ? 1 : 0); };
 
         document.getElementById('platDetailDeleteBtn').onclick = () => { closePlatDetailModal(); deleteSinglePlatform(p.id, p.name); };
+        document.getElementById('platDetailEditBtn').onclick = () => { closePlatDetailModal(); openPlatEditModal(p.id); };
+        if (ADMIN_LEVEL !== 'super_admin') document.getElementById('platDetailDeleteBtn').style.display = 'none';
+        else document.getElementById('platDetailDeleteBtn').style.display = '';
 
         const removeLogoBtn = document.getElementById('platDetailRemoveLogoBtn');
         if (p.logo_url) {
@@ -4019,6 +4118,147 @@ async function openPlatDetailModal(platformId) {
 function closePlatDetailModal() {
     document.getElementById('platDetailModal').classList.remove('active');
     _platDetailPlatformId = null;
+}
+
+let _platEditOriginal = null;
+let _platEditPlatformId = null;
+
+function openPlatEditModal(platformId) {
+    _platEditPlatformId = platformId;
+    const p = _platRegistryData.find(x => x.id === platformId);
+    if (!p) { showAlert('Platform not found in cache', true); return; }
+    _platEditOriginal = { name: p.name || '', cookie_domain: p.cookie_domain || '', login_url: p.login_url || '', max_slots_per_cookie: p.max_slots_per_cookie || 5, bg_color_hex: p.bg_color_hex || '#1e293b' };
+    document.getElementById('platEditTitle').textContent = `Edit: ${p.name}`;
+    document.getElementById('platEditName').value = _platEditOriginal.name;
+    document.getElementById('platEditDomain').value = _platEditOriginal.cookie_domain;
+    document.getElementById('platEditLoginUrl').value = _platEditOriginal.login_url;
+    document.getElementById('platEditMaxSlots').value = _platEditOriginal.max_slots_per_cookie;
+    document.getElementById('platEditColor').value = _platEditOriginal.bg_color_hex;
+    _platEditColorUpdate();
+    document.querySelectorAll('.plat-edit-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.plat-edit-input').forEach(el => el.classList.remove('error'));
+    document.getElementById('platEditWarning').style.display = 'none';
+    document.getElementById('platEditSaveBtn').disabled = true;
+    document.getElementById('platEditModal').classList.add('active');
+}
+
+function closePlatEditModal() {
+    document.getElementById('platEditModal').classList.remove('active');
+    _platEditPlatformId = null;
+    _platEditOriginal = null;
+}
+
+function _platEditColorUpdate() {
+    const val = document.getElementById('platEditColor').value || '';
+    const preview = document.getElementById('platEditColorPreview');
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) { preview.style.background = val; preview.style.border = '1px solid #E5E7EB'; }
+    else { preview.style.background = '#F3F4F6'; preview.style.border = '1px dashed #D1D5DB'; }
+}
+
+function _platEditDirtyCheck() {
+    if (!_platEditOriginal) return;
+    const name = document.getElementById('platEditName').value.trim();
+    const domain = document.getElementById('platEditDomain').value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    const loginUrl = document.getElementById('platEditLoginUrl').value.trim();
+    const maxSlots = parseInt(document.getElementById('platEditMaxSlots').value) || 0;
+    const color = document.getElementById('platEditColor').value.trim();
+    const changed = name !== _platEditOriginal.name || domain !== _platEditOriginal.cookie_domain || loginUrl !== _platEditOriginal.login_url || maxSlots !== _platEditOriginal.max_slots_per_cookie || color !== _platEditOriginal.bg_color_hex;
+    const valid = name.length > 0 && name.length <= 100 && (maxSlots >= 1 && maxSlots <= 50) && (!color || /^#[0-9a-fA-F]{6}$/.test(color));
+    document.getElementById('platEditSaveBtn').disabled = !(changed && valid);
+    if (domain && domain !== _platEditOriginal.cookie_domain) {
+        const p = _platRegistryData.find(x => x.id === _platEditPlatformId);
+        const linked = p ? (p.total_accounts || 0) : 0;
+        if (linked > 0) {
+            document.getElementById('platEditWarning').style.display = '';
+            document.getElementById('platEditWarningText').textContent = `Changing domain may affect ${linked} linked account(s). Cookie auto-detection and health checks use this domain.`;
+        } else { document.getElementById('platEditWarning').style.display = 'none'; }
+    } else { document.getElementById('platEditWarning').style.display = 'none'; }
+}
+
+function _platEditValidate() {
+    let ok = true;
+    const name = document.getElementById('platEditName').value.trim();
+    const errName = document.getElementById('platEditNameError');
+    const inpName = document.getElementById('platEditName');
+    if (!name) { errName.textContent = 'Platform name is required'; inpName.classList.add('error'); ok = false; }
+    else if (name.length > 100) { errName.textContent = 'Max 100 characters'; inpName.classList.add('error'); ok = false; }
+    else { errName.textContent = ''; inpName.classList.remove('error'); }
+
+    const domain = document.getElementById('platEditDomain').value.trim();
+    const errDomain = document.getElementById('platEditDomainError');
+    const inpDomain = document.getElementById('platEditDomain');
+    if (domain && domain.length > 255) { errDomain.textContent = 'Max 255 characters'; inpDomain.classList.add('error'); ok = false; }
+    else { errDomain.textContent = ''; inpDomain.classList.remove('error'); }
+
+    const loginUrl = document.getElementById('platEditLoginUrl').value.trim();
+    const errUrl = document.getElementById('platEditLoginUrlError');
+    const inpUrl = document.getElementById('platEditLoginUrl');
+    if (loginUrl && loginUrl.length > 500) { errUrl.textContent = 'Max 500 characters'; inpUrl.classList.add('error'); ok = false; }
+    else { errUrl.textContent = ''; inpUrl.classList.remove('error'); }
+
+    const slots = parseInt(document.getElementById('platEditMaxSlots').value);
+    const errSlots = document.getElementById('platEditMaxSlotsError');
+    const inpSlots = document.getElementById('platEditMaxSlots');
+    if (isNaN(slots) || slots < 1 || slots > 50) { errSlots.textContent = 'Must be 1–50'; inpSlots.classList.add('error'); ok = false; }
+    else { errSlots.textContent = ''; inpSlots.classList.remove('error'); }
+
+    const color = document.getElementById('platEditColor').value.trim();
+    const errColor = document.getElementById('platEditColorError');
+    const inpColor = document.getElementById('platEditColor');
+    if (color && !/^#[0-9a-fA-F]{6}$/.test(color)) { errColor.textContent = 'Use #RRGGBB format'; inpColor.classList.add('error'); ok = false; }
+    else { errColor.textContent = ''; inpColor.classList.remove('error'); }
+
+    return ok;
+}
+
+async function savePlatformEdit() {
+    if (!_platEditPlatformId || !_platEditOriginal) return;
+    if (!_platEditValidate()) return;
+
+    const btn = document.getElementById('platEditSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" style="width:12px;height:12px"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Saving...';
+
+    const payload = { platform_id: _platEditPlatformId };
+    const name = document.getElementById('platEditName').value.trim();
+    const domain = document.getElementById('platEditDomain').value.trim();
+    const loginUrl = document.getElementById('platEditLoginUrl').value.trim();
+    const maxSlots = parseInt(document.getElementById('platEditMaxSlots').value);
+    const color = document.getElementById('platEditColor').value.trim();
+
+    if (name !== _platEditOriginal.name) payload.name = name;
+    if (domain !== _platEditOriginal.cookie_domain) payload.cookie_domain = domain;
+    if (loginUrl !== _platEditOriginal.login_url) payload.login_url = loginUrl;
+    if (maxSlots !== _platEditOriginal.max_slots_per_cookie) payload.max_slots_per_cookie = maxSlots;
+    if (color !== _platEditOriginal.bg_color_hex) payload.bg_color_hex = color;
+
+    try {
+        const res = await fetch('api/update_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.success) {
+            showAlert(data.message || 'Platform updated');
+            if (data.platform) {
+                const idx = _platRegistryData.findIndex(p => p.id === _platEditPlatformId);
+                if (idx !== -1) { Object.assign(_platRegistryData[idx], data.platform); }
+                if (typeof ALL_PLATFORMS !== 'undefined') {
+                    const ai = ALL_PLATFORMS.findIndex(p => p.id === _platEditPlatformId);
+                    if (ai !== -1) Object.assign(ALL_PLATFORMS[ai], data.platform);
+                }
+            }
+            filterPlatformRegistry();
+            closePlatEditModal();
+        } else {
+            showAlert(data.message || 'Update failed', true);
+            if (data.message && data.message.includes('name')) { document.getElementById('platEditNameError').textContent = data.message; document.getElementById('platEditName').classList.add('error'); }
+            else if (data.message && data.message.toLowerCase().includes('domain')) { document.getElementById('platEditDomainError').textContent = data.message; document.getElementById('platEditDomain').classList.add('error'); }
+        }
+    } catch (e) {
+        showAlert('Failed to save changes', true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg style="width:12px;height:12px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save Changes';
+        _platEditDirtyCheck();
+    }
 }
 
 function triggerLogoUpload() {
