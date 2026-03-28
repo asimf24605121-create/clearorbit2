@@ -218,6 +218,64 @@
         .toast{pointer-events:auto;padding:.75rem 1rem;border-radius:.625rem;font-size:.875rem;font-weight:500;display:flex;align-items:center;gap:.5rem;animation:slideIn .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.1)}
         .toast-success{background:#fff;border:1px solid #A7F3D0;color:#065F46}
         .toast-error{background:#fff;border:1px solid #FECACA;color:#991B1B}
+        .skel-row td{padding:.75rem 1rem}
+        .skel-bar{height:12px;border-radius:6px;background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:platShimmer 1.5s ease-in-out infinite}
+        .skel-circle{border-radius:50%;background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:platShimmer 1.5s ease-in-out infinite}
+        .skel-bar.w-24{width:96px}.skel-bar.w-20{width:80px}.skel-bar.w-16{width:64px}.skel-bar.w-14{width:56px}.skel-bar.w-12{width:48px}.skel-bar.w-32{width:128px}
+        .skel-bar.h-3{height:10px}.skel-bar.h-2{height:8px}
+        .badge-status{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:600;white-space:nowrap}
+        .badge-active{background:#ECFDF5;color:#059669}
+        .badge-expiring{background:#FFF7ED;color:#C2410C}
+        .badge-partial{background:#FFFBEB;color:#B45309}
+        .badge-expired{background:#FEF2F2;color:#DC2626}
+        .badge-disabled{background:#F3F4F6;color:#6B7280}
+        .badge-no-access{background:#F9FAFB;color:#9CA3AF;border:1px solid #E5E7EB}
+        .badge-status .badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+        .badge-active .badge-dot{background:#10B981}
+        .badge-expiring .badge-dot{background:#F97316}
+        .badge-partial .badge-dot{background:#F59E0B}
+        .badge-expired .badge-dot{background:#EF4444}
+        .badge-disabled .badge-dot{background:#9CA3AF}
+        .badge-no-access .badge-dot{background:#D1D5DB}
+        .expiry-rel{font-size:11px;font-weight:600;line-height:1}
+        .expiry-abs{font-size:10px;color:#9CA3AF;line-height:1;margin-top:2px}
+        .expiry-danger{color:#DC2626}
+        .expiry-warn{color:#D97706}
+        .expiry-ok{color:#059669}
+        .expiry-muted{color:#9CA3AF}
+        .plat-count-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:600;background:#EEF2FF;color:#4338CA;cursor:default;transition:background .15s}
+        .plat-count-chip:hover{background:#E0E7FF}
+        .plat-count-chip.none{background:#F9FAFB;color:#9CA3AF}
+        .tbl-actions{display:flex;align-items:center;gap:4px}
+        .tbl-act{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer;transition:all .15s;flex-shrink:0}
+        .tbl-act:hover{background:#F3F4F6;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+        .tbl-act svg{width:14px;height:14px}
+        .tbl-act-view:hover{color:#4F46E5;border-color:#C7D2FE;background:#EEF2FF}
+        .tbl-act-edit:hover{color:#059669;border-color:#A7F3D0;background:#ECFDF5}
+        .tbl-act-danger{color:#DC2626;border-color:#FECACA;background:#FEF2F2}
+        .tbl-act-danger:hover{background:#FEE2E2;box-shadow:0 1px 3px rgba(220,38,38,.1)}
+        .tbl-act-success{color:#059669;border-color:#A7F3D0;background:#ECFDF5}
+        .tbl-act-success:hover{background:#D1FAE5}
+        .cu-hint{display:flex;align-items:flex-start;gap:6px;padding:8px 12px;border-radius:8px;font-size:11px;line-height:1.5;margin-top:8px}
+        .cu-hint-info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+        .cu-hint-warn{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+        .cu-hint svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+        .user-empty-state{display:flex;flex-direction:column;align-items:center;padding:3rem 1.5rem;text-align:center}
+        .user-empty-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#F5F3FF,#EEF2FF);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+        .user-empty-icon svg{width:24px;height:24px;color:#A5B4FC}
+        .user-empty-title{font-size:14px;font-weight:600;color:#374151;margin-bottom:4px}
+        .user-empty-sub{font-size:12px;color:#9CA3AF}
+        .vu-section{margin-bottom:20px}
+        .vu-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .vu-section-title svg{width:14px;height:14px}
+        .vu-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#F9FAFB;border-radius:12px;overflow:hidden;border:1px solid #F3F4F6}
+        .vu-info-cell{padding:10px 14px;border-bottom:1px solid #F3F4F6}
+        .vu-info-cell:nth-child(odd){border-right:1px solid #F3F4F6}
+        .vu-info-cell-label{font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+        .vu-info-cell-value{font-size:13px;font-weight:500;color:#111827}
+        .vu-sub-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid #F3F4F6;border-radius:10px;background:#fff;transition:box-shadow .15s}
+        .vu-sub-card:hover{box-shadow:0 2px 6px rgba(0,0,0,.04)}
+        .vu-sub-card+.vu-sub-card{margin-top:6px}
         .toast-critical{background:#fff;border:1px solid #FECACA;color:#991B1B;border-left:4px solid #DC2626;cursor:pointer}
         .toast-critical:hover{background:#FEF9F9}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
@@ -688,67 +746,89 @@
                         <div id="cuInputArea">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                                 <div>
-                                    <label class="label">Username *</label>
-                                    <input id="newUsername" class="input" data-testid="input-new-username" placeholder="e.g. john_doe" oninput="checkUsernameAvailability()" />
+                                    <label class="label">Username <span class="text-red-400">*</span></label>
+                                    <input id="newUsername" class="input" data-testid="input-new-username" placeholder="e.g. john_doe" oninput="checkUsernameAvailability()" autocomplete="off"/>
                                     <p id="cuUsernameStatus" class="text-xs mt-1 hidden"></p>
                                 </div>
                                 <div>
-                                    <label class="label">Email *</label>
-                                    <input id="newEmail" type="email" class="input" data-testid="input-new-email" placeholder="e.g. john@example.com" />
+                                    <label class="label">Email <span class="text-red-400">*</span></label>
+                                    <input id="newEmail" type="email" class="input" data-testid="input-new-email" placeholder="e.g. john@example.com" autocomplete="off"/>
                                 </div>
                                 <div>
-                                    <label class="label">Password *</label>
-                                    <input id="newPassword" type="password" class="input" data-testid="input-new-password" placeholder="Min 6 characters" />
+                                    <label class="label">Password <span class="text-red-400">*</span></label>
+                                    <div style="position:relative">
+                                        <input id="newPassword" type="password" class="input" data-testid="input-new-password" placeholder="Min 6 characters" autocomplete="new-password" style="padding-right:36px"/>
+                                        <button type="button" onclick="cuTogglePassword()" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px" aria-label="Toggle password visibility">
+                                            <svg id="cuPwdEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="border-t border-gray-100 pt-5 mb-5">
-                                <h4 class="font-semibold text-gray-700 text-sm mb-3 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-                                    Subscription (Optional)
-                                </h4>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-semibold text-gray-700 text-sm flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                                        Platform Access
+                                    </h4>
+                                    <span class="text-[10px] font-medium text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Optional</span>
+                                </div>
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                                     <div>
                                         <label class="label mb-2">Duration</label>
-                                        <div class="flex gap-2 flex-wrap mb-2">
-                                            <button type="button" onclick="cuSetDuration(7)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="7">7 Days</button>
-                                            <button type="button" onclick="cuSetDuration(30)" class="btn btn-secondary btn-sm cu-dur-preset active-preset" data-days="30">30 Days</button>
-                                            <button type="button" onclick="cuSetDuration(90)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="90">90 Days</button>
-                                            <button type="button" onclick="cuSetDuration(180)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="180">180 Days</button>
-                                            <button type="button" onclick="cuSetDuration(365)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="365">1 Year</button>
+                                        <div class="flex gap-1.5 flex-wrap mb-2">
+                                            <button type="button" onclick="cuSetDuration(7)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="7">7d</button>
+                                            <button type="button" onclick="cuSetDuration(30)" class="btn btn-secondary btn-sm cu-dur-preset active-preset" data-days="30">30d</button>
+                                            <button type="button" onclick="cuSetDuration(90)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="90">90d</button>
+                                            <button type="button" onclick="cuSetDuration(180)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="180">180d</button>
+                                            <button type="button" onclick="cuSetDuration(365)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="365">1yr</button>
                                         </div>
-                                        <input id="cuDays" type="number" min="0" max="365" value="30" class="input" style="max-width:140px" placeholder="Custom days" oninput="cuClearPreset()"/>
-                                        <p class="text-xs text-gray-400 mt-1">Set to 0 to skip subscription</p>
+                                        <div class="flex items-center gap-2">
+                                            <input id="cuDays" type="number" min="0" max="3650" value="30" class="input" style="max-width:100px" placeholder="Days" oninput="cuClearPreset();cuUpdateHint()"/>
+                                            <span id="cuDaysLabel" class="text-xs text-gray-400 whitespace-nowrap">30 days</span>
+                                        </div>
+                                        <div id="cuAccessHint" class="cu-hint cu-hint-info mt-2">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Select platforms below and set duration. User will get access immediately after creation.</span>
+                                        </div>
                                     </div>
                                     <div>
                                         <div class="flex items-center justify-between mb-2">
                                             <label class="label mb-0">Platforms</label>
-                                            <div class="flex items-center gap-3">
-                                                <input id="cuPlatSearch" class="input" style="width:150px;padding:.375rem .625rem;font-size:.8125rem" placeholder="Search..." oninput="cuFilterPlats()"/>
-                                                <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                                            <div class="flex items-center gap-2">
+                                                <input id="cuPlatSearch" class="input" style="width:130px;padding:5px 10px;font-size:12px;border-radius:6px" placeholder="Search..." oninput="cuFilterPlats()"/>
+                                                <label class="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer select-none hover:text-gray-700">
                                                     <input type="checkbox" id="cuSelectAll" class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" onchange="cuToggleAll(this.checked)"/>
                                                     All
                                                 </label>
                                             </div>
                                         </div>
-                                        <div id="cuPlatGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1"></div>
-                                        <p id="cuSelectedCount" class="text-xs text-gray-400 mt-2">0 platform(s) selected</p>
+                                        <div id="cuPlatGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-52 overflow-y-auto pr-1" style="scroll-behavior:smooth"></div>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p id="cuSelectedCount" class="text-xs font-medium text-indigo-600">0 platform(s) selected</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <button onclick="createUserWithSub()" id="cuCreateBtn" class="w-full sm:w-auto btn text-white font-semibold py-2.5 px-6" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);border:none;font-size:0.9375rem;">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                Create User &amp; Activate
-                            </button>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <button onclick="createUserWithSub()" id="cuCreateBtn" class="btn text-white font-semibold py-2.5 px-6" style="background:linear-gradient(135deg,#6C5CE7,#4F46E5);border:none;font-size:0.875rem;border-radius:10px">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    Create User &amp; Activate
+                                </button>
+                                <button onclick="cuResetFormFields()" type="button" class="btn btn-secondary btn-sm text-xs" title="Clear all fields">Clear Form</button>
+                            </div>
                         </div>
 
                         <div id="cuResultArea" class="hidden">
                             <div id="cuResultContent"></div>
-                            <button onclick="cuResetForm()" class="btn btn-secondary mt-4">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                                Create Another User
-                            </button>
+                            <div class="flex gap-2 mt-4">
+                                <button onclick="cuResetForm()" class="btn btn-primary">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                    Create Another User
+                                </button>
+                                <button onclick="cuResetForm();document.getElementById('usersBody')?.scrollIntoView({behavior:'smooth'})" class="btn btn-secondary">View All Users</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -788,8 +868,8 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="data-table">
-                            <thead><tr><th>User</th><th>Email</th><th>Platforms</th><th>Join Date</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+                        <table class="data-table" id="usersTable">
+                            <thead><tr><th>User</th><th>Email</th><th>Platforms</th><th>Expiry</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
                             <tbody id="usersBody"></tbody>
                         </table>
                     </div>
@@ -916,61 +996,80 @@
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-4 mb-5">
-                            <div id="viewUserAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-2xl font-bold flex-shrink-0">?</div>
-                            <img id="viewUserImg" src="" class="w-16 h-16 rounded-2xl object-cover hidden"/>
-                            <div>
-                                <h4 id="viewUserDisplayName" class="text-lg font-bold text-gray-900" data-testid="view-user-name">—</h4>
+                            <div id="viewUserAvatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-xl font-bold flex-shrink-0">?</div>
+                            <img id="viewUserImg" src="" class="w-14 h-14 rounded-2xl object-cover hidden"/>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 id="viewUserDisplayName" class="text-lg font-bold text-gray-900 truncate" data-testid="view-user-name">—</h4>
+                                    <span id="viewUserStatusBadge" class="badge-status badge-active" data-testid="view-user-status"><span class="badge-dot"></span>Active</span>
+                                </div>
                                 <p id="viewUserUsername" class="text-sm text-gray-400" data-testid="view-user-username">@username</p>
-                                <span id="viewUserStatusBadge" class="badge badge-green mt-1" data-testid="view-user-status">Active</span>
                             </div>
                         </div>
-                        <div class="bg-gray-50 rounded-xl px-5 py-1 mb-4">
-                            <div class="vu-row"><span class="vu-label">Username</span><span class="vu-value" id="vuUsername" data-testid="view-user-uname">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Email</span><span class="vu-value" id="vuEmail" data-testid="view-user-email">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Full Name</span><span class="vu-value" id="vuName" data-testid="view-user-fullname">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Phone</span><span class="vu-value" id="vuPhone" data-testid="view-user-phone">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Country</span><span class="vu-value" id="vuCountry" data-testid="view-user-country">—</span></div>
-                            <div class="vu-row"><span class="vu-label">City</span><span class="vu-value" id="vuCity" data-testid="view-user-city">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Gender</span><span class="vu-value" id="vuGender" data-testid="view-user-gender">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Join Date</span><span class="vu-value" id="vuJoinDate" data-testid="view-user-join">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Expiry Date</span><span class="vu-value" id="vuExpiry" data-testid="view-user-expiry">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Role</span><span class="vu-value" id="vuRole" data-testid="view-user-role">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Last Login IP</span><span class="vu-value" id="vuIP" data-testid="view-user-ip">—</span></div>
-                            <div class="vu-row"><span class="vu-label">Password</span><span class="vu-value" id="vuPassword" data-testid="view-user-password">••••••••</span></div>
-                            <div class="vu-row"><span class="vu-label">Device Lock</span><span class="vu-value" id="vuDevice" data-testid="view-user-device">—</span></div>
-                            <div class="vu-row" style="border-bottom:none"><span class="vu-label">Profile Complete</span><span class="vu-value" id="vuProfileComplete" data-testid="view-user-profile-complete">—</span></div>
+
+                        <div class="vu-section">
+                            <div class="vu-section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                Account Details
+                            </div>
+                            <div class="vu-info-grid">
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Username</div><div class="vu-info-cell-value" id="vuUsername" data-testid="view-user-uname">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Email</div><div class="vu-info-cell-value" id="vuEmail" data-testid="view-user-email">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Full Name</div><div class="vu-info-cell-value" id="vuName" data-testid="view-user-fullname">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Phone</div><div class="vu-info-cell-value" id="vuPhone" data-testid="view-user-phone">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Country</div><div class="vu-info-cell-value" id="vuCountry" data-testid="view-user-country">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">City</div><div class="vu-info-cell-value" id="vuCity" data-testid="view-user-city">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Gender</div><div class="vu-info-cell-value" id="vuGender" data-testid="view-user-gender">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Role</div><div class="vu-info-cell-value" id="vuRole" data-testid="view-user-role">—</div></div>
+                            </div>
                         </div>
-                        <div class="mb-4">
+
+                        <div class="vu-section">
+                            <div class="vu-section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                Access & Security
+                            </div>
+                            <div class="vu-info-grid">
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Join Date</div><div class="vu-info-cell-value" id="vuJoinDate" data-testid="view-user-join">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Expiry Date</div><div class="vu-info-cell-value" id="vuExpiry" data-testid="view-user-expiry">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Last Login IP</div><div class="vu-info-cell-value" id="vuIP" data-testid="view-user-ip">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Device Lock</div><div class="vu-info-cell-value" id="vuDevice" data-testid="view-user-device">—</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Password</div><div class="vu-info-cell-value" id="vuPassword" data-testid="view-user-password">••••••••</div></div>
+                                <div class="vu-info-cell"><div class="vu-info-cell-label">Profile Complete</div><div class="vu-info-cell-value" id="vuProfileComplete" data-testid="view-user-profile-complete">—</div></div>
+                            </div>
+                        </div>
+
+                        <div class="vu-section">
                             <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-semibold text-gray-700 text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-                                    Subscription Details
-                                </h4>
-                                <button onclick="vuRefreshSubs()" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                    Refresh
+                                <div class="vu-section-title" style="margin-bottom:0">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                                    Subscriptions
+                                </div>
+                                <button onclick="vuRefreshSubs()" class="tbl-act" style="width:26px;height:26px" title="Refresh subscriptions">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 </button>
                             </div>
-                            <div id="vuSubsContainer" class="bg-gray-50 rounded-xl overflow-hidden">
+                            <div id="vuSubsContainer">
                                 <div class="text-center text-gray-400 text-xs py-4">Loading subscriptions...</div>
                             </div>
                         </div>
-                        <div class="mb-4">
+
+                        <div class="vu-section">
                             <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-semibold text-gray-700 text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                <div class="vu-section-title" style="margin-bottom:0">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                                     Active Slots
-                                </h4>
-                                <button onclick="vuRefreshSlots()" class="text-xs text-emerald-500 hover:text-emerald-700 font-medium flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                    Refresh
+                                </div>
+                                <button onclick="vuRefreshSlots()" class="tbl-act" style="width:26px;height:26px" title="Refresh slots">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                 </button>
                             </div>
-                            <div id="vuSlotsContainer" class="bg-gray-50 rounded-xl overflow-hidden">
+                            <div id="vuSlotsContainer">
                                 <div class="text-center text-gray-400 text-xs py-4">Loading slots...</div>
                             </div>
                         </div>
-                        <div class="flex gap-2 justify-end">
+
+                        <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
                             <button onclick="closeViewUserModal()" class="btn btn-secondary">Close</button>
                             <button id="vuEditBtn" onclick="" class="btn btn-primary">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -3293,19 +3392,45 @@ function smartTime(dateStr) {
 
 function getUserStatusBadge(u) {
     const st = u.status || 'active';
-    if (st === 'disabled') return '<span class="badge badge-red">Disabled</span>';
-    if (st === 'expired') return '<span class="badge badge-red">Expired</span>';
-    if (st === 'no_access') return '<span class="badge" style="background:#F3F4F6;color:#6B7280">No Access</span>';
-    if (st === 'partial') return '<span class="badge" style="background:#FFF7ED;color:#C2410C">Partial Access</span>';
-    if (st === 'expiring') {
-        const ne = u.nearest_expiry;
-        if (ne) {
-            const daysLeft = Math.ceil((new Date(ne + 'T23:59:59') - new Date()) / 86400000);
-            return `<span class="badge" style="background:#FFF7ED;color:#C2410C">Expiring (${daysLeft}d)</span>`;
-        }
-        return '<span class="badge" style="background:#FFF7ED;color:#C2410C">Expiring</span>';
+    const map = {
+        disabled: ['badge-disabled', 'Disabled'],
+        expired: ['badge-expired', 'Expired'],
+        no_access: ['badge-no-access', 'No Access'],
+        partial: ['badge-partial', 'Partial'],
+        expiring: ['badge-expiring', 'Expiring'],
+        active: ['badge-active', 'Active'],
+    };
+    const [cls, label] = map[st] || map.active;
+    let extra = '';
+    if (st === 'expiring' && u.nearest_expiry) {
+        const dl = Math.ceil((new Date(u.nearest_expiry + 'T23:59:59') - new Date()) / 86400000);
+        extra = ` (${dl}d)`;
     }
-    return '<span class="badge badge-green">Active</span>';
+    return `<span class="badge-status ${cls}"><span class="badge-dot"></span>${label}${extra}</span>`;
+}
+
+function getExpiryDisplay(u) {
+    const d = u.nearest_expiry || u.expiry_date;
+    if (!d) return '<span class="expiry-rel expiry-muted">No expiry</span>';
+    const daysLeft = Math.ceil((new Date(d + 'T23:59:59') - new Date()) / 86400000);
+    let relClass, relText;
+    if (daysLeft < 0) { relClass = 'expiry-danger'; relText = Math.abs(daysLeft) + 'd ago'; }
+    else if (daysLeft === 0) { relClass = 'expiry-danger'; relText = 'Today'; }
+    else if (daysLeft <= 3) { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
+    else if (daysLeft <= 7) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
+    else if (daysLeft <= 30) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
+    else { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
+    return `<div><div class="expiry-rel ${relClass}">${relText}</div><div class="expiry-abs">${formatDate(d)}</div></div>`;
+}
+
+function showTableSkeleton() {
+    const body = document.getElementById('usersBody');
+    if (!body) return;
+    let html = '';
+    for (let i = 0; i < 8; i++) {
+        html += `<tr class="skel-row"><td><div class="flex items-center gap-2.5"><div class="skel-circle" style="width:32px;height:32px"></div><div><div class="skel-bar w-24 h-3 mb-1"></div><div class="skel-bar w-16 h-2"></div></div></div></td><td><div class="skel-bar w-32 h-3"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="skel-bar w-14 h-3 mb-1"></div><div class="skel-bar w-20 h-2"></div></td><td><div class="skel-bar w-16 h-3"></div></td><td><div class="flex gap-1 justify-end"><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div><div class="skel-bar h-3" style="width:30px;height:30px;border-radius:8px"></div></div></td></tr>`;
+    }
+    body.innerHTML = html;
 }
 
 let _userDataCache = new Map();
@@ -3313,7 +3438,12 @@ let _userDataCache = new Map();
 function renderUsersTable(users) {
     _userDataCache.clear();
     users.forEach(u => _userDataCache.set(u.id, u));
-    document.getElementById('usersBody').innerHTML = users.map(u => {
+    const body = document.getElementById('usersBody');
+    if (!users.length) {
+        body.innerHTML = `<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div><div class="user-empty-title">No users found</div><div class="user-empty-sub">Try adjusting your search or filter criteria</div></div></td></tr>`;
+        return;
+    }
+    body.innerHTML = users.map(u => {
         const displayName = u.name || u.username;
         const initial = (displayName[0] || '?').toUpperCase();
         const avatarHtml = u.profile_image
@@ -3321,47 +3451,28 @@ function renderUsersTable(users) {
             : `<div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0">${escHtml(initial)}</div>`;
         const platCount = u.active_platform_count || (u.active_platforms || []).length;
         const platNames = (u.active_platforms || []).join(', ');
-        const platBadges = platCount > 0
-            ? `<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full cursor-default" style="background:#EEF2FF;color:#4338CA" title="${escHtml(platNames)}">${platCount} Platform${platCount > 1 ? 's' : ''}</span>`
-            : '<span class="text-xs text-gray-300">None</span>';
-        const expiryDisplay = u.nearest_expiry || u.expiry_date;
-        let expiryHtml = formatDate(expiryDisplay);
-        if (expiryDisplay) {
-            const daysLeft = Math.ceil((new Date(expiryDisplay + 'T23:59:59') - new Date()) / 86400000);
-            if (daysLeft < 0) expiryHtml += ` <span class="text-[10px] text-red-500">(${Math.abs(daysLeft)}d ago)</span>`;
-            else if (daysLeft <= 7) expiryHtml += ` <span class="text-[10px] text-amber-500">(${daysLeft}d left)</span>`;
-        }
-        return `
-        <tr>
-            <td>
-                <div class="flex items-center gap-2.5">
-                    ${avatarHtml}
-                    <div>
-                        <p class="font-medium text-sm">${escHtml(displayName)}</p>
-                        <p class="text-xs text-gray-400">@${escHtml(u.username)}</p>
-                    </div>
-                </div>
-            </td>
-            <td class="text-sm text-gray-500">${escHtml(u.email || '—')}</td>
-            <td><div class="flex flex-wrap gap-1 max-w-[200px]">${platBadges}</div></td>
-            <td class="text-xs text-gray-400 whitespace-nowrap">${formatDate(u.created_at)}</td>
-            <td class="text-xs text-gray-400 whitespace-nowrap">${expiryHtml}</td>
+        const platChip = platCount > 0
+            ? `<span class="plat-count-chip" title="${escHtml(platNames)}">${platCount} platform${platCount > 1 ? 's' : ''}</span>`
+            : '<span class="plat-count-chip none">None</span>';
+        const toggleAction = u.is_active ? 'disable' : 'enable';
+        const toggleIcon = u.is_active
+            ? '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>'
+            : '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+        return `<tr>
+            <td><div class="flex items-center gap-2.5">${avatarHtml}<div><p class="font-medium text-sm text-gray-900">${escHtml(displayName)}</p><p class="text-[11px] text-gray-400">@${escHtml(u.username)}</p></div></div></td>
+            <td class="text-sm text-gray-500" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(u.email || '—')}</td>
+            <td>${platChip}</td>
+            <td style="white-space:nowrap">${getExpiryDisplay(u)}</td>
             <td>${getUserStatusBadge(u)}</td>
-            <td>
-                <div class="flex gap-1 flex-wrap">
-                    <button onclick="openViewUserModalById(${u.id})" class="btn btn-secondary btn-sm" title="View">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    </button>
-                    <button onclick="openEditModalById(${u.id})" class="btn btn-secondary btn-sm" title="Edit">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </button>
-                    <button onclick="toggleUser(${u.id},'${u.is_active ? 'disable' : 'enable'}')" class="btn ${u.is_active ? 'btn-danger' : 'btn-success'} btn-sm">${u.is_active ? 'Disable' : 'Enable'}</button>
-                    ${u.device_id ? `<button onclick="toggleUser(${u.id},'reset_device')" class="btn btn-secondary btn-sm">Reset</button>` : ''}
-                    ${ADMIN_LEVEL === 'super_admin' ? `<button onclick="deleteUser(${u.id},'${escHtml(u.username)}')" class="btn btn-danger btn-sm">Delete</button>` : ''}
-                </div>
-            </td>
+            <td style="text-align:right"><div class="tbl-actions" style="justify-content:flex-end">
+                <button onclick="openViewUserModalById(${u.id})" class="tbl-act tbl-act-view" title="View details" aria-label="View user details"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
+                <button onclick="openEditModalById(${u.id})" class="tbl-act tbl-act-edit" title="Edit user" aria-label="Edit user"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                <button onclick="toggleUser(${u.id},'${toggleAction}')" class="tbl-act ${u.is_active ? 'tbl-act-danger' : 'tbl-act-success'}" title="${u.is_active ? 'Disable user' : 'Enable user'}" aria-label="${u.is_active ? 'Disable user' : 'Enable user'}">${toggleIcon}</button>
+                ${u.device_id ? `<button onclick="toggleUser(${u.id},'reset_device')" class="tbl-act" title="Reset device lock" aria-label="Reset device lock"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>` : ''}
+                ${ADMIN_LEVEL === 'super_admin' ? `<button onclick="deleteUser(${u.id},'${escHtml(u.username).replace(/'/g, "\\'")}')" class="tbl-act tbl-act-danger" title="Delete user" aria-label="Delete user"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>` : ''}
+            </div></td>
         </tr>`;
-    }).join('') || '<tr><td colspan="7" class="text-center text-gray-400 py-6">No users found</td></tr>';
+    }).join('');
 }
 
 function openViewUserModalById(id) {
@@ -3388,6 +3499,7 @@ function getUserStatus(u) {
 async function fetchUsersFromServer(page) {
     if (_usersLoading) return;
     _usersLoading = true;
+    showTableSkeleton();
     const q = (document.getElementById('userSearch')?.value || '').trim();
     const sortBy = document.getElementById('userSort')?.value || 'newest';
     const statusFilter = document.getElementById('userStatusFilter')?.value || 'all';
@@ -3399,7 +3511,10 @@ async function fetchUsersFromServer(page) {
         const res = await fetch('api/get_users?' + params.toString(), { credentials: 'include' });
         if (res.status === 401) { window.location.href = 'index.html'; return; }
         const data = await res.json();
-        if (!data.success) return;
+        if (!data.success) {
+            document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><div class="user-empty-title">Failed to load users</div><div class="user-empty-sub">Please try refreshing the page</div></div></td></tr>';
+            return;
+        }
         const users = data.users || [];
         const pag = data.pagination || {};
         _userTotalCount = pag.total_count || users.length;
@@ -3407,7 +3522,10 @@ async function fetchUsersFromServer(page) {
         _userPage = pag.page || pg;
         renderUsersTable(users);
         renderUsersPagination();
-    } catch (e) { console.error('fetchUsersFromServer error', e); }
+    } catch (e) {
+        console.error('fetchUsersFromServer error', e);
+        document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
+    }
     finally { _usersLoading = false; }
 }
 
@@ -3651,14 +3769,13 @@ function openViewUserModal(u) {
     document.getElementById('viewUserDisplayName').textContent = displayName;
     document.getElementById('viewUserUsername').textContent = '@' + u.username;
 
-    const badge = document.getElementById('viewUserStatusBadge');
-    const st = u.status || 'active';
-    if (st === 'disabled') { badge.textContent = 'Disabled'; badge.className = 'badge badge-red mt-1'; }
-    else if (st === 'expired') { badge.textContent = 'Expired'; badge.className = 'badge badge-red mt-1'; }
-    else if (st === 'no_access') { badge.textContent = 'No Access'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#F3F4F6;color:#6B7280'; }
-    else if (st === 'partial') { badge.textContent = 'Partial Access'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#FFF7ED;color:#C2410C'; }
-    else if (st === 'expiring') { badge.textContent = 'Expiring Soon'; badge.className = 'badge mt-1'; badge.style.cssText = 'background:#FFF7ED;color:#C2410C'; }
-    else { badge.textContent = 'Active'; badge.className = 'badge badge-green mt-1'; }
+    const badgeEl = document.getElementById('viewUserStatusBadge');
+    const tmpDiv = document.createElement('div');
+    tmpDiv.innerHTML = getUserStatusBadge(u);
+    const newBadge = tmpDiv.firstElementChild;
+    badgeEl.className = newBadge.className;
+    badgeEl.innerHTML = newBadge.innerHTML;
+    badgeEl.style.cssText = '';
 
     document.getElementById('vuUsername').textContent = u.username || '—';
     document.getElementById('vuEmail').textContent = u.email || '—';
@@ -4870,6 +4987,7 @@ function cuRenderPlatGrid() {
 function cuPlatChange(cb) {
     cb.closest('.platform-checkbox-card').classList.toggle('checked', cb.checked);
     cuUpdateCount();
+    cuUpdateHint();
 }
 
 function cuUpdateCount() {
@@ -4887,6 +5005,7 @@ function cuToggleAll(checked) {
         cb.closest('.platform-checkbox-card').classList.toggle('checked', checked);
     });
     cuUpdateCount();
+    cuUpdateHint();
 }
 
 function cuFilterPlats() {
@@ -4901,6 +5020,7 @@ function cuSetDuration(days) {
     document.querySelectorAll('.cu-dur-preset').forEach(b => {
         b.classList.toggle('active-preset', parseInt(b.dataset.days) === days);
     });
+    cuUpdateHint();
 }
 
 function cuClearPreset() {
@@ -4912,6 +5032,57 @@ function cuClearPreset() {
 
 function cuGetSelectedPlatIds() {
     return Array.from(document.querySelectorAll('#cuPlatGrid .cu-plat-cb:checked')).map(cb => parseInt(cb.value));
+}
+
+function cuTogglePassword() {
+    const inp = document.getElementById('newPassword');
+    const icon = document.getElementById('cuPwdEyeIcon');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
+    } else {
+        inp.type = 'password';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+}
+
+function cuUpdateHint() {
+    const days = parseInt(document.getElementById('cuDays')?.value) || 0;
+    const platCount = cuGetSelectedPlatIds().length;
+    const hint = document.getElementById('cuAccessHint');
+    const label = document.getElementById('cuDaysLabel');
+    if (!hint) return;
+    if (label) label.textContent = days === 1 ? '1 day' : days + ' days';
+    if (days === 0) {
+        hint.className = 'cu-hint cu-hint-info';
+        hint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>User will be created without platform access. You can assign platforms later from the edit modal.</span>';
+    } else if (platCount === 0) {
+        hint.className = 'cu-hint cu-hint-warn';
+        hint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg><span>Duration is set but no platforms selected. Select platforms to assign access, or set duration to 0.</span>';
+    } else {
+        hint.className = 'cu-hint cu-hint-info';
+        hint.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>${platCount} platform${platCount > 1 ? 's' : ''} will be assigned for ${days} day${days > 1 ? 's' : ''}.</span>`;
+    }
+}
+
+function cuResetFormFields() {
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newEmail').value = '';
+    const pwdInput = document.getElementById('newPassword');
+    pwdInput.value = '';
+    pwdInput.type = 'password';
+    const eyeIcon = document.getElementById('cuPwdEyeIcon');
+    if (eyeIcon) eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    document.getElementById('cuDays').value = '30';
+    document.getElementById('cuPlatSearch').value = '';
+    document.getElementById('cuSelectAll').checked = false;
+    document.getElementById('cuUsernameStatus')?.classList.add('hidden');
+    _cuUsernameAvailable = null;
+    cuSetDuration(30);
+    cuFilterPlats();
+    document.querySelectorAll('#cuPlatGrid .cu-plat-cb').forEach(cb => { cb.checked = false; cb.closest('.platform-checkbox-card')?.classList.remove('checked'); });
+    cuUpdateCount();
+    cuUpdateHint();
 }
 
 let _cuUsernameTimer = null;
@@ -5161,49 +5332,40 @@ async function vuLoadUserSubs(userId) {
             return;
         }
         const now = new Date();
-        container.innerHTML = `<div class="divide-y divide-gray-100">${subs.map(s => {
+        container.innerHTML = subs.map(s => {
             const end = new Date(s.end_date);
-            const diffDays = Math.max(0, Math.ceil((end - now) / 86400000));
+            const diffDays = Math.ceil((end - now) / 86400000);
             const isActive = s.is_active == 1 && end >= now;
-            let statusBadge, remainText;
-            if (!isActive) {
-                statusBadge = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">Expired</span>';
-                remainText = '';
-            } else if (diffDays <= 3) {
-                statusBadge = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">Expiring</span>';
-                remainText = `<span class="text-[10px] text-red-500 font-medium">${diffDays}d left</span>`;
-            } else if (diffDays <= 7) {
-                statusBadge = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">Active</span>';
-                remainText = `<span class="text-[10px] text-amber-500 font-medium">${diffDays}d left</span>`;
-            } else {
-                statusBadge = '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-50 text-green-600">Active</span>';
-                remainText = `<span class="text-[10px] text-green-600 font-medium">${diffDays}d left</span>`;
-            }
+            let statusCls, statusLabel;
+            if (!isActive) { statusCls = 'badge-expired'; statusLabel = 'Expired'; }
+            else if (diffDays <= 3) { statusCls = 'badge-expiring'; statusLabel = `${diffDays}d left`; }
+            else if (diffDays <= 7) { statusCls = 'badge-expiring'; statusLabel = `${diffDays}d left`; }
+            else { statusCls = 'badge-active'; statusLabel = `${diffDays}d left`; }
             const initial = (s.platform_name || '?')[0].toUpperCase();
             const bgColor = s.bg_color_hex || '#4F46E5';
             const logoHtml = s.logo_url
-                ? `<img src="${escHtml(s.logo_url)}" class="w-7 h-7 rounded-lg object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
-                : `<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
-            return `<div class="flex items-center justify-between px-4 py-2.5">
-                <div class="flex items-center gap-2.5">
+                ? `<img src="${escHtml(s.logo_url)}" class="w-8 h-8 rounded-lg object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
+                : `<div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
+            return `<div class="vu-sub-card">
+                <div class="flex items-center gap-2.5 min-w-0">
                     ${logoHtml}
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">${escHtml(s.platform_name)}</p>
-                        <p class="text-[10px] text-gray-400">${escHtml(s.start_date)} → ${escHtml(s.end_date)}</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${escHtml(s.platform_name)}</p>
+                        <p class="text-[10px] text-gray-400">${formatDate(s.start_date)} → ${formatDate(s.end_date)}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    ${remainText} ${statusBadge}
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <span class="badge-status ${statusCls}" style="font-size:10px;padding:1px 8px"><span class="badge-dot"></span>${statusLabel}</span>
                     ${isActive ? `
-                        <button onclick="vuExtendSub(${s.id}, 7)" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 transition-colors" title="Extend 7 days">+7d</button>
-                        <button onclick="vuExtendSub(${s.id}, 30)" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 transition-colors" title="Extend 30 days">+30d</button>
+                        <button onclick="vuExtendSub(${s.id}, 7)" class="tbl-act tbl-act-edit" style="width:24px;height:24px" title="Extend 7 days"><span style="font-size:9px;font-weight:700">+7</span></button>
+                        <button onclick="vuExtendSub(${s.id}, 30)" class="tbl-act tbl-act-edit" style="width:24px;height:24px" title="Extend 30 days"><span style="font-size:9px;font-weight:700">+30</span></button>
                     ` : ''}
-                    <button onclick="vuDeleteSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}') " class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors" title="Remove">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button onclick="vuDeleteSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="tbl-act tbl-act-danger" style="width:24px;height:24px" title="Revoke access">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>`;
-        }).join('')}</div>`;
+        }).join('');
     } catch (e) {
         container.innerHTML = '<div class="text-center text-red-400 text-xs py-4">Failed to load subscriptions.</div>';
     }
@@ -5250,42 +5412,36 @@ async function vuLoadUserSlots(userId) {
             container.innerHTML = '<div class="text-center text-gray-400 text-xs py-6">No active slot assignments.</div>';
             return;
         }
-        container.innerHTML = `<div class="divide-y divide-gray-100">${slots.map(s => {
+        container.innerHTML = slots.map(s => {
             const isActive = s.session_status === 'active' && !s.is_stale;
-            const statusBadge = s.is_stale
-                ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">Stale</span>'
-                : s.session_status === 'active'
-                    ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-50 text-green-600">Active</span>'
-                    : '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">Inactive</span>';
-            const healthBadge = s.health_status === 'unhealthy'
-                ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">Unhealthy</span>'
-                : s.health_status === 'degraded'
-                    ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">Degraded</span>'
-                    : '';
+            let statusCls, statusLabel;
+            if (s.is_stale) { statusCls = 'badge-expiring'; statusLabel = 'Stale'; }
+            else if (s.session_status === 'active') { statusCls = 'badge-active'; statusLabel = 'Active'; }
+            else { statusCls = 'badge-disabled'; statusLabel = 'Inactive'; }
             const initial = (s.platform_name || '?')[0].toUpperCase();
             const bgColor = s.bg_color_hex || '#10B981';
             const logoHtml = s.logo_url
-                ? `<img src="${escHtml(s.logo_url)}" class="w-7 h-7 rounded-lg object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
-                : `<div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
-            const agoText = s.minutes_ago !== null ? (s.minutes_ago < 1 ? 'Just now' : `${s.minutes_ago}m ago`) : '—';
-            return `<div class="flex items-center justify-between px-4 py-2.5">
-                <div class="flex items-center gap-2.5">
+                ? `<img src="${escHtml(s.logo_url)}" class="w-8 h-8 rounded-lg object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
+                : `<div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
+            const agoText = s.minutes_ago !== null ? (s.minutes_ago < 1 ? 'Just now' : `${s.minutes_ago}m ago`) : '';
+            return `<div class="vu-sub-card">
+                <div class="flex items-center gap-2.5 min-w-0">
                     ${logoHtml}
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">${escHtml(s.platform_name)}</p>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">${escHtml(s.platform_name)}</p>
                         <p class="text-[10px] text-gray-400">${escHtml(s.slot_name)} · Account #${s.account_id}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-gray-400">${agoText}</span>
-                    ${statusBadge} ${healthBadge} ${s.login_status === 'VALID' ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">✓ Login</span>' : s.login_status === 'PARTIAL' ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">⚠ Partial</span>' : s.login_status === 'INVALID' ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">✗ Login</span>' : ''}
-                    ${isActive ? `<button onclick="vuReassignSlot(${s.session_id}, ${s.platform_id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-colors" title="Reassign to different slot">Reassign</button>` : ''}
-                    <button onclick="vuFreeSlot(${s.session_id})" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-colors" title="Free this slot">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    ${agoText ? `<span class="text-[10px] text-gray-400">${agoText}</span>` : ''}
+                    <span class="badge-status ${statusCls}" style="font-size:10px;padding:1px 8px"><span class="badge-dot"></span>${statusLabel}</span>
+                    ${isActive ? `<button onclick="vuReassignSlot(${s.session_id}, ${s.platform_id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="tbl-act tbl-act-view" style="width:24px;height:24px" title="Reassign slot"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></button>` : ''}
+                    <button onclick="vuFreeSlot(${s.session_id})" class="tbl-act tbl-act-danger" style="width:24px;height:24px" title="Free slot">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>`;
-        }).join('')}</div>`;
+        }).join('');
     } catch (e) {
         container.innerHTML = '<div class="text-center text-red-400 text-xs py-4">Failed to load slots.</div>';
     }

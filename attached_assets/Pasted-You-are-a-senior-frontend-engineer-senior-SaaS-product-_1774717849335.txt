@@ -1,0 +1,355 @@
+You are a senior frontend engineer, senior SaaS product designer, senior UX architect, and senior performance engineer.
+
+The Users module backend and core logic have already been significantly rebuilt and hardened.
+Now I want the NEXT PHASE to focus primarily on FRONTEND QUALITY, UX clarity, admin workflow polish, and lightweight performance.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must NOT feel slow.
+Everything must remain optimized for smooth performance and scalability for 1000+ concurrent users.
+Do NOT undo the server-side pagination/search/filter architecture.
+Do NOT add bloated frontend state or wasteful full-page refreshes.
+All UX improvements must preserve speed, lightweight rendering, and minimal DOM churn.
+
+==================================================
+CURRENT STATE
+==================================================
+
+The Users module now already has:
+- server-side users API
+- computed multi-state status model
+- transactional create user flow
+- duplicate username blocking
+- explicit disable with session revocation
+- safe delete preview + type-to-confirm
+- revoke subscription endpoint
+- server-side CSV export
+- debounced username availability check
+- refreshUsersTable() lightweight refresh pattern
+
+Now I want you to improve the FRONTEND properly.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Take the current Users frontend and make it:
+- clearer
+- more premium
+- more actionable
+- less error-prone
+- easier for admins to scan and operate
+- more consistent with a high-end SaaS admin dashboard
+- still fast for 1000+ concurrent users
+
+==================================================
+PHASE 1 — REAL FRONTEND AUDIT FIRST
+==================================================
+
+Inspect the actual frontend implementation of the Users module in detail.
+
+Audit:
+- create user form
+- platform picker
+- duration preset UI
+- success state after create
+- users table
+- filters/sort/search row
+- status badges
+- expiry column UI
+- platforms count badge
+- action buttons
+- edit modal
+- view modal
+- subscription section in view/edit flows
+- revoke/extend UX
+- loading states
+- empty states
+- error states
+- responsive behavior
+- accessibility
+- consistency with the rest of the admin dashboard
+
+Then clearly report:
+1. what currently works well in the frontend
+2. what still looks weak
+3. what feels confusing
+4. what wastes space
+5. what actions are not clear enough
+6. what is operationally weak for admins
+7. what could become slow if frontend is redesigned badly
+
+==================================================
+PHASE 2 — CREATE USER FORM UX REDESIGN
+==================================================
+
+I want the Create User + Assign Access area improved significantly.
+
+Improve:
+1. form hierarchy
+2. spacing and field grouping
+3. username/email/password row layout
+4. duration preset UX
+5. custom duration clarity
+6. platform picker usability
+7. selected count visibility
+8. “existing user” / username availability clarity
+9. success result panel
+10. reset/create-another-user flow
+
+Make it feel like a premium one-step provisioning flow.
+
+Specific goals:
+- clearer distinction between creating a new user and assigning access
+- if no platforms are selected, explain what will happen
+- if subscription is optional, make that crystal clear
+- if duration is set but no platforms selected, clarify outcome
+- make the success result more useful:
+  - what got assigned
+  - what got extended
+  - next actions
+- avoid requiring too much scrolling
+
+==================================================
+PHASE 3 — PLATFORM PICKER FRONTEND IMPROVEMENT
+==================================================
+
+The platform picker should be much more admin-friendly.
+
+Improve:
+- search experience
+- selected state clarity
+- select all behavior
+- disabled/unavailable/dead platform handling
+- visual grouping
+- card density
+- platform logo consistency
+- hover/focus states
+- badges or hints for unavailable platforms
+- compact but readable layout
+
+If useful, add:
+- filter by platform status
+- group active/healthy platforms first
+- show why a platform cannot be assigned
+- tooltip for dead/inactive platforms
+
+==================================================
+PHASE 4 — USERS TABLE UX REDESIGN
+==================================================
+
+Now improve the table experience while preserving server-side fetching.
+
+Improve:
+1. row hierarchy
+2. status badge styling
+3. expiry display
+4. platforms count badge
+5. actions column clarity
+6. loading skeletons
+7. empty state
+8. error state
+9. pagination bar
+10. filter/search/sort alignment
+
+Specific requirements:
+- expiry should feel more useful:
+  - relative time (“in 5 days”, “expired 2 days ago”)
+  - exact date on hover or subtext
+- platform count should be clickable or tooltip-backed if useful
+- show “Partial Access” more clearly if applicable
+- actions should feel safer and more intentional
+- do not embed giant JSON in onclick attributes
+- table should remain lightweight and fast
+
+==================================================
+PHASE 5 — VIEW USER MODAL IMPROVEMENT
+==================================================
+
+The user detail/view modal should be upgraded into a better operations view.
+
+Improve:
+- header hierarchy
+- profile summary block
+- status and expiry clarity
+- subscriptions section readability
+- session/access insight clarity
+- per-platform subscription readability
+- revoke/extend actions
+- empty/loading states
+- visual grouping of account info vs access info
+
+If useful, add:
+- subscription health summary
+- nearest expiry highlight
+- stale or expired subscription emphasis
+- better platform breakdown chips
+- last activity / last login block if data already exists or can be loaded cheaply
+
+==================================================
+PHASE 6 — EDIT USER MODAL IMPROVEMENT
+==================================================
+
+The edit flow must be clearer and harder to misuse.
+
+Improve:
+- distinguish profile editing from access editing
+- separate save actions more clearly
+- avoid the risk of selecting platforms and forgetting to assign them
+- clearer call-to-action labels
+- inline validation
+- dirty-state handling
+- better layout and spacing
+- better footer action grouping
+
+Make sure the admin always understands:
+- what edits affect profile only
+- what edits affect subscriptions only
+- what action is destructive
+- what action is safe
+
+==================================================
+PHASE 7 — FRONTEND STATUS / EXPIRY CLARITY
+==================================================
+
+Now that the backend status model is better, make the frontend semantics crystal clear.
+
+Improve:
+- badge wording
+- color system
+- expiry text
+- partial access indicators
+- active vs disabled vs expired distinction
+- tooltip/help text if useful
+
+I want the frontend to clearly communicate:
+- Active
+- Expiring Soon
+- Expired
+- Partial Access
+- Disabled
+- No Access / Pending (if supported)
+
+Keep the same logic as the backend.
+Do not reintroduce inconsistent frontend-only logic.
+
+==================================================
+PHASE 8 — ACTION SAFETY & FEEDBACK
+==================================================
+
+Improve action UX for:
+- create
+- edit
+- assign
+- revoke
+- disable
+- enable
+- delete
+- export
+
+Each should have:
+- proper loading state
+- disabled state
+- clear success feedback
+- clear error feedback
+- safer destructive styling
+- compact but premium buttons
+
+For delete/revoke/disable:
+- impact preview should be clearly presented
+- confirmation modals should feel premium, not generic
+
+==================================================
+PHASE 9 — PERFORMANCE / 1000+ USERS HARDENING
+==================================================
+
+This is mandatory.
+
+All frontend improvements must preserve performance for 1000+ concurrent users.
+
+Requirements:
+- keep server-side pagination/search/filter/sort
+- minimize rerendering
+- do not add large client-side arrays again
+- use lightweight row updates
+- use skeletons instead of layout jumps
+- keep modals on-demand
+- avoid expensive DOM rebuilds for tiny changes
+- debounce user input where needed
+- keep table rendering cheap
+
+==================================================
+PHASE 10 — HIGH-VALUE EXTRA IMPROVEMENTS
+==================================================
+
+Also consider adding the most valuable frontend-only improvements, such as:
+- sticky filter/search bar
+- better selected platform summary
+- tooltip on platform count
+- quick copy email/username
+- user badge/avatar polish
+- inline status explanation
+- compact notifications/toasts
+- better CSV export feedback
+- “Create another user” guided flow
+- keyboard accessibility for modals/forms
+
+Only add what gives real admin value without making the UI heavy.
+
+==================================================
+PHASE 11 — OUTPUT I WANT
+==================================================
+
+After inspecting and improving, return this exact structure:
+
+1. CURRENT FRONTEND ISSUE SUMMARY
+- what looked weak
+- what was confusing
+- what was operationally weak
+- what would hurt admin efficiency
+
+2. PRODUCT DECISION SUMMARY
+- final frontend UX model
+- final create flow behavior
+- final table/modal behavior
+- final status/expiry presentation
+- final performance approach for 1000+ users
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of frontend improvements
+- how regressions are prevented
+- how speed is preserved
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- frontend UX improvements
+- create form polish
+- platform picker polish
+- users table polish
+- view/edit modal polish
+- clearer status/expiry UI
+- better confirmations/feedback
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- frontend looks more professional
+- admin workflows are clearer
+- create/edit/revoke/delete flows are easier and safer
+- status and expiry are visually clear
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real frontend code first
+- Preserve the improved backend-driven logic
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI compact, premium, and admin-friendly
+- Think like a lead frontend engineer + product designer shipping to production
