@@ -1,0 +1,222 @@
+You are a senior full-stack engineer, product designer, and performance engineer.
+
+I want you to inspect and improve the "Recent Intelligence Events" section of my Account Intelligence dashboard.
+
+IMPORTANT GLOBAL REQUIREMENT:
+The platform must not feel slow.
+Everything must be optimized for smooth performance for 1000+ concurrent users.
+Do not add expensive frontend polling or heavy backend refresh loops.
+Use efficient APIs, lightweight updates, and scalable architecture.
+
+==================================================
+CURRENT PROBLEMS
+==================================================
+
+From the current UI, I see these issues:
+
+1. There is NO delete/remove/dismiss action for Recent Intelligence Events.
+2. The event timing is NOT real-time enough.
+   It shows labels like:
+   - 5h ago
+   - 6h ago
+   but it does not appear to live-update properly on the frontend.
+3. The event list feels too static for an intelligence monitoring panel.
+4. Admin cannot manage noisy/old/unwanted events properly.
+5. Event rows may be missing operational controls and better realtime behavior.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Inspect the real implementation and improve this Recent Intelligence Events module so it becomes:
+
+- more manageable
+- more real-time
+- more actionable
+- more scalable
+- more professional
+
+Do not only redesign the UI.
+I want real frontend + backend improvements.
+
+==================================================
+PHASE 1 — REAL CODE AUDIT
+==================================================
+
+Inspect:
+- frontend rendering of Recent Intelligence Events
+- backend API for intelligence events
+- timestamp generation logic
+- relative time display logic
+- refresh/update logic
+- whether events are cached
+- whether event rows have IDs
+- whether delete/dismiss/archive functionality exists or not
+- whether there is live polling or static render only
+- whether updates are scalable for 1000+ concurrent users
+
+Then clearly report:
+1. what currently works
+2. what is missing
+3. why delete option is missing
+4. why timing is not updating in real time
+5. what architectural improvement is needed
+6. what could become slow for 1000+ users
+
+==================================================
+PHASE 2 — DELETE / DISMISS / ARCHIVE IMPROVEMENT
+==================================================
+
+I want proper event management controls.
+
+Add and define the correct action model:
+- delete event
+OR
+- dismiss event
+OR
+- archive event
+OR
+- hide from dashboard only
+
+Choose the safest and best product approach.
+
+Recommended behavior:
+- intelligence events should not be hard-deleted blindly if they are part of audit history
+- better approach may be:
+  - dismiss from dashboard
+  - archive event
+  - keep in audit log/history
+  - optional admin-only delete if truly needed
+
+Implement:
+- per-event action menu or delete/dismiss button
+- confirmation where necessary
+- backend route
+- permission checks
+- audit log
+- UI removal/update after action
+- error handling
+- efficient partial refresh only
+
+Also define:
+- when event can be deleted
+- when event should only be archived
+- whether “Auto Clean” events should be protected from deletion
+- whether run/update events should remain in immutable audit history
+
+==================================================
+PHASE 3 — REAL-TIME TIMING IMPROVEMENT
+==================================================
+
+The event timestamps should feel alive and current.
+
+Improve timing behavior:
+- show absolute timestamp on hover
+- show relative time in UI (e.g. 2m ago, 1h ago)
+- auto-update relative timestamps on the client every minute without requiring full dashboard reload
+- make sure it stays lightweight and does not create performance issues
+- if event list refreshes, preserve correct time labels
+- support fresh incoming events from intelligence runs
+
+Important:
+Do NOT do wasteful full-page refreshes.
+Use a lightweight time updater on the frontend.
+
+==================================================
+PHASE 4 — LIVE EVENT UPDATES
+==================================================
+
+Make the event list more real-time, but keep it scalable for 1000+ concurrent users.
+
+Recommended options:
+- lightweight polling for latest event IDs / changes
+- or websocket/SSE only if already supported and efficient
+- avoid reloading the full intelligence dashboard repeatedly
+- update only the event list or prepend new rows incrementally
+
+Implement the best scalable option.
+
+Requirements:
+- new intelligence events should appear without needing a manual refresh
+- relative timestamps should update automatically
+- avoid duplicate event rows
+- preserve filters if possible
+- avoid expensive repeated full queries
+
+==================================================
+PHASE 5 — BETTER EVENT ROW UX
+==================================================
+
+Improve each event row.
+
+Add or improve:
+- event action menu (dismiss/archive/delete if appropriate)
+- real-time relative time
+- absolute time tooltip
+- reason tag
+- severity tag
+- clearer delta display
+- better status chip
+- row hover actions
+- click to open account intelligence details
+- cleaner alignment and spacing
+
+Keep it compact and professional.
+
+==================================================
+PHASE 6 — BACKEND / PERFORMANCE HARDENING
+==================================================
+
+I want this to stay fast for 1000+ concurrent users.
+
+Improve:
+- indexed events query
+- pagination / cursor pagination if needed
+- event filters by type/platform
+- archive/dismiss persistence model
+- lightweight endpoint for new events only
+- cache strategy where useful
+- incremental fetch instead of full reload
+- request deduplication
+- concurrency-safe event mutation actions
+
+Also define:
+- whether events are immutable logs
+- whether dashboard visibility is separate from audit retention
+- safest schema changes for dismiss/archive support
+
+==================================================
+PHASE 7 — OUTPUT I WANT
+==================================================
+
+After inspection, give me:
+
+1. CURRENT ISSUE REPORT
+- why delete option is missing
+- why timing is not real-time
+- what is missing in the current event system
+
+2. PRODUCT DECISION
+- should this use delete, dismiss, or archive?
+- what is the safest admin workflow?
+
+3. FILE-BY-FILE PLAN
+- exact frontend/backend files to modify
+- what changes in each
+
+4. IMPLEMENTATION PLAN
+- safest order to build
+- how to keep it fast for 1000+ users
+
+5. CODE IMPLEMENTATION
+Actually implement:
+- event action control
+- real-time relative timing updates
+- lightweight event refresh/update system
+- final polished UI improvements
+
+IMPORTANT:
+- do not make the platform slow
+- optimize for 1000+ concurrent users
+- avoid heavy full dashboard reloads
+- preserve audit history safely

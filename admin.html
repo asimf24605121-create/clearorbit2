@@ -2063,7 +2063,7 @@ function showSection(name) {
     if (name === 'loginlogs') { loadLoginAttempts(); startAutoRefresh('loginlogs'); }
     else { stopAutoRefresh('loginlogs'); }
     if (name === 'accounts') { loadAccountSlots(); loadIntelligenceDashboard(); uaPopulatePlatforms(); startAutoRecheck(); }
-    else { stopAutoRecheck(); }
+    else { stopAutoRecheck(); _alieStopLiveUpdates(); }
     if (name === 'platforms') loadPlatformIntelligence();
     if (name === 'users') { if (ALL_USERS.length === 0) loadStats(); try { cuRenderPlatGrid(); } catch(e2) { console.error('cuRenderPlatGrid error', e2); } }
 }
@@ -5315,6 +5315,7 @@ let _alieJobId = null;
 let _alieJobPollTimer = null;
 let _alieEventFilter = { event_type: '', platform: '', page: 1 };
 let _alieDashData = null;
+let _alieLatestEventId = 0;
 
 function _alieTrendArrow(direction, delta) {
     if (direction === 'improving') return `<span class="text-emerald-500 text-[10px]" title="7d trend: +${delta}">&#9650;</span>`;
@@ -5545,6 +5546,8 @@ async function loadIntelligenceDashboard() {
                 }
             }, 1000);
         }
+        _alieStartTimestampUpdater();
+        _alieStartEventPoller();
     } catch (e) {
         container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Network error loading intelligence.</div>';
     }
@@ -5553,10 +5556,14 @@ async function loadIntelligenceDashboard() {
 function _alieRenderEvents(events) {
     if (events.length === 0) return '';
     const platforms = _alieDashData?.platform_stats ? Object.keys(_alieDashData.platform_stats) : [];
+    if (events.length > 0) {
+        _alieLatestEventId = Math.max(...events.map(e => e.id));
+    }
     let html = `<div id="alieEventsSection"><div class="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Recent Intelligence Events
+            <span id="alieNewEventDot" class="hidden w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
         </h4>
         <div class="flex items-center gap-2">
             <select id="alieEventTypeFilter" onchange="_alieFilterEvents()" class="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 bg-white text-gray-600">
@@ -5569,6 +5576,7 @@ function _alieRenderEvents(events) {
                 <option value="">All platforms</option>
                 ${platforms.map(p => `<option value="${escHtml(p)}">${escHtml(p)}</option>`).join('')}
             </select>` : ''}
+            <button onclick="_alieDismissAllVisible()" class="text-[9px] text-gray-400 hover:text-red-500 transition-colors px-1" title="Dismiss all visible events">Clear all</button>
             <span class="text-[9px] text-gray-400" id="alieEventCount">${events.length} events</span>
         </div>
     </div>
@@ -5579,6 +5587,12 @@ function _alieRenderEvents(events) {
     <div id="alieEventsPagination" class="flex items-center justify-center gap-2 mt-2"></div>
     </div>`;
     return html;
+}
+
+function _alieFormatAbsTime(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 function _alieRenderEventRows(events) {
@@ -5596,8 +5610,10 @@ function _alieRenderEventRows(events) {
         const evtTypeLabel = e.event_type === 'auto_clean' ? '<span class="text-[8px] px-1 py-0.5 rounded bg-red-100 text-red-600">clean</span>'
             : e.event_type === 'intelligence_run' ? '<span class="text-[8px] px-1 py-0.5 rounded bg-violet-100 text-violet-600">run</span>'
             : '<span class="text-[8px] px-1 py-0.5 rounded bg-gray-100 text-gray-500">update</span>';
-        html += `<div class="flex items-center justify-between py-1.5 px-3 text-xs hover:bg-gray-50 cursor-pointer ${evtColor} ${i > 0 ? 'border-t border-gray-50' : ''}" onclick="openScoreBreakdown(${e.account_id})">
-            <div class="flex items-center gap-2 min-w-0">
+        const absTip = _alieFormatAbsTime(e.created_at);
+        const severityClass = e.new_stability === 'DEAD' ? 'border-l-2 border-l-red-300' : e.new_stability === 'RISKY' ? 'border-l-2 border-l-amber-300' : '';
+        html += `<div class="alie-evt-row group flex items-center justify-between py-1.5 px-3 text-xs hover:bg-gray-50 transition-colors ${evtColor} ${severityClass} ${i > 0 ? 'border-t border-gray-50' : ''}" data-evt-id="${e.id}">
+            <div class="flex items-center gap-2 min-w-0 cursor-pointer" onclick="openScoreBreakdown(${e.account_id})">
                 ${icon}
                 <span class="text-gray-700 font-medium truncate">${escHtml(e.slot_name || 'Slot #' + e.account_id)}</span>
                 <span class="text-gray-400 flex-shrink-0">${escHtml(e.platform_name || '')}</span>
@@ -5608,11 +5624,126 @@ function _alieRenderEventRows(events) {
                 <span class="text-gray-500">${e.old_score} &rarr; <span class="font-semibold">${e.new_score}</span></span>
                 ${deltaText}
                 ${_alieStabBadge(e.new_stability)}
-                <span class="text-gray-300 text-[10px]">${_alieTimeAgo(e.created_at)}</span>
+                <span class="alie-ts text-gray-300 text-[10px] cursor-help" data-ts="${e.created_at}" title="${absTip}">${_alieTimeAgo(e.created_at)}</span>
+                <button onclick="event.stopPropagation();_alieDismissEvent(${e.id},this)" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-300 hover:text-red-400 p-0.5 -mr-1" title="Dismiss event">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
         </div>`;
     });
     return html;
+}
+
+async function _alieDismissEvent(eventId, btnEl) {
+    const row = btnEl.closest('.alie-evt-row');
+    if (row) {
+        row.style.transition = 'opacity 0.3s, max-height 0.3s';
+        row.style.opacity = '0.3';
+    }
+    try {
+        const res = await fetch('api/account_intelligence', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'dismiss_event', event_id: eventId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (row) {
+                row.style.maxHeight = row.offsetHeight + 'px';
+                requestAnimationFrame(() => { row.style.maxHeight = '0'; row.style.overflow = 'hidden'; row.style.padding = '0'; });
+                setTimeout(() => row.remove(), 350);
+            }
+            if (_alieDashData?.recent_events) {
+                _alieDashData.recent_events = _alieDashData.recent_events.filter(e => e.id !== eventId);
+            }
+            const countEl = document.getElementById('alieEventCount');
+            if (countEl) {
+                const remaining = document.querySelectorAll('.alie-evt-row').length - 1;
+                countEl.textContent = remaining + ' events';
+            }
+        } else {
+            if (row) row.style.opacity = '1';
+            showAlert(data.message || 'Failed to dismiss', true);
+        }
+    } catch (_) {
+        if (row) row.style.opacity = '1';
+        showAlert('Network error', true);
+    }
+}
+
+async function _alieDismissAllVisible() {
+    const rows = document.querySelectorAll('.alie-evt-row');
+    if (rows.length === 0) return;
+    const ids = Array.from(rows).map(r => parseInt(r.dataset.evtId)).filter(id => id > 0);
+    if (ids.length === 0) return;
+    if (!confirm(`Dismiss ${ids.length} event(s) from dashboard? They remain in audit history.`)) return;
+    rows.forEach(r => { r.style.opacity = '0.3'; });
+    try {
+        const res = await fetch('api/account_intelligence', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include',
+            body: JSON.stringify({ action: 'dismiss_events_bulk', event_ids: ids })
+        });
+        const data = await res.json();
+        if (data.success) {
+            rows.forEach(r => r.remove());
+            if (_alieDashData?.recent_events) _alieDashData.recent_events = [];
+            const countEl = document.getElementById('alieEventCount');
+            if (countEl) countEl.textContent = '0 events';
+            const listEl = document.getElementById('alieEventsList');
+            if (listEl) listEl.innerHTML = '<div class="text-center text-gray-400 text-[10px] py-3">All events dismissed.</div>';
+            showAlert(`${data.dismissed_count} events dismissed.`);
+        } else {
+            rows.forEach(r => { r.style.opacity = '1'; });
+            showAlert(data.message || 'Bulk dismiss failed', true);
+        }
+    } catch (_) {
+        rows.forEach(r => { r.style.opacity = '1'; });
+    }
+}
+
+function _alieStartTimestampUpdater() {
+    if (window._alieTimestampInterval) clearInterval(window._alieTimestampInterval);
+    window._alieTimestampInterval = setInterval(() => {
+        const tsEls = document.querySelectorAll('.alie-ts[data-ts]');
+        tsEls.forEach(el => {
+            el.textContent = _alieTimeAgo(el.dataset.ts);
+        });
+    }, 60000);
+}
+
+function _alieStartEventPoller() {
+    if (window._alieEventPollInterval) clearInterval(window._alieEventPollInterval);
+    window._alieEventPollInterval = setInterval(async () => {
+        if (_alieEventFilter.event_type || _alieEventFilter.platform) return;
+        const section = document.getElementById('sec-accounts');
+        if (!section || !section.classList.contains('active')) return;
+        try {
+            const res = await fetch(`api/account_intelligence?action=events_since&since_id=${_alieLatestEventId}`, { credentials: 'include' });
+            const data = await res.json();
+            if (!data.success || data.events.length === 0) return;
+            const listEl = document.getElementById('alieEventsList');
+            if (!listEl) return;
+            const newHtml = _alieRenderEventRows(data.events);
+            listEl.insertAdjacentHTML('afterbegin', newHtml);
+            const newRows = listEl.querySelectorAll('.alie-evt-row');
+            const maxRows = 30;
+            if (newRows.length > maxRows) {
+                for (let j = maxRows; j < newRows.length; j++) newRows[j].remove();
+            }
+            _alieLatestEventId = data.latest_id;
+            if (_alieDashData?.recent_events) {
+                _alieDashData.recent_events = [...data.events, ..._alieDashData.recent_events].slice(0, 30);
+            }
+            const countEl = document.getElementById('alieEventCount');
+            if (countEl) countEl.textContent = listEl.querySelectorAll('.alie-evt-row').length + ' events';
+            const dot = document.getElementById('alieNewEventDot');
+            if (dot) { dot.classList.remove('hidden'); setTimeout(() => dot.classList.add('hidden'), 5000); }
+        } catch (_) {}
+    }, 30000);
+}
+
+function _alieStopLiveUpdates() {
+    if (window._alieTimestampInterval) { clearInterval(window._alieTimestampInterval); window._alieTimestampInterval = null; }
+    if (window._alieEventPollInterval) { clearInterval(window._alieEventPollInterval); window._alieEventPollInterval = null; }
 }
 
 async function _alieFilterEvents() {
@@ -6688,9 +6819,9 @@ function initSocket() {
         _socket = io({ path: '/socket.io', withCredentials: true });
         _socket.on('connect', () => console.log('Socket connected'));
         _socket.on('slot_updated', (data) => { _refreshAll(); });
-        _socket.on('intelligence_updated', (data) => { _refreshAll(); });
-        _socket.on('intelligence_run_complete', (data) => { showAlert(`Intelligence run: ${data.updated} accounts scored`, false); _refreshAll(); });
-        _socket.on('auto_clean_complete', (data) => { showAlert(`Auto clean: ${data.cleaned} accounts disabled`, false); _refreshAll(); });
+        _socket.on('intelligence_updated', (data) => { loadIntelligenceDashboard(); });
+        _socket.on('intelligence_run_complete', (data) => { showAlert(`Intelligence run: ${data.updated} accounts scored`, false); loadIntelligenceDashboard(); });
+        _socket.on('auto_clean_complete', (data) => { showAlert(`Auto clean: ${data.cleaned} accounts disabled`, false); loadIntelligenceDashboard(); _refreshAll(); });
         _socket.on('accounts_rechecked', (data) => { _refreshAll(); });
         _socket.on('slot_assigned', () => { _refreshAll(); });
         _socket.on('online_count', (count) => {

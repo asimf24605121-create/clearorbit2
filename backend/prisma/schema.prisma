@@ -332,11 +332,13 @@ model AccountIntelligenceLog {
   newStability String @default("UNKNOWN") @map("new_stability")
   reason       String @default("")
   createdAt    String @default("") @map("created_at")
+  dismissed    Int    @default(0)
 
   account      PlatformAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([accountId, createdAt])
   @@index([eventType, createdAt])
+  @@index([dismissed, createdAt])
   @@map("account_intelligence_log")
 }
 

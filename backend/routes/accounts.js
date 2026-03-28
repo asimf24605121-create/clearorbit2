@@ -1230,6 +1230,7 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
         .sort((a, b) => b.priority_score - a.priority_score);
 
       const recentEvents = await prisma.accountIntelligenceLog.findMany({
+        where: { dismissed: 0 },
         orderBy: { createdAt: 'desc' },
         take: 30,
         include: {
@@ -1271,7 +1272,7 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
     }
 
     if (action === 'events') {
-      const evtWhere = {};
+      const evtWhere = { dismissed: 0 };
       if (account_id) evtWhere.accountId = parseInt(account_id);
       if (platform_id) evtWhere.platformId = parseInt(platform_id);
       if (event_type) evtWhere.eventType = event_type;
@@ -1303,6 +1304,30 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
           reason: e.reason, created_at: e.createdAt,
         })),
         pagination: { page: pageNum, limit: pageSize, total, pages: Math.ceil(total / pageSize) },
+      });
+    }
+
+    if (action === 'events_since') {
+      const sinceId = parseInt(req.query.since_id) || 0;
+      const events = await prisma.accountIntelligenceLog.findMany({
+        where: { id: { gt: sinceId }, dismissed: 0 },
+        orderBy: { id: 'asc' },
+        take: 50,
+        include: {
+          account: { select: { slotName: true, platform: { select: { name: true } } } },
+        },
+      });
+      return res.json({
+        success: true,
+        events: events.map(e => ({
+          id: e.id, account_id: e.accountId, platform_id: e.platformId,
+          slot_name: e.account?.slotName || null,
+          platform_name: e.account?.platform?.name || null,
+          event_type: e.eventType, old_score: e.oldScore, new_score: e.newScore,
+          old_stability: e.oldStability, new_stability: e.newStability,
+          reason: e.reason, created_at: e.createdAt,
+        })),
+        latest_id: events.length > 0 ? Math.max(...events.map(e => e.id)) : sinceId,
       });
     }
 
@@ -1485,6 +1510,26 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
           platforms_affected: [...new Set(preview.map(p => p.platform))],
         },
       });
+    }
+
+    if (action === 'dismiss_event') {
+      const eventId = parseInt(req.body.event_id);
+      if (!eventId) return res.status(400).json({ success: false, message: 'event_id required' });
+      const evt = await prisma.accountIntelligenceLog.findUnique({ where: { id: eventId } });
+      if (!evt) return res.status(404).json({ success: false, message: 'Event not found' });
+      if (evt.dismissed === 1) return res.json({ success: true, message: 'Already dismissed' });
+      await prisma.accountIntelligenceLog.update({ where: { id: eventId }, data: { dismissed: 1 } });
+      intelligenceCache.invalidate('intel:dashboard');
+      return res.json({ success: true, dismissed_id: eventId });
+    }
+
+    if (action === 'dismiss_events_bulk') {
+      const ids = req.body.event_ids;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ success: false, message: 'event_ids array required' });
+      const safeIds = ids.map(id => parseInt(id)).filter(id => id > 0).slice(0, 100);
+      await prisma.accountIntelligenceLog.updateMany({ where: { id: { in: safeIds } }, data: { dismissed: 1 } });
+      intelligenceCache.invalidate('intel:dashboard');
+      return res.json({ success: true, dismissed_count: safeIds.length });
     }
 
     if (action === 'auto_clean') {

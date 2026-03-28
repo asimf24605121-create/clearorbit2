@@ -99,3 +99,9 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 - **Auto Clean Modal**: `msg-modal-overlay` pattern with ESC dismiss, preview-before-execute safety
 - **Score Breakdown Modal**: `#scoreBreakdownModal` — click any score/account to see full breakdown with progress bars; ESC dismissible
 - **Incremental Refresh**: Intelligence operations reload only `loadIntelligenceDashboard()`, not full `_refreshAll()`
+- **Event Dismiss**: `POST action=dismiss_event` (single) / `dismiss_events_bulk` (array up to 100) — soft-hides events from dashboard while preserving audit history via `dismissed` column (Int, default 0)
+- **Events Since**: `GET action=events_since&since_id=X` — lightweight incremental fetch for new events only (up to 50, ordered by id ASC)
+- **Live Timestamps**: `_alieTimestampInterval` (60s) updates all `.alie-ts[data-ts]` elements with fresh relative times; absolute time shown on hover via title attribute
+- **Live Event Poller**: `_alieEventPollInterval` (30s) fetches new events via `events_since`, prepends to list, caps at 30 rows; auto-stops when leaving accounts section
+- **Event Row UX**: Severity left-border (red=DEAD, amber=RISKY), hover-reveal dismiss button, absolute time tooltip, new-event pulse dot indicator, "Clear all" bulk dismiss with confirmation
+- **WebSocket Optimization**: `intelligence_updated` / `intelligence_run_complete` now trigger `loadIntelligenceDashboard()` instead of `_refreshAll()`
