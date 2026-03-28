@@ -117,5 +117,8 @@ Platform access is fully dependent on the ClearOrbit website session. Key mechan
 - **Safe Delete**: Backend rejects delete for platforms with active sessions/subscriptions unless `force=true`; frontend shows impact preview then force confirmation
 - **Safe Disable**: `POST /api/toggle_platform` — terminates active sessions atomically in transaction; confirmation dialog warns about session termination
 - **Cache Invalidation**: All mutations (toggle/delete/health check) invalidate `platform:dashboard` cache key and account caches
-- **Frontend**: 6 summary cards (Total/Healthy/Degraded/Unused/Inactive/Dead), clickable platform cards with status reason, drilldown modal, registry table with status filter dropdown, health check polling with progress indicator
+- **Logo Upload**: `POST /api/upload_logo` — multer file upload (JPG/PNG/WebP/SVG, 2MB limit), auto-cleanup of old files in `uploads/`, cache busting; `POST /api/remove_logo` — removes file and clears DB entry; both log to `activityLog` and invalidate dashboard cache
+- **Frontend**: 6 summary cards, clickable platform cards with status reason + last-checked timestamps (relative with absolute tooltip), registry table with sortable columns (Platform/Health/Accounts/Sessions), health check polling with progress indicator
+- **Detail Modal**: Gradient header with logo upload overlay (camera icon on hover, file input trigger), health score + status badge + reason, 4 colored metric cards, account slots table with Last Activity column, footer with toggle/delete/upload/remove-logo buttons
+- **Timestamp Formatting**: `_platTimeAgo(ts)` consolidated from `_alieTimeAgo` pattern (Yesterday, explicit dates for old values); `_platAbsoluteTime(ts)` for `title` tooltips showing full date; all platform timestamps use these consistently
 - **Status Badges**: Color-coded with icons — green ● Healthy, amber ▲ Degraded, gray ○ Unused, purple ⏸ Inactive, red ✕ Dead

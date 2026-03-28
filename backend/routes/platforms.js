@@ -10,6 +10,33 @@ import {
 import { invalidateAccountCaches, platformCache } from '../utils/cache.js';
 import { platformHealthQueue } from '../utils/jobQueue.js';
 import { recheckLimiter } from '../middleware/rateLimit.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.png';
+    const hash = crypto.randomBytes(8).toString('hex');
+    cb(null, `logo_${hash}${ext}`);
+  },
+});
+
+const logoUpload = multer({
+  storage: logoStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error('Only JPG, PNG, WebP, and SVG images are allowed'));
+  },
+});
 
 const BATCH_SIZE = 20;
 
@@ -239,19 +266,72 @@ router.post('/toggle_platform', authenticate, requireAdmin(), async (req, res) =
   }
 });
 
-router.post('/upload_logo', authenticate, requireAdmin(), async (req, res) => {
-  try {
-    const { platform_id, logo_url } = req.body;
-    if (!platform_id || !logo_url) return res.status(400).json({ success: false, message: 'Platform ID and logo URL required' });
+router.post('/upload_logo', authenticate, requireAdmin(), (req, res) => {
+  logoUpload.single('logo')(req, res, async (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ success: false, message: 'File too large (max 2MB)' });
+      return res.status(400).json({ success: false, message: err.message || 'Upload failed' });
+    }
+    try {
+      const platformId = parseInt(req.body.platform_id);
+      if (!platformId) return res.status(400).json({ success: false, message: 'Platform ID required' });
 
-    await prisma.platform.update({
-      where: { id: parseInt(platform_id) },
-      data: { logoUrl: logo_url },
+      if (req.body.logo_url && !req.file) {
+        await prisma.platform.update({ where: { id: platformId }, data: { logoUrl: req.body.logo_url } });
+        platformCache.invalidate('platform:dashboard');
+        return res.json({ success: true, message: 'Logo URL updated', logo_url: req.body.logo_url });
+      }
+
+      if (!req.file) return res.status(400).json({ success: false, message: 'No file provided' });
+
+      const platform = await prisma.platform.findUnique({ where: { id: platformId }, select: { logoUrl: true, name: true } });
+      if (!platform) { fs.unlinkSync(req.file.path); return res.status(404).json({ success: false, message: 'Platform not found' }); }
+
+      if (platform.logoUrl && platform.logoUrl.startsWith('/uploads/')) {
+        const oldPath = path.join(process.cwd(), platform.logoUrl);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+
+      const logoUrl = `/uploads/${req.file.filename}`;
+      await prisma.platform.update({ where: { id: platformId }, data: { logoUrl } });
+
+      await prisma.activityLog.create({
+        data: { userId: req.user.id, action: `Updated logo for platform "${platform.name}" (ID: ${platformId})`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      platformCache.invalidate('platform:dashboard');
+      res.json({ success: true, message: 'Logo uploaded', logo_url: logoUrl });
+    } catch (e) {
+      console.error('upload_logo error:', e);
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  });
+});
+
+router.post('/remove_logo', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { platform_id } = req.body;
+    if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
+
+    const platform = await prisma.platform.findUnique({ where: { id: parseInt(platform_id) }, select: { logoUrl: true, name: true } });
+    if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
+
+    if (platform.logoUrl && platform.logoUrl.startsWith('/uploads/')) {
+      const filePath = path.join(process.cwd(), platform.logoUrl);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    await prisma.platform.update({ where: { id: parseInt(platform_id) }, data: { logoUrl: null } });
+
+    await prisma.activityLog.create({
+      data: { userId: req.user.id, action: `Removed logo for platform "${platform.name}" (ID: ${platform_id})`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
 
-    res.json({ success: true, message: 'Logo updated' });
+    platformCache.invalidate('platform:dashboard');
+    res.json({ success: true, message: 'Logo removed' });
   } catch (err) {
-    console.error('upload_logo error:', err);
+    console.error('remove_logo error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -571,7 +651,8 @@ router.get('/platform_health', authenticate, requireAdmin(), async (req, res) =>
               id: true, slotName: true, isActive: true, healthStatus: true,
               intelligenceScore: true, stabilityStatus: true,
               successCount: true, failCount: true, cookieStatus: true,
-              lastSuccessAt: true, expiresAt: true, createdAt: true,
+              lastSuccessAt: true, lastFailedAt: true, expiresAt: true, createdAt: true,
+              lastVerifiedAt: true,
             },
             orderBy: { intelligenceScore: 'desc' },
             take: 50,
@@ -607,7 +688,9 @@ router.get('/platform_health', authenticate, requireAdmin(), async (req, res) =>
             health_status: a.healthStatus, intelligence_score: a.intelligenceScore || 0,
             stability: a.stabilityStatus, cookie_status: a.cookieStatus,
             success_count: a.successCount, fail_count: a.failCount,
-            last_success: a.lastSuccessAt, expires_at: a.expiresAt,
+            last_success: a.lastSuccessAt, last_failed: a.lastFailedAt,
+            last_verified: a.lastVerifiedAt, expires_at: a.expiresAt,
+            created_at: a.createdAt,
           })),
         },
       });
