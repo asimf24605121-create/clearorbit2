@@ -26,16 +26,16 @@ export function getClientIP(req) {
   const cfIP = req.headers['cf-connecting-ip'];
   if (cfIP) return cfIP.trim();
 
+  const realIp = req.headers['x-real-ip'];
+  if (realIp) return realIp.trim();
+
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
-    for (const ip of ips) {
-      if (!isPrivateIP(ip)) return ip;
-    }
-    return ips[0];
+    if (ips.length > 0) return ips[0];
   }
 
-  return req.headers['x-real-ip'] || req.socket?.remoteAddress || '0.0.0.0';
+  return req.socket?.remoteAddress || '0.0.0.0';
 }
 
 function isPrivateIP(ip) {
