@@ -1,0 +1,359 @@
+You are a senior full-stack engineer, senior SaaS architect, senior frontend UX architect, and senior admin-dashboard product designer.
+
+I want you to rework the Users module frontend into a clean, profile-centered workflow.
+
+IMPORTANT:
+Read this carefully and follow it exactly.
+Do not misunderstand the structure.
+Do not bring back the old mixed system.
+Do not create a separate Subscriptions page.
+Do not make the platform slow.
+Everything must stay optimized for 1000+ concurrent users.
+
+==================================================
+FINAL UX DIRECTION
+==================================================
+
+I want the USERS PAGE to remain the only main page for user management.
+
+I do NOT want:
+- separate visible Subscriptions page
+- Platforms column in the users table
+- cluttered multiple icons for profile/edit/access
+
+I DO want:
+- only ONE main user icon / entry point in each row
+- Disable and Delete must remain as separate visible row actions
+- that ONE main user icon should open ONE user modal/workspace
+- inside that one user modal/workspace there must be 3 internal pages/tabs/states
+
+Those 3 internal pages are:
+
+1. View Profile
+2. Edit Profile
+3. Manage Subscription
+
+==================================================
+WHAT TO REMOVE
+==================================================
+
+REMOVE from Users table:
+- Platforms column
+- platform count badge like "9 platforms", "1 platform", etc.
+- extra cluttered action icons for separate view/edit/subscription actions
+
+REMOVE from visible admin flow:
+- separate Subscriptions page in sidebar/navigation
+- separate subscriptions section/page routing in the UI
+
+REMOVE from Edit Profile page/modal:
+- Assign Platforms
+- platform picker
+- subscription controls
+- duration selectors
+- extend/revoke subscription controls
+
+Do NOT add back the old mixed user/subscription modal structure.
+
+==================================================
+WHAT MUST STAY
+==================================================
+
+KEEP on Users table:
+- User
+- Email
+- Expiry
+- Status
+- ONE main user icon / entry point
+- Disable / Enable action
+- Delete action
+
+Disable and Delete must NOT be removed.
+
+==================================================
+FINAL USERS TABLE STRUCTURE
+==================================================
+
+Users table should be cleaner and more professional.
+
+Columns:
+- User
+- Email
+- Expiry
+- Status
+- Actions
+
+Actions should be:
+- ONE main user icon / entry point
+- Disable / Enable
+- Delete
+
+The main user icon should feel connected to the user identity/name area.
+It should open the full user workflow.
+
+Fix:
+- cramped icons
+- clipped buttons
+- bad spacing
+- poor alignment
+- action clutter
+
+Make it compact, premium, and enterprise-grade.
+
+==================================================
+ONE MAIN USER MODAL / WORKSPACE
+==================================================
+
+Clicking the ONE main user icon should open ONE structured user modal/window/workspace.
+
+Inside that single modal/workspace, create 3 internal tabs/pages/states:
+
+A. View Profile
+B. Edit Profile
+C. Manage Subscription
+
+This must feel like one user-centered workflow, not random disconnected modals.
+
+==================================================
+1. VIEW PROFILE PAGE
+==================================================
+
+This page must be READ-ONLY.
+
+Show:
+- avatar or initial
+- username
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- join date
+- expiry summary
+- account/security info
+- last login IP
+- IP location
+- active subscription summary in one compact row/section
+
+IMPORTANT:
+- no edit inputs
+- no save button
+- no assign controls
+- no extend/revoke buttons in this page
+
+This page is only for viewing the user profile.
+
+==================================================
+2. EDIT PROFILE PAGE
+==================================================
+
+This page must ONLY handle user/account editing.
+
+Fields:
+- full name
+- email
+- phone
+- country
+- city
+- gender
+- password reset
+- basic user metadata
+
+IMPORTANT:
+- no Assign Platforms
+- no platform picker
+- no duration selector
+- no subscription controls
+- no access management here
+
+This page should be clean, short, professional, and clearly separate from the View Profile page.
+
+==================================================
+3. MANAGE SUBSCRIPTION PAGE
+==================================================
+
+This page is the ONLY place for subscription management.
+
+This page must show:
+
+A. Active subscriptions
+For each platform show:
+- platform logo
+- platform name
+- start date
+- expiry date
+- days left / next expiry
+- status
+
+B. Expired / revoked subscriptions
+If useful, show them in a separate section.
+
+C. Add New Subscription area
+Allow:
+- choose platform(s)
+- choose duration/time
+- add subscription
+
+D. Actions per subscription
+Allow:
+- extend +7
+- extend +30
+- custom extend
+- revoke/delete subscription
+
+==================================================
+MANAGE SUBSCRIPTION PAGE — SPECIAL UI RULES
+==================================================
+
+This part is very important.
+
+I want the Manage Subscription page to be cleaner and more professional.
+
+1. The current heavy active subscription display should be simplified/compacted.
+2. Active subscription indicators should be small and clean.
+3. Use a very small green dot to show active status.
+4. Do not use oversized badges if they make the UI heavy.
+5. Make it compact and premium.
+
+For "Add New Subscription" area:
+- platforms already assigned to this user should be clearly identified
+- they should appear pre-marked / already selected / already indicated
+- they should have a small remove / cross option if needed
+- admin should immediately understand:
+  - which platform is already active
+  - which platform is new
+  - which platform can be extended
+  - which platform can be removed
+
+Support:
+- checkbox selection
+- time/duration selection
+- clear assign flow
+- clear extend flow
+- clear revoke/delete flow
+
+The whole subscription manager must feel powerful but easy to understand.
+
+==================================================
+IP LOCATION ISSUE
+==================================================
+
+There is a problem:
+IP location is showing wrong address / wrong place.
+
+Fix this properly.
+
+Requirements:
+- show last login IP clearly
+- show IP location only if trustworthy enough
+- if location is approximate or uncertain, label it safely
+- do not confidently show wrong city/address
+- use graceful fallback if geo lookup fails
+- cache geo lookup if needed
+- do not make the modal slow
+- do not make expensive live lookups on every render
+
+If exact location is not reliable, show:
+- approximate location
+or
+- location unavailable
+
+Do not mislead the admin.
+
+==================================================
+PERFORMANCE RULES
+==================================================
+
+This is mandatory.
+
+The platform must stay fast for 1000+ concurrent users.
+
+Requirements:
+- keep server-side users API
+- keep server-side pagination/search/filter/sort
+- do not bring back heavy ALL_USERS-style loading
+- no full dashboard reload after every action
+- refresh only the affected row/current slice
+- load profile/subscription details on demand
+- cache/optimize geo lookup if needed
+- keep modal lightweight
+- minimize rerenders
+- avoid large DOM trees where not needed
+
+==================================================
+FINAL IMPLEMENTATION TASKS
+==================================================
+
+Implement these exact changes:
+
+1. Remove the visible separate Subscriptions page from admin navigation/workflow
+2. Remove the Platforms column from Users table
+3. Keep Disable / Enable
+4. Keep Delete
+5. Reduce icon clutter
+6. Use ONE main user icon / entry point
+7. Create ONE main user modal/workspace with:
+   - View Profile page
+   - Edit Profile page
+   - Manage Subscription page
+8. Remove Assign Platforms from Edit Profile page
+9. Put all subscription actions only inside Manage Subscription page
+10. Fix wrong IP location issue
+11. Make the Users page and user modal look premium, compact, and professional
+
+==================================================
+OUTPUT FORMAT I WANT
+==================================================
+
+After inspecting and implementing, give me this exact output:
+
+1. CURRENT ISSUE SUMMARY
+- what was mixed/confusing
+- what was removed
+- what was fixed
+
+2. PRODUCT DECISION SUMMARY
+- final Users table role
+- final View Profile page role
+- final Edit Profile page role
+- final Manage Subscription page role
+- final IP/location behavior
+
+3. FILE-BY-FILE CHANGE PLAN
+- exact files changed
+- what changed in each
+
+4. IMPLEMENTATION PLAN
+- safest order of changes
+- how regressions were prevented
+- how performance was preserved
+
+5. CODE IMPLEMENTATION
+Actually implement all changes
+
+6. FINAL QA / RELEASE REPORT
+Verify:
+- Platforms column is removed
+- separate Subscriptions page is removed from visible flow
+- Disable/Delete still exist
+- one main user icon opens the user workspace
+- View Profile is read-only
+- Edit Profile is profile-only
+- Manage Subscription handles all subscription operations
+- IP location fails gracefully if inaccurate
+- performance remains smooth for 1000+ concurrent users
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- Do not give shallow advice
+- Inspect the real code first
+- Preserve improved backend logic
+- Do not make the platform slow
+- Optimize for 1000+ concurrent users
+- Preserve working functionality
+- Keep the UI premium, compact, and admin-friendly
+- Do not add back the old mixed system
+- Follow the structure exactly
