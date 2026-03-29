@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
-import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, paginate } from '../utils/helpers.js';
+import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, getRemainingObj, getSubStatus, paginate } from '../utils/helpers.js';
 
 const router = Router();
 
@@ -23,18 +23,8 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
       };
     }
 
-    if (status === 'active') {
-      where.isActive = 1;
-      where.endDate = { gte: today };
-    } else if (status === 'expired') {
-      where.OR = [{ isActive: 0 }, { endDate: { lt: today } }];
-    } else if (status === 'expiring_soon') {
-      const weekFromNow = futureDate(7);
-      where.isActive = 1;
-      where.endDate = { gte: today, lte: weekFromNow };
-    } else if (status === 'revoked') {
+    if (status === 'revoked') {
       where.isActive = 0;
-      where.endDate = { gte: today };
     }
 
     let orderBy = { endDate: 'desc' };
@@ -45,43 +35,46 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
     else if (sort === 'user') orderBy = { user: { username: 'asc' } };
     else if (sort === 'platform') orderBy = { platform: { name: 'asc' } };
 
-    const [subs, total] = await Promise.all([
-      prisma.userSubscription.findMany({
-        where,
-        include: {
-          user: { select: { username: true, name: true, profileImage: true } },
-          platform: { select: { name: true, logoUrl: true, bgColorHex: true } },
-        },
-        orderBy,
-        skip, take,
-      }),
-      prisma.userSubscription.count({ where }),
-    ]);
+    const allSubs = await prisma.userSubscription.findMany({
+      where,
+      include: {
+        user: { select: { username: true, name: true, profileImage: true } },
+        platform: { select: { name: true, logoUrl: true, bgColorHex: true } },
+      },
+      orderBy,
+    });
 
-    const now = new Date();
+    let mapped = allSubs.map(s => {
+      const remaining = getRemainingObj(s.endDate);
+      const computedStatus = getSubStatus(s.endDate, s.isActive);
+      return {
+        id: s.id, user_id: s.userId, username: s.user?.username,
+        user_name: s.user?.name, user_avatar: s.user?.profileImage,
+        platform_id: s.platformId,
+        platform_name: s.platform?.name, platform_logo: s.platform?.logoUrl,
+        platform_color: s.platform?.bgColorHex,
+        start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
+        remaining, days_left: remaining.days, status: computedStatus,
+        duration_value: s.durationValue, duration_unit: s.durationUnit || 'days',
+      };
+    });
+
+    if (status === 'active') {
+      mapped = mapped.filter(s => s.status === 'active' || s.status === 'expiring');
+    } else if (status === 'expired') {
+      mapped = mapped.filter(s => s.status === 'expired' || s.status === 'revoked');
+    } else if (status === 'expiring_soon') {
+      mapped = mapped.filter(s => s.status === 'expiring');
+    } else if (status === 'revoked') {
+      mapped = mapped.filter(s => s.status === 'revoked');
+    }
+
+    const total = mapped.length;
+    const paged = mapped.slice(skip, skip + take);
+
     res.json({
       success: true,
-      subscriptions: subs.map(s => {
-        const expired = isSubExpired(s.endDate);
-        const endParsed = new Date(s.endDate && s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
-        const remainMs = endParsed - now;
-        const daysLeft = Math.ceil(remainMs / 86400000);
-        let computedStatus = 'active';
-        if (!s.isActive && !expired) computedStatus = 'revoked';
-        else if (expired) computedStatus = 'expired';
-        else if (daysLeft <= 7) computedStatus = 'expiring';
-
-        return {
-          id: s.id, user_id: s.userId, username: s.user?.username,
-          user_name: s.user?.name, user_avatar: s.user?.profileImage,
-          platform_id: s.platformId,
-          platform_name: s.platform?.name, platform_logo: s.platform?.logoUrl,
-          platform_color: s.platform?.bgColorHex,
-          start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
-          days_left: daysLeft, status: computedStatus,
-          duration_value: s.durationValue, duration_unit: s.durationUnit,
-        };
-      }),
+      subscriptions: paged,
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
@@ -107,9 +100,14 @@ router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (r
     let updated = 0;
     for (const sub of subs) {
       const newEnd = extendEndDate(sub.endDate, val, unit);
+      const updateData = { endDate: newEnd, isActive: 1 };
+      if (unit !== 'days' || (sub.durationUnit && sub.durationUnit !== 'days')) {
+        updateData.durationUnit = unit;
+        updateData.durationValue = val;
+      }
       await prisma.userSubscription.update({
         where: { id: sub.id },
-        data: { endDate: newEnd, isActive: 1 },
+        data: updateData,
       });
       updated++;
     }
@@ -163,25 +161,22 @@ router.get('/get_user_subscriptions', authenticate, async (req, res) => {
       orderBy: { endDate: 'desc' },
     });
 
-    const now = new Date();
     res.json({
       success: true,
       subscriptions: subs.map(s => {
-        const expired = isSubExpired(s.endDate);
-        const endParsed = new Date(s.endDate && s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
-        const remainMs = endParsed - now;
-        const daysLeft = Math.ceil(remainMs / 86400000);
+        const remaining = getRemainingObj(s.endDate);
+        const computedStatus = getSubStatus(s.endDate, s.isActive);
         let statusLabel = 'ACTIVE';
-        if (!s.isActive || expired) statusLabel = 'EXPIRED';
-        else if (daysLeft <= 3) statusLabel = 'WARNING';
+        if (computedStatus === 'expired' || computedStatus === 'revoked') statusLabel = 'EXPIRED';
+        else if (computedStatus === 'expiring') statusLabel = 'WARNING';
 
         return {
           id: s.id, platform_id: s.platformId, platform_name: s.platform?.name,
           platform_logo: s.platform?.logoUrl, platform_color: s.platform?.bgColorHex,
           login_url: s.platform?.loginUrl, start_date: s.startDate,
           end_date: s.endDate, is_active: s.isActive,
-          days_left: daysLeft, status: statusLabel,
-          duration_value: s.durationValue, duration_unit: s.durationUnit,
+          remaining, days_left: remaining.days, status: statusLabel,
+          duration_value: s.durationValue, duration_unit: s.durationUnit || 'days',
         };
       }),
     });

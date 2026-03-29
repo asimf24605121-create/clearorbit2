@@ -1,0 +1,531 @@
+You are a senior full-stack engineer and systems auditor. Do a **full end-to-end audit and repair** of the entire website for the new **minutes / hours / days access-duration system**.
+
+## Main problem
+
+The duration feature was added, but it is still not fully correct across the entire platform.
+
+### Current issues I want fixed
+
+1. **Expiry is not showing correctly in real time**
+2. **UTC / timezone handling is inconsistent**
+3. **Minutes/hour-based expiry is not updating properly everywhere**
+4. **Access is not being granted/revoked correctly in real time**
+5. Some places still behave like old **day-only logic**
+6. Some pages still show wrong expiry labels like broken values / stale day values / invalid countdowns
+7. Some pages still allow or block access incorrectly after expiry
+8. The changes were not applied consistently across the full website
+
+## Main instruction
+
+Do **not** patch only one page.
+
+I want you to:
+
+* audit the **entire website**
+* find every place affected by access duration
+* fix every related page, API, backend check, UI card, status badge, countdown, redirect, profile behavior, subscription logic, and access gate
+* ensure the whole system behaves consistently
+
+If minutes/hours/days logic affects 20 places, then update all 20 places.
+Do not leave old logic behind anywhere.
+
+---
+
+# 1) Core business rule to enforce everywhere
+
+The system must support:
+
+* minutes
+* hours
+* days
+
+For every active access/subscription:
+
+* store exact start time
+* store exact expiry timestamp
+* store duration value
+* store duration unit
+* calculate remaining time from the exact expiry timestamp
+
+### Critical rule
+
+The source of truth must be:
+
+* exact expiry datetime/timestamp
+* not approximate “day-only” calculations
+* not string slicing
+* not inconsistent client-side assumptions
+
+Everywhere in the app, the system must use the same logic.
+
+---
+
+# 2) UTC and timezone handling must be fixed globally
+
+This is critical.
+
+## Requirement
+
+Use a single professional rule for time handling across the full platform:
+
+### Backend
+
+* store times in UTC
+* calculate expiry in UTC
+* compare expiry in UTC
+* return ISO datetime values clearly
+
+### Frontend
+
+* receive expiry timestamps from backend
+* convert/display them safely for the user/admin UI
+* ensure countdowns and statuses are based on exact server-compatible time values
+* do not break because of local browser timezone differences
+
+### Must fix
+
+* real-time countdowns
+* “expired” status
+* “x min left”
+* “x hr left”
+* “x days left”
+* expiry dates in cards
+* expiry dates in admin users list
+* expiry dates in user dashboard
+* expiry dates in profile page
+* expiry shown in subscription modals
+* expiry shown in alerts/notifications if used anywhere
+
+### Important
+
+If the current implementation mixes:
+
+* local time
+* UTC time
+* date-only parsing
+* browser locale parsing
+* manual date string hacks
+
+then refactor it cleanly.
+
+---
+
+# 3) Full-site audit: check every place affected
+
+Do not assume only one screen is affected.
+
+Audit and update all related areas including but not limited to:
+
+## Admin side
+
+* Create User + Assign Access
+* Manage Access / Assign Platforms
+* Extend Subscription
+* Bulk Extend
+* Approve Payment / create subscription from payment
+* Users table
+* User details modal
+* View Profile modal
+* Edit Profile modal logic if access type affects it
+* Expiry column
+* Status badges
+* “days left” / “hours left” / “minutes left” labels
+* subscription cards
+* access summaries
+* platform assignment flow
+* any admin export/report logic
+* any status counters dependent on expiry
+
+## User side
+
+* Login redirect behavior
+* Normal dashboard
+* Profile page
+* Edit profile visibility
+* Give detail/profile completion flow
+* subscription cards
+* platform cards
+* locked/unlocked state
+* buy now/renew/expired buttons
+* “access expired” banners
+* platform access permission
+* session behavior after expiry
+* route guards
+* hidden pages for short-access users
+* any “active/inactive/expired” counters
+* any top summary cards
+
+## Backend / API
+
+* create user with subscription
+* assign platforms
+* add subscription
+* extend subscription
+* bulk extension
+* payment approval
+* get subscriptions
+* get user subscriptions
+* dashboard APIs
+* profile APIs
+* access-mode helper
+* expiry helper
+* status helper
+* session validation / permission checks if expiry affects them
+* middleware / route guards
+* websocket/session revocation if expiry is relevant anywhere
+
+## Database / schema / data consistency
+
+* duration_value
+* duration_unit
+* expires_at / end_date
+* start_date / created_at consistency
+* migration/backfill for old rows
+* old rows with date-only format
+* new rows with datetime format
+* null/invalid values
+* legacy compatibility
+
+---
+
+# 4) Real-time expiry must work properly
+
+This is one of the biggest requirements.
+
+## Required behavior
+
+If admin gives access in:
+
+* 15 minutes
+* 30 minutes
+* 1 hour
+* 2 hours
+
+then:
+
+* access must start immediately
+* expiry must happen at the exact correct time
+* countdown must reflect real remaining time
+* status must change automatically when expired
+* user access must stop correctly when expiry is reached
+
+### Examples
+
+#### 30 minutes access
+
+* user gets access immediately
+* UI shows correct remaining time
+* after 30 real minutes, access becomes expired
+* dashboard/platform state updates correctly
+* no extra day remains
+* no stale active status remains
+
+#### 2 hours access
+
+* user sees correct hours/minutes remaining
+* access works during valid period
+* once expired, access is removed/blocked correctly everywhere
+
+---
+
+# 5) Expiry display rules
+
+Everywhere in the UI, expiry must be shown correctly.
+
+## For minutes
+
+Show something like:
+
+* 12 min left
+* 45 min left
+* expires today at 2:45 PM
+
+## For hours
+
+Show something like:
+
+* 1h 20m left
+* 5h left
+* expires today at 8:00 PM
+
+## For days
+
+Show something like:
+
+* 7d left
+* 29d left
+* expires on 26 Apr 2026
+
+## If expired
+
+Show:
+
+* Expired
+* Access expired
+* expired on [date/time]
+
+Do not show broken output like:
+
+* NaN
+* NaNd
+* wrong day count
+* stale 29d left for minute/hour subscriptions
+* expired but still active
+* active but already expired
+
+---
+
+# 6) Access grant/revoke logic must be exact
+
+This is not only a display issue.
+
+## Required
+
+Access permission itself must respect the exact expiry timestamp.
+
+If subscription is expired:
+
+* user should not keep access
+* platform card should reflect expired/locked state correctly
+* access control checks should fail correctly
+* user should not continue using protected access as active
+
+If subscription is active:
+
+* user should get access immediately
+* platform card should unlock correctly
+* user should not be blocked wrongly
+
+### Check all related logic
+
+* backend permission checks
+* frontend UI state
+* dashboard summaries
+* user platform availability
+* any protected routes/pages
+* any extension/session/platform logic if tied to subscription validity
+
+---
+
+# 7) Short-access vs regular-access rules must also be audited
+
+Keep this business logic:
+
+## Minutes/hours access
+
+* user can open normal dashboard
+* profile completion must not be forced
+* give detail / edit profile pages should be hidden or blocked as intended for short-access users
+
+## Days access
+
+* user can open normal dashboard
+* profile/edit pages can be available
+* still not forced
+
+### Important
+
+This logic must be based on **current active access**, not stale cached state.
+
+So audit:
+
+* login response
+* dashboard API
+* profile API
+* route guards
+* hash/tab navigation
+* manual URL access
+* mixed subscriptions
+* switching from hours → days
+* switching from days → hours
+
+---
+
+# 8) Mixed subscription logic must be correct
+
+If a user has multiple subscriptions/platforms:
+
+* determine effective access mode correctly
+* determine active/expired status correctly per platform
+* determine global dashboard/profile availability correctly
+
+### Example
+
+* one 30-minute platform expired
+* one 30-day platform active
+
+Then:
+
+* day-based logic may still allow regular access mode
+* expired short sub should not appear active
+* platform-by-platform state must remain correct
+
+No oversimplified user-wide status that breaks platform-level truth.
+
+---
+
+# 9) Refactor all old day-only logic
+
+Search the full codebase for any old logic like:
+
+* end_date split by `T`
+* date-only comparisons
+* subtraction based only on days
+* status derived from calendar dates only
+* old “duration_in_days” assumptions
+* old labels that always say `days`
+* old futureDate/day helper assumptions
+* day-only validation rules
+* day-only filters in UI text
+
+Replace all of them cleanly.
+
+I do not want partial migration.
+I want the old day-only assumptions removed wherever they break the new system.
+
+---
+
+# 10) Standardize helper functions
+
+Create and use shared helpers/services so the same logic is not duplicated differently in 10 places.
+
+## Backend shared helpers
+
+Create/reuse centralized helpers for:
+
+* parse stored expiry safely
+* calculate expires_at
+* check isExpired
+* get remaining time
+* determine access mode
+* format duration label
+* compare times in UTC
+* support legacy date-only records safely
+
+## Frontend shared helpers
+
+Create/reuse centralized helpers for:
+
+* parse ISO expiry safely
+* get countdown label
+* get status label
+* get status badge color/type
+* format exact expiry display
+* handle minute/hour/day display consistently
+
+No page should use a different homemade date calculation.
+
+---
+
+# 11) Full QA pass required
+
+After implementation, do a complete QA pass and verify all flows.
+
+## Mandatory test scenarios
+
+Test at least these cases:
+
+### Admin flows
+
+1. Create user with 15 minutes access
+2. Create user with 2 hours access
+3. Create user with 7 days access
+4. Extend minute access to more minutes
+5. Extend hour access to days
+6. Extend day access to hours
+7. Add second subscription to same user
+8. Bulk extend mixed subscriptions
+9. Approve payment that creates day-based subscription
+10. Edit/manage existing subscription with legacy data
+
+### User flows
+
+1. Login with minute-based access
+2. Login with hour-based access
+3. Login with day-based access
+4. Confirm normal dashboard opens
+5. Confirm no forced profile completion
+6. Confirm short-access user cannot open blocked profile/edit pages
+7. Confirm day-based user can open profile/edit pages
+8. Confirm expired sub becomes expired correctly
+9. Confirm locked platform stays locked
+10. Confirm active platform unlocks correctly
+
+### Time-sensitive flows
+
+1. 5-minute subscription countdown updates correctly
+2. Expiry passes in real time and status flips correctly
+3. Refresh page after expiry and confirm correct state
+4. Cross-check server UTC vs browser local time
+5. Confirm no NaN / wrong labels anywhere
+
+---
+
+# 12) UI cleanup requirements
+
+Fix all broken or inconsistent UI caused by the new feature.
+
+### Must fix
+
+* wrong expiry text
+* NaN / NaNd values
+* stale “days left” on short subscriptions
+* inconsistent labels between admin and user side
+* broken badges
+* mismatched status count cards
+* wrong “expired” vs “active” states
+* cards that still say inactive when actually expired
+* cards that still say active when actually expired
+
+---
+
+# 13) Performance and scale
+
+This platform must not be slow and must be optimized for **1000+ concurrent users**.
+
+So:
+
+* keep access checks efficient
+* avoid heavy repeated countdown recomputation on server
+* use lightweight frontend timers where appropriate
+* avoid duplicate parsing logic
+* keep backend checks centralized and cheap
+* do not add fragile hacks
+
+---
+
+# 14) Deliverables I expect
+
+Implement the full repair and provide:
+
+1. full code audit summary of all impacted areas
+2. list of every file/page/route/helper changed
+3. backend fixes
+4. frontend fixes
+5. schema/migration fixes if needed
+6. legacy data compatibility fixes
+7. UTC/timezone handling strategy
+8. exact explanation of how expiry now works
+9. confirmation of test cases completed
+10. confirmation that all old day-only logic affecting this feature was removed or updated
+
+---
+
+# 15) Final instruction
+
+Do not treat this as a small bug fix.
+
+Treat this as a **global system correction** for duration, expiry, access control, and UI consistency.
+
+I want you to inspect the full project and fix **every place this feature touches**.
+
+Main expected outcome:
+
+* minutes/hours/days access works everywhere
+* expiry is exact and real-time
+* UTC handling is correct
+* access permission follows exact expiry
+* all pages show the correct status
+* no stale old day-only behavior remains anywhere
+* no broken expiry text remains anywhere
+* no affected screen is left unfixed

@@ -686,9 +686,9 @@ let CURRENT_MODAL_PLATFORM = null;
 
 function parseEndDate(d) {
     if (!d) return new Date(0);
-    if (d.includes(' ')) return new Date(d.replace(' ', 'T'));
-    if (d.includes('T')) return new Date(d);
-    return new Date(d + 'T23:59:59');
+    if (d.includes(' ')) return new Date(d.replace(' ', 'T') + 'Z');
+    if (d.includes('T')) return new Date(d.endsWith('Z') ? d : d + 'Z');
+    return new Date(d + 'T23:59:59Z');
 }
 
 function escHtml(s) {
@@ -1042,7 +1042,10 @@ function renderCards(cards) {
                     <div class="progress-bar ${barClass}" style="width:${pct.toFixed(1)}%"></div>
                 </div>
                 <div id="timer-${c.platform_id || c.id}" class="flex gap-2.5 mb-5">
-                    ${timerHtml(0, 0, 0, remainMs <= 0)}
+                    ${(() => {
+                        const d = rem.days || 0, h = rem.hours || 0, m = rem.minutes || 0, sec = rem.seconds || 0;
+                        return timerHtml(d, h, m, rem.expired || remainMs <= 0, sec);
+                    })()}
                 </div>
                 <div id="avail-${c.platform_id || c.id}" class="mb-3 hidden"></div>
                 ${isExpired ? `
@@ -1068,7 +1071,7 @@ function renderCards(cards) {
         if (c.subscribed !== false && c.end_date) {
             const endDate = parseEndDate(c.end_date);
             if (endDate > now) {
-                startCountdown(c.platform_id || c.id, c.end_date);
+                startCountdown(c.platform_id || c.id, c.end_date, c.duration_unit);
             }
         }
     });
@@ -1117,33 +1120,44 @@ async function loadAvailability(cards) {
     } catch (e) {}
 }
 
-function timerHtml(d, h, m, expired) {
+function timerHtml(d, h, m, expired, s) {
     if (expired) return `<span class="text-xs text-gray-400 font-medium">Access has expired</span>`;
+    const isShort = (d === 0);
+    if (isShort) {
+        const sec = s !== undefined ? s : 0;
+        return `
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${h}</p><p class="text-[10px] text-gray-400 font-medium">Hrs</p></div>
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${m}</p><p class="text-[10px] text-gray-400 font-medium">Min</p></div>
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${sec}</p><p class="text-[10px] text-gray-400 font-medium">Sec</p></div>`;
+    }
     return `
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${d}</p><p class="text-[10px] text-gray-400 font-medium">Days</p></div>
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${h}</p><p class="text-[10px] text-gray-400 font-medium">Hrs</p></div>
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${m}</p><p class="text-[10px] text-gray-400 font-medium">Min</p></div>`;
 }
 
-function startCountdown(platformId, endDateStr) {
+function startCountdown(platformId, endDateStr, durationUnit) {
+    const end = parseEndDate(endDateStr);
+    const isShortUnit = (durationUnit === 'minutes' || durationUnit === 'hours');
     const update = () => {
         const now = new Date();
-        const end = parseEndDate(endDateStr);
         const diff = end - now;
         const el = document.getElementById('timer-' + platformId);
         if (!el) return;
         if (diff <= 0) {
-            el.innerHTML = timerHtml(0, 0, 0, true);
+            el.innerHTML = timerHtml(0, 0, 0, true, 0);
             clearInterval(TIMERS[platformId]);
             return;
         }
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
-        el.innerHTML = timerHtml(d, h, m, false);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.innerHTML = timerHtml(d, h, m, false, s);
     };
     update();
-    TIMERS[platformId] = setInterval(update, 30000);
+    const interval = (isShortUnit || (end - new Date()) < 86400000) ? 1000 : 30000;
+    TIMERS[platformId] = setInterval(update, interval);
 }
 
 function filterCards() {

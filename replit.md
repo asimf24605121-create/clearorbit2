@@ -50,12 +50,21 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 
 ### Duration Units & Access Mode System
 - **Schema**: `UserSubscription` has `durationValue` (Int, nullable) and `durationUnit` (String, default "days"). Supports "minutes", "hours", "days".
-- **Date format**: `endDate` stores date-only ("2024-01-15") for day-based subs, full datetime ("2024-01-15 14:30:00") for minutes/hours subs.
-- **Backend helpers** (`backend/utils/helpers.js`): `computeEndDate(value, unit)`, `extendEndDate(currentEnd, value, unit)`, `isSubExpired(endDate)` (handles both formats), `getUserAccessMode(prisma, userId)` returns 'short' (only minutes/hours subs), 'regular' (has days subs), or 'none'.
+- **Date format**: ALL `endDate` values now store full UTC datetime ("2024-01-15 14:30:00") for ALL units including days. Legacy date-only rows ("2024-01-15") are handled by `parseEndDateUTC()` which treats them as end-of-day UTC.
+- **Backend helpers** (`backend/utils/helpers.js`):
+  - `parseEndDateUTC(endDate)` — Centralized parser handles all formats (datetime with space, ISO-T, date-only) as UTC. NaN guard returns epoch on invalid input.
+  - `computeEndDate(value, unit)` — Always returns full UTC datetime "YYYY-MM-DD HH:MM:SS" for ALL units.
+  - `extendEndDate(currentEnd, value, unit)` — Extends from current end or now (whichever is later).
+  - `isSubExpired(endDate)` — Precise datetime comparison using `parseEndDateUTC`.
+  - `getRemainingMs(endDate)` — Milliseconds remaining until expiry.
+  - `getRemainingObj(endDate)` — Returns `{ days, hours, minutes, seconds, expired, total_seconds }`.
+  - `getSubStatus(endDate, isActive)` — Returns 'active'/'expiring'/'expired'/'revoked'.
+  - `getUserAccessMode(prisma, userId)` — Returns 'short' (only minutes/hours subs), 'regular' (has days subs), or 'none'.
 - **Access mode**: Dashboard and profile routes include `access_mode` in response. Short-access users cannot edit profile (tab hidden, `switchTab` guard). Profile completion redirect removed from dashboard.
-- **Admin UI**: Create User and Manage Access both have unit selector (Minutes/Hours/Days) with per-unit presets, expiry preview, and send `duration_value`/`duration_unit` to backend. Backend routes accept both old (`duration_in_days`, `duration_days`) and new params for backwards compatibility.
-- **Subscription status**: `get_subscriptions` and `get_user_subscriptions` use `isSubExpired()` for accurate minute/hour expiry detection. `extend_subscription` updates `durationUnit`/`durationValue` when unit changes.
-- **Frontend date parsing**: Dashboard uses `parseEndDate()` utility; profile.html uses inline parsing with space-to-T replacement. Both handle date-only and datetime formats. Remaining time shows days/hours/minutes as appropriate.
+- **Admin UI**: Create User and Manage Access both have unit selector (Minutes/Hours/Days) with per-unit presets, expiry preview, and send `duration_value`/`duration_unit` to backend.
+- **Subscription status**: All routes use centralized helpers for expiry checks — no day-only `todayISO()` comparisons remain for subscription validity. `get_subscriptions` post-filters by computed status after mapping (supports sub-day accuracy). `get_user_subscriptions` and `get_user_profile` both return `remaining` object. `extend_subscription` updates `durationUnit`/`durationValue`.
+- **Frontend date parsing**: All frontend `parseEndDate`/`parseEndDateFE` functions parse as UTC (append 'Z'). Dashboard countdown timers use 1s intervals for short-duration subs (< 24h remaining) with seconds display. Profile and admin badges use `remaining` object from backend. Admin user table uses `parseEndDateFE` for expiry display with h/m granularity.
+- **Server enforcement**: `autoRecheckJob` in server.js uses `isSubExpired()` to mark expired subs (fetches all active subs, filters with helper, updates in batch). User expiry sync uses `parseEndDateUTC` for accurate max-expiry calculation.
 
 ### Global Admin Dead-Platform Notification System
 - **AdminNotification model** (`admin_notifications` table): Stores platform-dead alerts with `type`, `title`, `message`, `platformId`, `platformName`, `severity`, `isRead`, `dedupeKey` (e.g. `platform_dead_{id}_{date}`), `createdAt`. Indexed on `(isRead, createdAt)` and `dedupeKey`.

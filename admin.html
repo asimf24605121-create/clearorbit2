@@ -3454,23 +3454,41 @@ function getUserStatusBadge(u) {
     const [cls, label] = map[st] || map.active;
     let extra = '';
     if (st === 'expiring' && u.nearest_expiry) {
-        const dl = Math.ceil((new Date(u.nearest_expiry + 'T23:59:59') - new Date()) / 86400000);
-        extra = ` (${dl}d)`;
+        const end = parseEndDateFE(u.nearest_expiry);
+        const diffMs = end - new Date();
+        const dl = Math.ceil(diffMs / 86400000);
+        const hl = Math.floor(diffMs / 3600000);
+        extra = dl >= 1 ? ` (${dl}d)` : hl >= 1 ? ` (${hl}h)` : ` (<1h)`;
     }
     return `<span class="badge-status ${cls}"><span class="badge-dot"></span>${label}${extra}</span>`;
 }
 
+function parseEndDateFE(d) {
+    if (!d) return new Date(0);
+    if (d.includes(' ')) return new Date(d.replace(' ', 'T') + 'Z');
+    if (d.includes('T')) return new Date(d);
+    return new Date(d + 'T23:59:59Z');
+}
 function getExpiryDisplay(u) {
     const d = u.nearest_expiry || u.expiry_date;
     if (!d) return '<span class="expiry-rel expiry-muted">No expiry</span>';
-    const daysLeft = Math.ceil((new Date(d + 'T23:59:59') - new Date()) / 86400000);
+    const end = parseEndDateFE(d);
+    const diffMs = end - new Date();
+    const daysLeft = Math.ceil(diffMs / 86400000);
+    const hoursLeft = Math.floor(diffMs / 3600000);
+    const minsLeft = Math.floor(diffMs / 60000);
     let relClass, relText;
-    if (daysLeft < 0) { relClass = 'expiry-danger'; relText = Math.abs(daysLeft) + 'd ago'; }
-    else if (daysLeft === 0) { relClass = 'expiry-danger'; relText = 'Today'; }
-    else if (daysLeft <= 3) { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
-    else if (daysLeft <= 7) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
-    else if (daysLeft <= 30) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
-    else { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
+    if (diffMs < 0) {
+        relClass = 'expiry-danger';
+        const absDays = Math.abs(daysLeft);
+        relText = absDays > 0 ? absDays + 'd ago' : Math.abs(Math.floor(diffMs / 3600000)) + 'h ago';
+    }
+    else if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
+    else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
+    else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
+    else if (daysLeft >= 1) { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
+    else if (hoursLeft >= 1) { relClass = 'expiry-danger'; relText = hoursLeft + 'h left'; }
+    else { relClass = 'expiry-danger'; relText = minsLeft + 'm left'; }
     return `<div><div class="expiry-rel ${relClass}">${relText}</div><div class="expiry-abs">${formatDate(d)}</div></div>`;
 }
 
@@ -9043,13 +9061,18 @@ async function amLoadSubs(userId) {
             if (existingBadge) existingBadge.remove();
             if (activePlatMap[cb.value]) {
                 const sub = activePlatMap[cb.value];
-                const dl = sub.days_left !== undefined ? sub.days_left : Math.ceil((new Date(sub.end_date) - new Date()) / 86400000);
+                const rem = sub.remaining || {};
+                let remLabel;
+                if (rem.days >= 1) remLabel = rem.days + 'd';
+                else if (rem.hours >= 1) remLabel = rem.hours + 'h ' + (rem.minutes || 0) + 'm';
+                else if (rem.minutes > 0) remLabel = rem.minutes + 'm';
+                else remLabel = 'Expired';
                 cb.checked = false; cb.disabled = true;
                 item.classList.add('am-plat-disabled');
-                item.title = 'Active — ' + dl + 'd left';
+                item.title = 'Active — ' + remLabel + ' left';
                 const badge = document.createElement('span');
                 badge.className = 'am-plat-active-badge';
-                badge.textContent = 'Active · ' + dl + 'd';
+                badge.textContent = 'Active · ' + remLabel;
                 item.appendChild(badge);
             } else {
                 cb.disabled = false;
@@ -9070,19 +9093,19 @@ function amSubCard(s, isActive) {
     const logoHtml = logo
         ? `<img src="${escHtml(logo)}" class="am-sub-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="am-sub-initial" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
         : `<div class="am-sub-initial" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
-    const ed = s.end_date || '';
-    const endDt = new Date(ed.includes(' ') ? ed.replace(' ', 'T') : (ed.includes('T') ? ed : ed + 'T23:59:59'));
-    const diffMs = endDt - new Date();
-    const daysLeft = Math.ceil(diffMs / 86400000);
-    const hoursLeft = Math.ceil(diffMs / 3600000);
-    const minsLeft = Math.ceil(diffMs / 60000);
+    const rem = s.remaining || {};
+    const daysLeft = rem.days || 0;
+    const hoursLeft = rem.hours || 0;
+    const minsLeft = rem.minutes || 0;
+    const isExpired = rem.expired || false;
     let dotColor, statusText;
     if (!isActive) { dotColor = '#EF4444'; statusText = s.is_active == 0 ? 'Revoked' : 'Expired'; }
+    else if (isExpired) { dotColor = '#EF4444'; statusText = 'Expired'; }
     else if (daysLeft >= 1) {
         if (daysLeft <= 3) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
         else if (daysLeft <= 7) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
         else { dotColor = '#10B981'; statusText = `${daysLeft}d`; }
-    } else if (hoursLeft >= 1) { dotColor = '#F59E0B'; statusText = `${hoursLeft}h`; }
+    } else if (hoursLeft >= 1) { dotColor = '#F59E0B'; statusText = `${hoursLeft}h ${minsLeft}m`; }
     else if (minsLeft > 0) { dotColor = '#EF4444'; statusText = `${minsLeft}m`; }
     else { dotColor = '#EF4444'; statusText = 'Expired'; }
 

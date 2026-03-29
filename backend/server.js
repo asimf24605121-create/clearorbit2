@@ -308,24 +308,31 @@ async function autoRecheckJob(data, updateProgress) {
   }
 
   try {
-    const expiredSubs = await prisma.userSubscription.updateMany({
-      where: { isActive: 1, endDate: { lt: today } },
-      data: { isActive: 0 },
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const allActiveSubs = await prisma.userSubscription.findMany({
+      where: { isActive: 1 },
+      select: { id: true, endDate: true, userId: true },
     });
-    if (expiredSubs.count > 0) {
-      console.log(`Auto-recheck: expired ${expiredSubs.count} subscription(s)`);
-      const affectedUsers = await prisma.userSubscription.findMany({
-        where: { isActive: 0, endDate: { lt: today } },
-        select: { userId: true },
-        distinct: ['userId'],
+    const { isSubExpired: isExpired, parseEndDateUTC: parseEnd } = await import('./utils/helpers.js');
+    const expiredIds = allActiveSubs.filter(s => isExpired(s.endDate)).map(s => s.id);
+    if (expiredIds.length > 0) {
+      await prisma.userSubscription.updateMany({
+        where: { id: { in: expiredIds } },
+        data: { isActive: 0 },
       });
-      for (const { userId } of affectedUsers) {
-        const activeSubs = await prisma.userSubscription.findMany({
-          where: { userId, isActive: 1, endDate: { gte: today } },
+      console.log(`Auto-recheck: expired ${expiredIds.length} subscription(s)`);
+      const affectedUserIds = [...new Set(allActiveSubs.filter(s => expiredIds.includes(s.id)).map(s => s.userId))];
+      for (const userId of affectedUserIds) {
+        const remaining = await prisma.userSubscription.findMany({
+          where: { userId, isActive: 1 },
           select: { endDate: true },
         });
-        const newExpiry = activeSubs.length > 0
-          ? activeSubs.reduce((max, s) => s.endDate > max ? s.endDate : max, activeSubs[0].endDate)
+        const valid = remaining.filter(s => !isExpired(s.endDate));
+        const newExpiry = valid.length > 0
+          ? valid.reduce((max, s) => {
+              const end = parseEnd(s.endDate);
+              return end > max ? end : max;
+            }, parseEnd(valid[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
           : null;
         await prisma.user.update({ where: { id: userId }, data: { expiryDate: newExpiry } });
       }

@@ -18,37 +18,84 @@ export function futureDate(days) {
   return d.toISOString().substring(0, 10);
 }
 
+export function parseEndDateUTC(endDate) {
+  if (!endDate) return new Date(0);
+  const s = String(endDate).trim();
+  let d;
+  if (s.includes('T')) {
+    d = new Date(s.endsWith('Z') || s.includes('+') || s.includes('-', 11) ? s : s + 'Z');
+  } else if (s.includes(' ')) {
+    d = new Date(s.replace(' ', 'T') + 'Z');
+  } else {
+    d = new Date(s + 'T23:59:59Z');
+  }
+  return isNaN(d.getTime()) ? new Date(0) : d;
+}
+
 export function computeEndDate(value, unit) {
   const now = new Date();
   if (unit === 'minutes') {
     now.setMinutes(now.getMinutes() + value);
-    return now.toISOString().replace('T', ' ').substring(0, 19);
   } else if (unit === 'hours') {
     now.setHours(now.getHours() + value);
-    return now.toISOString().replace('T', ' ').substring(0, 19);
+  } else {
+    now.setDate(now.getDate() + value);
   }
-  now.setDate(now.getDate() + value);
-  return now.toISOString().substring(0, 10);
+  return now.toISOString().replace('T', ' ').substring(0, 19);
 }
 
 export function extendEndDate(currentEnd, value, unit) {
-  const current = new Date(currentEnd);
+  const current = parseEndDateUTC(currentEnd);
   const base = current > new Date() ? current : new Date();
   if (unit === 'minutes') {
     base.setMinutes(base.getMinutes() + value);
-    return base.toISOString().replace('T', ' ').substring(0, 19);
   } else if (unit === 'hours') {
     base.setHours(base.getHours() + value);
-    return base.toISOString().replace('T', ' ').substring(0, 19);
+  } else {
+    base.setDate(base.getDate() + value);
   }
-  base.setDate(base.getDate() + value);
-  return base.toISOString().substring(0, 10);
+  return base.toISOString().replace('T', ' ').substring(0, 19);
 }
 
 export function isSubExpired(endDate) {
   if (!endDate) return true;
-  const end = new Date(endDate.includes(' ') ? endDate.replace(' ', 'T') : endDate);
-  return end <= new Date();
+  return parseEndDateUTC(endDate) <= new Date();
+}
+
+export function getRemainingMs(endDate) {
+  if (!endDate) return 0;
+  return Math.max(0, parseEndDateUTC(endDate) - new Date());
+}
+
+export function formatRemainingLabel(endDate) {
+  const ms = getRemainingMs(endDate);
+  if (ms <= 0) return 'Expired';
+  const totalMins = Math.ceil(ms / 60000);
+  if (totalMins < 60) return `${totalMins}m left`;
+  const totalHours = Math.ceil(ms / 3600000);
+  if (totalHours < 24) return `${totalHours}h left`;
+  const totalDays = Math.ceil(ms / 86400000);
+  return `${totalDays}d left`;
+}
+
+export function getSubStatus(endDate, isActive) {
+  if (!isActive || isActive === 0) return 'revoked';
+  if (isSubExpired(endDate)) return 'expired';
+  const ms = getRemainingMs(endDate);
+  const daysLeft = ms / 86400000;
+  if (daysLeft <= 3) return 'expiring';
+  return 'active';
+}
+
+export function getRemainingObj(endDate) {
+  const ms = getRemainingMs(endDate);
+  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, expired: true, total_seconds: 0 };
+  const totalSec = Math.floor(ms / 1000);
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return { days, hours, minutes, seconds, expired: false, total_seconds: totalSec };
 }
 
 export async function getUserAccessMode(prisma, userId) {
@@ -57,12 +104,9 @@ export async function getUserAccessMode(prisma, userId) {
     where: { userId, isActive: 1 },
     select: { endDate: true, durationUnit: true },
   });
-  const validSubs = activeSubs.filter(s => {
-    const end = new Date(s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
-    return end > now;
-  });
+  const validSubs = activeSubs.filter(s => parseEndDateUTC(s.endDate) > now);
   if (validSubs.length === 0) return 'none';
-  const hasDays = validSubs.some(s => s.durationUnit === 'days');
+  const hasDays = validSubs.some(s => !s.durationUnit || s.durationUnit === 'days');
   return hasDays ? 'regular' : 'short';
 }
 
@@ -84,27 +128,6 @@ export function getClientIP(req) {
   }
 
   return req.socket?.remoteAddress || '0.0.0.0';
-}
-
-function isPrivateIP(ip) {
-  return (
-    ip === '127.0.0.1' ||
-    ip === '::1' ||
-    ip.startsWith('10.') ||
-    ip.startsWith('192.168.') ||
-    ip.startsWith('172.16.') ||
-    ip.startsWith('172.17.') ||
-    ip.startsWith('172.18.') ||
-    ip.startsWith('172.19.') ||
-    ip.startsWith('172.2') ||
-    ip.startsWith('172.30.') ||
-    ip.startsWith('172.31.') ||
-    ip.startsWith('fc00:') ||
-    ip.startsWith('fd') ||
-    ip.startsWith('::ffff:10.') ||
-    ip.startsWith('::ffff:192.168.') ||
-    ip.startsWith('::ffff:172.')
-  );
 }
 
 export function parseUserAgent(ua) {

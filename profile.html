@@ -847,24 +847,21 @@ async function loadProfile() {
             return;
         }
 
-        const now = new Date();
         container.innerHTML = '<div class="space-y-3">' + subs.map(s => {
-            const ed = s.end_date || '';
-            const end = new Date(ed.includes(' ') ? ed.replace(' ', 'T') : (ed.includes('T') ? ed : ed + 'T23:59:59'));
-            const diffMs = end - now;
-            const diffDays = Math.max(0, Math.ceil(diffMs / 86400000));
-            const diffHours = Math.max(0, Math.ceil(diffMs / 3600000));
-            const diffMins = Math.max(0, Math.ceil(diffMs / 60000));
+            const rem = s.remaining || {};
+            const d = rem.days || 0, h = rem.hours || 0, m = rem.minutes || 0;
             let remainBadge;
-            if (diffMs <= 0) remainBadge = '<span class="badge badge-red">Expired</span>';
-            else if (diffDays >= 1) {
-                if (diffDays <= 3) remainBadge = `<span class="badge badge-orange">${diffDays}d left</span>`;
-                else if (diffDays <= 7) remainBadge = `<span class="badge badge-yellow">${diffDays}d left</span>`;
-                else remainBadge = `<span class="badge badge-green">${diffDays}d left</span>`;
-            } else if (diffHours >= 1) {
-                remainBadge = `<span class="badge badge-orange">${diffHours}h left</span>`;
+            if (rem.expired) remainBadge = '<span class="badge badge-red">Expired</span>';
+            else if (d >= 1) {
+                if (d <= 3) remainBadge = `<span class="badge badge-orange">${d}d left</span>`;
+                else if (d <= 7) remainBadge = `<span class="badge badge-yellow">${d}d left</span>`;
+                else remainBadge = `<span class="badge badge-green">${d}d left</span>`;
+            } else if (h >= 1) {
+                remainBadge = `<span class="badge badge-orange">${h}h ${m}m left</span>`;
+            } else if (m > 0) {
+                remainBadge = `<span class="badge badge-red">${m}m left</span>`;
             } else {
-                remainBadge = `<span class="badge badge-red">${diffMins}m left</span>`;
+                remainBadge = '<span class="badge badge-red">Expired</span>';
             }
 
             const logo = s.logo_url

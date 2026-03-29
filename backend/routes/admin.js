@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
-import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
+import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
 
 const router = Router();
 
@@ -372,23 +372,28 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
 function computeUserStatus(user, today) {
   if (!user.isActive) return 'disabled';
   const subs = (user.subscriptions || []);
-  const activeSubs = subs.filter(s => s.isActive === 1 && s.endDate >= today);
-  const expiredSubs = subs.filter(s => s.isActive === 1 && s.endDate < today);
+  const activeSubs = subs.filter(s => s.isActive === 1 && !isSubExpired(s.endDate));
+  const expiredSubs = subs.filter(s => s.isActive === 1 && isSubExpired(s.endDate));
   if (activeSubs.length === 0 && expiredSubs.length === 0 && subs.length === 0) return 'no_access';
   if (activeSubs.length === 0) return 'expired';
-  const nearestExpiry = activeSubs.reduce((min, s) => s.endDate < min ? s.endDate : min, activeSubs[0].endDate);
-  const daysLeft = Math.ceil((new Date(nearestExpiry + 'T23:59:59') - new Date()) / 86400000);
+  const nearestMs = activeSubs.reduce((min, s) => {
+    const ms = getRemainingMs(s.endDate);
+    return ms < min ? ms : min;
+  }, Infinity);
   if (expiredSubs.length > 0) return 'partial';
-  if (daysLeft <= 7) return 'expiring';
+  if (nearestMs <= 7 * 86400000) return 'expiring';
   return 'active';
 }
 
 function mapUserRow(u, today) {
   const subs = (u.subscriptions || []);
-  const activeSubs = subs.filter(s => s.isActive === 1 && s.endDate >= today);
+  const activeSubs = subs.filter(s => s.isActive === 1 && !isSubExpired(s.endDate));
   const activePlatforms = activeSubs.map(s => s.platform?.name).filter(Boolean);
   const nearestExpiry = activeSubs.length > 0
-    ? activeSubs.reduce((min, s) => s.endDate < min ? s.endDate : min, activeSubs[0].endDate)
+    ? activeSubs.reduce((min, s) => {
+        const end = parseEndDateUTC(s.endDate);
+        return end < min ? end : min;
+      }, parseEndDateUTC(activeSubs[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
     : null;
   return {
     id: u.id, username: u.username, name: u.name, email: u.email,
@@ -629,11 +634,15 @@ router.post('/revoke_subscription', authenticate, requireAdmin(), async (req, re
     });
 
     const remainingActive = await prisma.userSubscription.findMany({
-      where: { userId: sub.userId, isActive: 1, endDate: { gte: todayISO() } },
+      where: { userId: sub.userId, isActive: 1 },
       select: { endDate: true },
     });
-    const newExpiry = remainingActive.length > 0
-      ? remainingActive.reduce((max, s) => s.endDate > max ? s.endDate : max, remainingActive[0].endDate)
+    const validRemaining = remainingActive.filter(s => !isSubExpired(s.endDate));
+    const newExpiry = validRemaining.length > 0
+      ? validRemaining.reduce((max, s) => {
+          const end = parseEndDateUTC(s.endDate);
+          return end > max ? end : max;
+        }, parseEndDateUTC(validRemaining[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
       : null;
     await prisma.user.update({ where: { id: sub.userId }, data: { expiryDate: newExpiry } });
 
@@ -903,7 +912,7 @@ router.post('/create_user_with_sub', authenticate, requireAdmin(), async (req, r
 
     const hash = await bcrypt.hash(password, 10);
     const computedExpiry = durVal > 0 && activePlatforms.length > 0
-      ? (unit === 'days' ? futureDate(durVal) : computeEndDate(durVal, unit))
+      ? computeEndDate(durVal, unit)
       : (expiry_date || null);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -995,11 +1004,15 @@ router.post('/assign_platforms', authenticate, requireAdmin(), async (req, res) 
       }
 
       const allActive = await tx.userSubscription.findMany({
-        where: { userId: uid, isActive: 1, endDate: { gte: todayISO() } },
+        where: { userId: uid, isActive: 1 },
         select: { endDate: true },
       });
-      const maxExpiry = allActive.length > 0
-        ? allActive.reduce((max, s) => s.endDate > max ? s.endDate : max, allActive[0].endDate)
+      const validActive = allActive.filter(s => !isSubExpired(s.endDate));
+      const maxExpiry = validActive.length > 0
+        ? validActive.reduce((max, s) => {
+            const end = parseEndDateUTC(s.endDate);
+            return end > max ? end : max;
+          }, parseEndDateUTC(validActive[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
         : null;
       await tx.user.update({ where: { id: uid }, data: { expiryDate: maxExpiry } });
 

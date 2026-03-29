@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma, emitUserEvent, emitAdminEvent } from '../server.js';
 import { authenticate, tryAuthenticate } from '../middleware/auth.js';
-import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent, getUserAccessMode } from '../utils/helpers.js';
+import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent, getUserAccessMode, isSubExpired, parseEndDateUTC, getRemainingObj } from '../utils/helpers.js';
 import { parseRawCookieString, classifyCookieCompleteness, detectRequiredSessionComponents } from '../utils/cookieEngine.js';
 import { sessionStore } from '../utils/sessionStore.js';
 import { lookupIP, reverseGeocode, computeConfidence } from '../utils/geoip.js';
@@ -61,18 +61,12 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
           subscribed: false,
         };
       }
-      const endDateStr = sub.endDate;
-      const endDate = endDateStr.includes(' ')
-        ? new Date(endDateStr.replace(' ', 'T'))
-        : new Date(endDateStr + 'T23:59:59');
+      const remaining = getRemainingObj(sub.endDate);
       const startDate = sub.startDate
-        ? new Date(sub.startDate.includes(' ') ? sub.startDate.replace(' ', 'T') : sub.startDate)
+        ? parseEndDateUTC(sub.startDate)
         : now;
-      const remainMs = endDate - now;
+      const endDate = parseEndDateUTC(sub.endDate);
       const totalDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
-      const daysLeft = Math.max(0, Math.ceil(remainMs / 86400000));
-      const hours = Math.max(0, Math.floor((remainMs % 86400000) / 3600000));
-      const mins = Math.max(0, Math.floor((remainMs % 3600000) / 60000));
 
       return {
         id: sub.id, platform_id: p.id, platform_name: p.name, name: p.name,
@@ -81,8 +75,8 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
         is_active: sub.isActive,
         duration_unit: sub.durationUnit || 'days',
         remaining: {
-          days: daysLeft, hours, minutes: mins,
-          expired: remainMs <= 0, total_days: totalDays,
+          ...remaining,
+          total_days: totalDays,
         },
       };
     });
@@ -176,7 +170,7 @@ router.post('/access_platform', authenticate, async (req, res) => {
       where: { userId, platformId: pid, isActive: 1 },
     });
 
-    if (!sub || new Date(sub.endDate) < new Date()) {
+    if (!sub || isSubExpired(sub.endDate)) {
       return res.status(403).json({ success: false, message: 'No active subscription for this platform' });
     }
 
@@ -743,6 +737,7 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
         id: s.id, platform_name: s.platform.name,
         logo_url: s.platform.logoUrl, bg_color_hex: s.platform.bgColorHex,
         start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
+        remaining: getRemainingObj(s.endDate),
       })),
     });
   } catch (err) {
