@@ -56,6 +56,16 @@ I prefer detailed explanations. I want iterative development. Ask before making 
   - `POST /api/admin/notifications/mark-read` — marks one (by `id`) or all notifications as read
 - **Frontend (`admin.html`)**: Bell icon in sticky header with animated red badge (unread count); sidebar badge on Platform Intelligence nav item; notification dropdown with per-item read/unread state, time-ago, click-to-navigate to Platform Intelligence; "View Dead Platforms" footer CTA; critical red-left-border toast (8s, click-dismissible, one-per-session per notification via `sessionStorage`). Zero polling — purely Socket.io push + one-time load at admin_init.
 
+### User Profile Location System
+- **IP Geolocation**: Automatic IP location lookup on login using ip-api.com (primary, HTTPS) and ipapi.co (fallback). Results cached in `IpGeoCache` table with 72h TTL. Private IP detection for IPv4/IPv6/mapped addresses. Fields stored on User: `ipCountry`, `ipRegion`, `ipCity`, `ipIsp`, `ipTimezone`, `ipLat`, `ipLon`, `ipLookupStatus`.
+- **Device GPS Location**: Browser Geolocation API integration. User grants permission, GPS coordinates sent to backend. Reverse geocoded via Nominatim (with User-Agent header). Fields stored on User: `deviceLat`, `deviceLon`, `deviceAccuracy`, `deviceAddress`, `deviceCity`, `deviceRegion`, `deviceCountry`, `deviceLocationAt`.
+- **API Endpoints**:
+  - `GET /api/security-location` — returns both IP and device location data with confidence levels
+  - `POST /api/device-location` — saves device GPS coords with strict validation (`Number.isFinite`, range checks, accuracy bounds 0-100000)
+  - `POST /api/refresh-ip-location` — re-lookups current IP with proper success/fail semantics and persists failed status
+- **Profile UI**: Access & Security section in profile View tab with separate IP Location and Device Location cards. Confidence badges (high/medium/low/none), refresh buttons, skeleton loaders, tooltips.
+- **Utility**: `backend/utils/geoip.js` — `lookupIP()`, `reverseGeocode()`, cache management with Date-based TTL comparison.
+
 ## External Dependencies
 - **Node.js Libraries**: `express`, `@prisma/client`, `jsonwebtoken`, `bcryptjs`, `cookie-parser`, `socket.io`, `multer`, `express-rate-limit`.
 - **Frontend Libraries**: Tailwind CSS v3 (CDN), intl-tel-input v18 (CDN).

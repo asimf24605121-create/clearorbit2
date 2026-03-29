@@ -4,6 +4,7 @@ import { authenticate, tryAuthenticate } from '../middleware/auth.js';
 import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent } from '../utils/helpers.js';
 import { parseRawCookieString, classifyCookieCompleteness, detectRequiredSessionComponents } from '../utils/cookieEngine.js';
 import { sessionStore } from '../utils/sessionStore.js';
+import { lookupIP, reverseGeocode, computeConfidence } from '../utils/geoip.js';
 
 const router = Router();
 
@@ -660,7 +661,12 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
         id: true, username: true, name: true, email: true, phone: true,
         country: true, city: true, gender: true, profileImage: true,
         profileCompleted: true, isActive: true, expiryDate: true,
-        lastLoginIp: true, createdAt: true,
+        lastLoginIp: true, lastLoginAt: true, createdAt: true,
+        ipCountry: true, ipRegion: true, ipCity: true, ipIsp: true,
+        ipTimezone: true, ipLat: true, ipLon: true, ipLookupStatus: true,
+        deviceLat: true, deviceLon: true, deviceAccuracy: true,
+        deviceAddress: true, deviceCity: true, deviceRegion: true,
+        deviceCountry: true, deviceLocationAt: true, deviceId: true,
         subscriptions: {
           where: { isActive: 1 },
           select: {
@@ -682,6 +688,31 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
       else if ((exp - now) / 86400000 <= 7) accountStatus = 'expiring_soon';
     }
 
+    const ipLocation = {
+      country: user.ipCountry || null,
+      region: user.ipRegion || null,
+      city: user.ipCity || null,
+      isp: user.ipIsp || null,
+      timezone: user.ipTimezone || null,
+      lat: user.ipLat || null,
+      lon: user.ipLon || null,
+      status: user.ipLookupStatus || null,
+    };
+
+    const deviceLocation = {
+      lat: user.deviceLat,
+      lon: user.deviceLon,
+      accuracy: user.deviceAccuracy,
+      address: user.deviceAddress || null,
+      city: user.deviceCity || null,
+      region: user.deviceRegion || null,
+      country: user.deviceCountry || null,
+      captured_at: user.deviceLocationAt || null,
+    };
+
+    const hasDevice = user.deviceLat != null && user.deviceLon != null;
+    const confidence = computeConfidence(ipLocation, hasDevice ? { deviceLat: user.deviceLat, deviceLon: user.deviceLon, deviceAccuracy: user.deviceAccuracy } : null);
+
     res.json({
       success: true,
       profile: {
@@ -689,8 +720,12 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
         email: user.email, phone: user.phone, country: user.country,
         city: user.city, gender: user.gender, profile_image: user.profileImage,
         profile_completed: user.profileCompleted, expiry_date: user.expiryDate,
-        last_login_ip: user.lastLoginIp, account_status: accountStatus,
-        created_at: user.createdAt,
+        last_login_ip: user.lastLoginIp, last_login_at: user.lastLoginAt,
+        account_status: accountStatus, created_at: user.createdAt,
+        device_locked: !!user.deviceId,
+        ip_location: ipLocation,
+        device_location: deviceLocation,
+        location_confidence: confidence,
       },
       subscriptions: user.subscriptions.map(s => ({
         id: s.id, platform_name: s.platform.name,
@@ -700,6 +735,155 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
     });
   } catch (err) {
     console.error('get_user_profile error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/security-location', authenticate, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        lastLoginIp: true, ipCountry: true, ipRegion: true, ipCity: true,
+        ipIsp: true, ipTimezone: true, ipLat: true, ipLon: true, ipLookupStatus: true,
+        deviceLat: true, deviceLon: true, deviceAccuracy: true,
+        deviceAddress: true, deviceCity: true, deviceRegion: true,
+        deviceCountry: true, deviceLocationAt: true,
+      },
+    });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    let ipLocation = {
+      ip: user.lastLoginIp || null,
+      country: user.ipCountry || null,
+      region: user.ipRegion || null,
+      city: user.ipCity || null,
+      isp: user.ipIsp || null,
+      timezone: user.ipTimezone || null,
+      lat: user.ipLat || null,
+      lon: user.ipLon || null,
+      status: user.ipLookupStatus || 'unavailable',
+    };
+
+    if (user.lastLoginIp && (!user.ipLookupStatus || user.ipLookupStatus === 'failed')) {
+      const fresh = await lookupIP(user.lastLoginIp);
+      if (fresh.status === 'success') {
+        ipLocation = {
+          ip: user.lastLoginIp,
+          country: fresh.country, region: fresh.region, city: fresh.city,
+          isp: fresh.isp, timezone: fresh.timezone, lat: fresh.lat, lon: fresh.lon,
+          status: 'success',
+        };
+        await prisma.user.update({
+          where: { id: req.user.id },
+          data: {
+            ipCountry: fresh.country, ipRegion: fresh.region, ipCity: fresh.city,
+            ipIsp: fresh.isp, ipTimezone: fresh.timezone,
+            ipLat: fresh.lat, ipLon: fresh.lon, ipLookupStatus: 'success',
+          },
+        });
+      }
+    }
+
+    const deviceLocation = {
+      lat: user.deviceLat, lon: user.deviceLon,
+      accuracy: user.deviceAccuracy, address: user.deviceAddress || null,
+      city: user.deviceCity || null, region: user.deviceRegion || null,
+      country: user.deviceCountry || null, captured_at: user.deviceLocationAt || null,
+    };
+
+    const hasDevice = user.deviceLat != null && user.deviceLon != null;
+    const confidence = computeConfidence(ipLocation, hasDevice ? { deviceLat: user.deviceLat, deviceLon: user.deviceLon, deviceAccuracy: user.deviceAccuracy } : null);
+
+    res.json({
+      success: true,
+      ip_location: ipLocation,
+      device_location: deviceLocation,
+      confidence,
+    });
+  } catch (err) {
+    console.error('security-location error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/device-location', authenticate, async (req, res) => {
+  try {
+    const { lat, lon, accuracy } = req.body;
+    if (lat == null || lon == null || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return res.status(400).json({ success: false, message: 'Valid latitude and longitude required' });
+    }
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ success: false, message: 'Coordinates out of range' });
+    }
+    const validAccuracy = (typeof accuracy === 'number' && Number.isFinite(accuracy) && accuracy >= 0 && accuracy <= 100000) ? accuracy : null;
+
+    const now = nowISO();
+    const data = {
+      deviceLat: lat, deviceLon: lon,
+      deviceAccuracy: validAccuracy,
+      deviceLocationAt: now,
+    };
+
+    const geo = await reverseGeocode(lat, lon);
+    if (geo) {
+      data.deviceAddress = geo.address || null;
+      data.deviceCity = geo.city || null;
+      data.deviceRegion = geo.region || null;
+      data.deviceCountry = geo.country || null;
+    }
+
+    await prisma.user.update({ where: { id: req.user.id }, data });
+
+    res.json({
+      success: true,
+      message: 'Device location updated',
+      device_location: {
+        lat, lon, accuracy: data.deviceAccuracy,
+        address: data.deviceAddress || null,
+        city: data.deviceCity || null,
+        region: data.deviceRegion || null,
+        country: data.deviceCountry || null,
+        captured_at: now,
+      },
+    });
+  } catch (err) {
+    console.error('device-location error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/refresh-ip-location', authenticate, async (req, res) => {
+  try {
+    const ip = getClientIP(req);
+    const geo = await lookupIP(ip);
+
+    const ipLocation = {
+      country: geo.country, region: geo.region, city: geo.city,
+      isp: geo.isp, timezone: geo.timezone, lat: geo.lat, lon: geo.lon,
+      status: geo.status,
+    };
+
+    if (geo.status === 'success' || geo.status === 'local') {
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: {
+          lastLoginIp: ip,
+          ipCountry: geo.country, ipRegion: geo.region, ipCity: geo.city,
+          ipIsp: geo.isp, ipTimezone: geo.timezone,
+          ipLat: geo.lat, ipLon: geo.lon, ipLookupStatus: geo.status,
+        },
+      });
+      res.json({ success: true, ip, ip_location: ipLocation });
+    } else {
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: { lastLoginIp: ip, ipLookupStatus: 'failed' },
+      });
+      res.json({ success: false, ip, message: 'IP location lookup failed', ip_location: ipLocation });
+    }
+  } catch (err) {
+    console.error('refresh-ip-location error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

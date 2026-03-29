@@ -1,0 +1,294 @@
+You are a senior full-stack developer. Fix and upgrade the **User Access & Security location system** so that **IP location** and **device location** are accurate, clearly separated, and production-ready.
+
+## Goal
+
+The current profile modal shows weak / misleading location data. I want a **robust location system** for both:
+
+1. **IP-based location**
+2. **Device GPS/browser location**
+
+Both must be shown separately and correctly in the UI.
+
+---
+
+## Core Requirements
+
+### 1) Separate IP Location and Device Location properly
+
+Do **not** mix them.
+
+#### IP Location
+
+Use the user's login IP to fetch:
+
+* country
+* region/state
+* city
+* ISP/organization
+* timezone
+* approximate latitude/longitude if available
+
+Display it as:
+
+* **IP Address**
+* **IP Location**
+* **ISP / Network Provider**
+* **Timezone**
+* optional: “Approximate location based on IP”
+
+Important:
+
+* IP location is only approximate
+* Never present IP location as exact live device location
+* Add a small note like:
+  **"IP-based location is approximate and may differ from actual device location."**
+
+#### Device Location
+
+Use browser geolocation API only after user permission.
+Display:
+
+* latitude
+* longitude
+* reverse-geocoded address
+* city / area
+* region
+* country
+* accuracy in meters
+* timestamp of last location capture
+
+Important:
+
+* If permission is denied, clearly show:
+  **"Device location unavailable — permission not granted."**
+* If browser does not support it, show:
+  **"Device location unavailable — browser not supported."**
+* Device location should never be replaced with IP location silently.
+
+---
+
+## 2) Make the backend production-grade
+
+Implement a clean location pipeline.
+
+### Backend tasks
+
+* On login, capture the real client IP safely
+* Support proxy headers properly:
+
+  * `x-forwarded-for`
+  * `x-real-ip`
+* Normalize IPv4 / IPv6
+* Ignore localhost / private IPs for production location lookup
+* Store login metadata in database:
+
+  * ip
+  * ip_country
+  * ip_region
+  * ip_city
+  * ip_isp
+  * ip_timezone
+  * ip_lat
+  * ip_lng
+  * lookup_source
+  * lookup_status
+  * last_login_at
+
+### IP Geolocation provider
+
+Integrate a reliable IP geolocation service with fallback support.
+Architecture should support:
+
+* primary provider
+* fallback provider
+* timeout handling
+* retry handling
+* graceful failure
+
+If lookup fails:
+
+* keep IP visible
+* show location as unavailable
+* do not show fake / stale / hardcoded location
+
+### Reverse geocoding
+
+For device GPS coordinates, reverse geocode them into human-readable address using a reliable service.
+Store:
+
+* device_lat
+* device_lng
+* device_accuracy
+* device_address
+* device_city
+* device_region
+* device_country
+* device_location_captured_at
+
+---
+
+## 3) Fix the UI/UX in profile modal
+
+Redesign the **Access & Security** block for clarity.
+
+### Show fields like this:
+
+#### Access & Security
+
+* Join Date
+* Expiry Date
+* Last Login IP
+* IP Location
+* ISP / Network
+* Timezone
+* Device Location
+* Device Coordinates
+* Location Accuracy
+* Last Device Update
+* Device Lock
+* Profile Complete
+
+### UI behavior
+
+* Use clean badges/icons
+* Use subtle helper text
+* Show loading skeleton while fetching
+* Show clear empty states
+* Show error state if lookup fails
+* Never display broken text blocks or inconsistent alignment
+* Make it responsive for desktop/tablet/mobile
+
+### Example display logic
+
+* **IP Location:** Rawalpindi, Punjab, Pakistan
+* **ISP:** Cyber Internet Services
+* **Timezone:** Asia/Karachi
+* **Device Location:** Bahria Town Phase 7, Rawalpindi, Pakistan
+* **Accuracy:** 18 meters
+* **Updated:** 2 min ago
+
+If device permission is not granted:
+
+* **Device Location:** Unavailable
+* Helper text: **User has not granted location permission**
+
+---
+
+## 4) Accuracy and trust rules
+
+This is critical:
+
+* Do not label IP location as “live location”
+* Do not show city guessed from old cached data
+* Do not reuse another user’s location accidentally
+* Do not hardcode location strings
+* Do not display “Not available” if actual data exists
+* Do not display wrong area if only country-level IP data is available
+* If precision is low, show lower-confidence label
+
+### Confidence logic
+
+Add confidence labels:
+
+* High confidence = device GPS available
+* Medium confidence = accurate IP city-level result
+* Low confidence = region/country only
+
+---
+
+## 5) Privacy and permission handling
+
+Implement proper privacy controls:
+
+* Ask for device location permission only when needed
+* Do not repeatedly spam permission prompts
+* Save consent state
+* Add a “Refresh Device Location” button
+* Add a tooltip explaining the difference between:
+
+  * IP-based location
+  * Device GPS location
+
+Example tooltip:
+
+* **IP Location:** estimated from internet connection
+* **Device Location:** precise location from browser/device permission
+
+---
+
+## 6) Database and API improvements
+
+Create clean APIs:
+
+### Suggested endpoints
+
+* `GET /api/user/:id/security-location`
+* `POST /api/user/:id/device-location`
+* `POST /api/location/refresh-ip`
+* `POST /api/location/reverse-geocode`
+
+### API response format
+
+Return structured JSON:
+
+* ip
+* ipLocation object
+* deviceLocation object
+* confidence
+* lastUpdated
+* errors if any
+
+Do not return messy flat inconsistent fields.
+
+---
+
+## 7) Performance and scaling
+
+This platform must not be slow and must be optimized for **1000+ concurrent users**.
+
+So:
+
+* cache IP geo lookups
+* avoid repeated expensive lookups for same IP
+* add TTL caching
+* debounce device location updates
+* avoid blocking login flow with slow geo API calls
+* use async jobs / background processing where needed
+* add request timeouts and fallbacks
+
+---
+
+## 8) Developer quality requirements
+
+* Refactor existing location code fully if needed
+* Remove duplicate or conflicting logic
+* Clean naming throughout frontend/backend
+* Add proper validation and error handling
+* Add comments only where useful
+* Keep code production-ready and maintainable
+
+### Must include
+
+* updated backend logic
+* updated frontend UI
+* migration/schema update if needed
+* helper utilities for geolocation
+* fallback handling
+* final polished UX
+
+---
+
+## 9) Final output required from you
+
+Implement the full fix and provide:
+
+1. updated backend code
+2. updated frontend code
+3. DB/schema changes
+4. any env variables needed
+5. explanation of how IP vs Device location now works
+6. list of edge cases handled
+7. ensure no fake or misleading location is shown anywhere
+
+Main priority:
+**Make location accurate, professional, privacy-safe, scalable, and visually excellent.**

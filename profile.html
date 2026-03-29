@@ -71,6 +71,29 @@
         .iti__flag-container{pointer-events:auto}
         .phone-error{display:none;color:#DC2626;font-size:.6875rem;margin-top:.25rem;font-weight:500}
         .phone-error.visible{display:block}
+        .section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6366F1;margin-bottom:.5rem;display:flex;align-items:center;gap:.375rem}
+        .section-title svg{width:14px;height:14px}
+        .loc-card{background:rgba(249,250,251,.8);border:1px solid rgba(229,231,235,.6);border-radius:.875rem;padding:1rem 1.125rem;margin-bottom:.75rem}
+        .loc-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid rgba(243,244,246,.9)}
+        .loc-row:last-child{border-bottom:none}
+        .loc-label{font-size:.75rem;font-weight:500;color:#6B7280;display:flex;align-items:center;gap:.375rem}
+        .loc-value{font-size:.8125rem;font-weight:500;color:#111827;text-align:right;max-width:60%}
+        .loc-note{font-size:.6875rem;color:#9CA3AF;margin-top:.375rem;display:flex;align-items:center;gap:.25rem}
+        .confidence-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.125rem .5rem;border-radius:999px;font-size:.625rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+        .confidence-high{background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.15)}
+        .confidence-medium{background:rgba(217,119,6,.06);color:#D97706;border:1px solid rgba(217,119,6,.12)}
+        .confidence-low{background:rgba(220,38,38,.06);color:#DC2626;border:1px solid rgba(220,38,38,.1)}
+        .confidence-none{background:rgba(107,114,128,.06);color:#6B7280;border:1px solid rgba(107,114,128,.1)}
+        .skeleton{background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:.375rem;height:1rem;width:120px;display:inline-block}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .refresh-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .625rem;border-radius:.5rem;font-size:.6875rem;font-weight:500;color:#6366F1;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);cursor:pointer;transition:all .2s}
+        .refresh-btn:hover{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25)}
+        .refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+        .tooltip-trigger{position:relative;cursor:help}
+        .tooltip-trigger .tooltip-text{visibility:hidden;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:.5rem .75rem;border-radius:.5rem;font-size:.6875rem;font-weight:400;white-space:nowrap;z-index:50;pointer-events:none;opacity:0;transition:opacity .15s}
+        .tooltip-trigger .tooltip-text::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1F2937}
+        .tooltip-trigger:hover .tooltip-text{visibility:visible;opacity:1}
+        .loc-unavailable{color:#9CA3AF;font-style:italic;font-size:.8125rem}
         @media(max-width:767px){
             .info-row{flex-direction:column;gap:.25rem;align-items:flex-start}
             .info-value{text-align:left}
@@ -167,7 +190,7 @@
             </div>
 
             <div id="panelView" class="p-6">
-                <div class="bg-gray-50 rounded-xl px-5 py-1">
+                <div class="bg-gray-50 rounded-xl px-5 py-1 mb-5">
                     <div class="info-row">
                         <span class="info-label">Username</span>
                         <span class="info-value" id="viewUsername" data-testid="text-view-username">—</span>
@@ -196,17 +219,128 @@
                         <span class="info-label">Gender</span>
                         <span class="info-value" id="viewGender" data-testid="text-gender">—</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Join Date</span>
-                        <span class="info-value" id="viewJoinDate" data-testid="text-join-date">—</span>
+                </div>
+
+                <div class="section-title">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Access &amp; Security
+                    <span class="tooltip-trigger" style="margin-left:auto">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="tooltip-text" style="white-space:normal;width:240px;left:auto;right:0;transform:none">
+                            <strong>IP Location:</strong> Estimated from your internet connection. Approximate only.<br><br>
+                            <strong>Device Location:</strong> Precise location from browser/device GPS permission.
+                        </span>
+                    </span>
+                </div>
+
+                <div class="loc-card">
+                    <div class="loc-row">
+                        <span class="loc-label">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Join Date
+                        </span>
+                        <span class="loc-value" id="viewJoinDate" data-testid="text-join-date">—</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Account Expiry</span>
-                        <span class="info-value" id="viewExpiry" data-testid="text-expiry">—</span>
+                    <div class="loc-row">
+                        <span class="loc-label">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Expiry Date
+                        </span>
+                        <span class="loc-value" id="viewExpiry" data-testid="text-expiry">—</span>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Last Login IP</span>
-                        <span class="info-value" id="viewIP" data-testid="text-ip">—</span>
+                    <div class="loc-row">
+                        <span class="loc-label">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Profile Complete
+                        </span>
+                        <span class="loc-value" id="viewProfileComplete">—</span>
+                    </div>
+                    <div class="loc-row">
+                        <span class="loc-label">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            Device Lock
+                        </span>
+                        <span class="loc-value" id="viewDeviceLock">—</span>
+                    </div>
+                    <div class="loc-row">
+                        <span class="loc-label">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Location Confidence
+                        </span>
+                        <span class="loc-value" id="viewConfidence">—</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="color:#0EA5E9">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    IP Location
+                    <button class="refresh-btn" style="margin-left:auto" onclick="refreshIPLocation()" id="btnRefreshIP">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+                <div class="loc-card" id="ipLocationCard">
+                    <div class="loc-row">
+                        <span class="loc-label">IP Address</span>
+                        <span class="loc-value" id="viewIP" data-testid="text-ip">—</span>
+                    </div>
+                    <div class="loc-row">
+                        <span class="loc-label">IP Location</span>
+                        <span class="loc-value" id="viewIPLocation">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <div class="loc-row">
+                        <span class="loc-label">ISP / Network</span>
+                        <span class="loc-value" id="viewISP">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <div class="loc-row">
+                        <span class="loc-label">Timezone</span>
+                        <span class="loc-value" id="viewTimezone">
+                            <span class="skeleton"></span>
+                        </span>
+                    </div>
+                    <p class="loc-note">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        IP-based location is approximate and may differ from actual device location.
+                    </p>
+                </div>
+
+                <div class="section-title" style="color:#059669">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Device Location
+                    <button class="refresh-btn" style="margin-left:auto" onclick="requestDeviceLocation()" id="btnRefreshDevice">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Update Location
+                    </button>
+                </div>
+                <div class="loc-card" id="deviceLocationCard">
+                    <div id="deviceLocationContent">
+                        <div class="loc-row">
+                            <span class="loc-label">Device Location</span>
+                            <span class="loc-value" id="viewDeviceLocation">
+                                <span class="loc-unavailable">Not yet captured</span>
+                            </span>
+                        </div>
+                        <div class="loc-row">
+                            <span class="loc-label">Coordinates</span>
+                            <span class="loc-value" id="viewDeviceCoords">—</span>
+                        </div>
+                        <div class="loc-row">
+                            <span class="loc-label">Accuracy</span>
+                            <span class="loc-value" id="viewDeviceAccuracy">—</span>
+                        </div>
+                        <div class="loc-row">
+                            <span class="loc-label">Last Updated</span>
+                            <span class="loc-value" id="viewDeviceUpdated">—</span>
+                        </div>
+                    </div>
+                    <div id="deviceLocationUnavailable" style="display:none" class="text-center py-3">
+                        <svg class="w-8 h-8 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <p class="text-sm text-gray-500 font-medium" id="deviceUnavailableText">Device location unavailable</p>
+                        <p class="text-xs text-gray-400 mt-1" id="deviceUnavailableReason">Click "Update Location" to grant permission</p>
                     </div>
                 </div>
             </div>
@@ -401,6 +535,180 @@ function populateView(p) {
     document.getElementById('viewJoinDate').textContent = formatDate(p.created_at);
     document.getElementById('viewExpiry').textContent = formatDate(p.expiry_date);
     document.getElementById('viewIP').textContent = p.last_login_ip || '—';
+
+    document.getElementById('viewProfileComplete').innerHTML = p.profile_completed
+        ? '<span class="badge badge-green">Yes</span>'
+        : '<span class="badge badge-yellow">Incomplete</span>';
+
+    document.getElementById('viewDeviceLock').innerHTML = p.device_locked
+        ? '<span class="badge badge-green">Locked</span>'
+        : '<span class="badge badge-yellow">Not Locked</span>';
+
+    populateIPLocation(p.ip_location, p.last_login_ip);
+    populateDeviceLocation(p.device_location);
+    populateConfidence(p.location_confidence);
+}
+
+function populateIPLocation(ip, ipAddr) {
+    if (!ip || !ip.status || ip.status === 'failed' || ip.status === 'unavailable') {
+        document.getElementById('viewIPLocation').textContent = ipAddr ? 'Lookup pending...' : '—';
+        document.getElementById('viewISP').textContent = '—';
+        document.getElementById('viewTimezone').textContent = '—';
+        if (ipAddr) refreshIPLocation();
+        return;
+    }
+
+    var parts = [ip.city, ip.region, ip.country].filter(function(v) { return v && v !== 'Unknown' && v !== 'Local'; });
+    document.getElementById('viewIPLocation').textContent = parts.length > 0 ? parts.join(', ') : '—';
+    document.getElementById('viewISP').textContent = (ip.isp && ip.isp !== 'Unknown') ? ip.isp : '—';
+    document.getElementById('viewTimezone').textContent = (ip.timezone && ip.timezone !== '') ? ip.timezone : '—';
+}
+
+function populateDeviceLocation(dev) {
+    var content = document.getElementById('deviceLocationContent');
+    var unavailable = document.getElementById('deviceLocationUnavailable');
+
+    if (!dev || dev.lat == null || dev.lon == null) {
+        content.style.display = 'none';
+        unavailable.style.display = '';
+        return;
+    }
+
+    content.style.display = '';
+    unavailable.style.display = 'none';
+
+    var parts = [dev.city, dev.region, dev.country].filter(function(v) { return v && v !== ''; });
+    var locEl = document.getElementById('viewDeviceLocation');
+    if (dev.address) {
+        locEl.textContent = parts.length > 0 ? parts.join(', ') : dev.address;
+    } else {
+        locEl.innerHTML = '<span class="loc-unavailable">Reverse geocode unavailable</span>';
+    }
+
+    document.getElementById('viewDeviceCoords').textContent = dev.lat.toFixed(6) + ', ' + dev.lon.toFixed(6);
+
+    if (dev.accuracy != null) {
+        document.getElementById('viewDeviceAccuracy').textContent = Math.round(dev.accuracy) + ' meters';
+    } else {
+        document.getElementById('viewDeviceAccuracy').textContent = '—';
+    }
+
+    if (dev.captured_at) {
+        document.getElementById('viewDeviceUpdated').textContent = timeAgo(dev.captured_at);
+    } else {
+        document.getElementById('viewDeviceUpdated').textContent = '—';
+    }
+}
+
+function populateConfidence(level) {
+    var el = document.getElementById('viewConfidence');
+    var map = {
+        high: ['High', 'confidence-high'],
+        medium: ['Medium', 'confidence-medium'],
+        low: ['Low', 'confidence-low'],
+        none: ['None', 'confidence-none']
+    };
+    var entry = map[level] || map.none;
+    el.innerHTML = '<span class="confidence-badge ' + entry[1] + '">' + entry[0] + '</span>';
+}
+
+function timeAgo(dateStr) {
+    if (!dateStr) return '—';
+    var d = new Date(dateStr.replace(' ', 'T'));
+    if (isNaN(d.getTime())) return dateStr;
+    var diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
+    return Math.floor(diff / 86400) + ' day(s) ago';
+}
+
+var _locationRequested = false;
+
+async function refreshIPLocation() {
+    var btn = document.getElementById('btnRefreshIP');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Refreshing...';
+    try {
+        var res = await fetch('api/refresh-ip-location', {
+            method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({})
+        });
+        var data = await res.json();
+        if (data.success) {
+            document.getElementById('viewIP').textContent = data.ip || '—';
+            populateIPLocation(data.ip_location, data.ip);
+            showAlert('IP location refreshed');
+        }
+    } catch (e) {
+        showAlert('Failed to refresh IP location', true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Refresh';
+    }
+}
+
+function requestDeviceLocation() {
+    if (_locationRequested) return;
+
+    if (!navigator.geolocation) {
+        document.getElementById('deviceLocationContent').style.display = 'none';
+        document.getElementById('deviceLocationUnavailable').style.display = '';
+        document.getElementById('deviceUnavailableText').textContent = 'Device location unavailable';
+        document.getElementById('deviceUnavailableReason').textContent = 'Browser does not support geolocation';
+        return;
+    }
+
+    _locationRequested = true;
+    var btn = document.getElementById('btnRefreshDevice');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Locating...';
+
+    navigator.geolocation.getCurrentPosition(
+        async function(pos) {
+            try {
+                var res = await fetch('api/device-location', {
+                    method: 'POST', headers: csrfHeaders(), credentials: 'include',
+                    body: JSON.stringify({
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy
+                    })
+                });
+                var data = await res.json();
+                if (data.success && data.device_location) {
+                    populateDeviceLocation(data.device_location);
+                    showAlert('Device location updated');
+                    loadProfile();
+                }
+            } catch (e) {
+                showAlert('Failed to save device location', true);
+            } finally {
+                _locationRequested = false;
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Update Location';
+            }
+        },
+        function(err) {
+            _locationRequested = false;
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Update Location';
+
+            document.getElementById('deviceLocationContent').style.display = 'none';
+            document.getElementById('deviceLocationUnavailable').style.display = '';
+
+            if (err.code === 1) {
+                document.getElementById('deviceUnavailableText').textContent = 'Device location unavailable';
+                document.getElementById('deviceUnavailableReason').textContent = 'Permission not granted. Please allow location access in your browser settings.';
+            } else if (err.code === 2) {
+                document.getElementById('deviceUnavailableText').textContent = 'Position unavailable';
+                document.getElementById('deviceUnavailableReason').textContent = 'Could not determine your position. Try again later.';
+            } else {
+                document.getElementById('deviceUnavailableText').textContent = 'Location timed out';
+                document.getElementById('deviceUnavailableReason').textContent = 'Request took too long. Please try again.';
+            }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
 }
 
 function initPhoneInput() {

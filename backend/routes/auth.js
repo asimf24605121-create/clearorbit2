@@ -6,6 +6,7 @@ import { generateCsrfToken } from '../middleware/csrf.js';
 import { loginLimiter } from '../middleware/rateLimit.js';
 import { nowISO, randomToken, getClientIP, parseUserAgent } from '../utils/helpers.js';
 import { sessionStore } from '../utils/sessionStore.js';
+import { lookupIP } from '../utils/geoip.js';
 
 const router = Router();
 
@@ -74,6 +75,21 @@ router.post('/login', loginLimiter, async (req, res) => {
     });
 
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginIp: ip, deviceId: devId, lastLoginAt: new Date().toISOString() } });
+
+    lookupIP(ip).then(async (geo) => {
+      if (geo.status === 'success') {
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              ipCountry: geo.country, ipRegion: geo.region, ipCity: geo.city,
+              ipIsp: geo.isp, ipTimezone: geo.timezone,
+              ipLat: geo.lat, ipLon: geo.lon, ipLookupStatus: 'success',
+            },
+          });
+        } catch (e) { console.warn('[login] IP geo save error:', e.message); }
+      }
+    }).catch(() => {});
 
     const jwtToken = generateToken({ userId: user.id, sessionToken, role: user.role });
     const csrfToken = generateCsrfToken(user.id);
