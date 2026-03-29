@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma, emitUserEvent, emitAdminEvent } from '../server.js';
 import { authenticate, tryAuthenticate } from '../middleware/auth.js';
-import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent } from '../utils/helpers.js';
+import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent, getUserAccessMode } from '../utils/helpers.js';
 import { parseRawCookieString, classifyCookieCompleteness, detectRequiredSessionComponents } from '../utils/cookieEngine.js';
 import { sessionStore } from '../utils/sessionStore.js';
 import { lookupIP, reverseGeocode, computeConfidence } from '../utils/geoip.js';
@@ -61,8 +61,13 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
           subscribed: false,
         };
       }
-      const endDate = new Date(sub.endDate + 'T23:59:59');
-      const startDate = sub.startDate ? new Date(sub.startDate) : now;
+      const endDateStr = sub.endDate;
+      const endDate = endDateStr.includes(' ')
+        ? new Date(endDateStr.replace(' ', 'T'))
+        : new Date(endDateStr + 'T23:59:59');
+      const startDate = sub.startDate
+        ? new Date(sub.startDate.includes(' ') ? sub.startDate.replace(' ', 'T') : sub.startDate)
+        : now;
       const remainMs = endDate - now;
       const totalDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
       const daysLeft = Math.max(0, Math.ceil(remainMs / 86400000));
@@ -74,6 +79,7 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
         logo_url: p.logoUrl, bg_color_hex: p.bgColorHex, login_url: p.loginUrl,
         subscribed: true, start_date: sub.startDate, end_date: sub.endDate,
         is_active: sub.isActive,
+        duration_unit: sub.durationUnit || 'days',
         remaining: {
           days: daysLeft, hours, minutes: mins,
           expired: remainMs <= 0, total_days: totalDays,
@@ -108,6 +114,8 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
     }
     const uniqueSessions = Array.from(identityMap.values());
 
+    const accessMode = await getUserAccessMode(prisma, userId);
+
     res.json({
       success: true,
       username: profile.username,
@@ -116,6 +124,7 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
       phone: profile.phone,
       profile_image: profile.profileImage,
       profile_completed: profile.profileCompleted,
+      access_mode: accessMode,
       cards,
       active_count: activeCount,
       total_count: allPlatforms.length,
@@ -713,6 +722,8 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
     const hasDevice = user.deviceLat != null && user.deviceLon != null;
     const confidence = computeConfidence(ipLocation, hasDevice ? { deviceLat: user.deviceLat, deviceLon: user.deviceLon, deviceAccuracy: user.deviceAccuracy } : null);
 
+    const accessMode = await getUserAccessMode(prisma, req.user.id);
+
     res.json({
       success: true,
       profile: {
@@ -726,6 +737,7 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
         ip_location: ipLocation,
         device_location: deviceLocation,
         location_confidence: confidence,
+        access_mode: accessMode,
       },
       subscriptions: user.subscriptions.map(s => ({
         id: s.id, platform_name: s.platform.name,

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
-import { nowISO, todayISO, futureDate, paginate } from '../utils/helpers.js';
+import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, paginate } from '../utils/helpers.js';
 
 const router = Router();
 
@@ -58,13 +58,17 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
       prisma.userSubscription.count({ where }),
     ]);
 
+    const now = new Date();
     res.json({
       success: true,
       subscriptions: subs.map(s => {
-        const daysLeft = Math.ceil((new Date(s.endDate) - new Date(today)) / 86400000);
+        const expired = isSubExpired(s.endDate);
+        const endParsed = new Date(s.endDate && s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
+        const remainMs = endParsed - now;
+        const daysLeft = Math.ceil(remainMs / 86400000);
         let computedStatus = 'active';
-        if (!s.isActive && daysLeft > 0) computedStatus = 'revoked';
-        else if (daysLeft <= 0) computedStatus = 'expired';
+        if (!s.isActive && !expired) computedStatus = 'revoked';
+        else if (expired) computedStatus = 'expired';
         else if (daysLeft <= 7) computedStatus = 'expiring';
 
         return {
@@ -75,6 +79,7 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
           platform_color: s.platform?.bgColorHex,
           start_date: s.startDate, end_date: s.endDate, is_active: s.isActive,
           days_left: daysLeft, status: computedStatus,
+          duration_value: s.durationValue, duration_unit: s.durationUnit,
         };
       }),
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
@@ -87,12 +92,13 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
 
 router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { subscription_ids, days } = req.body;
-    if (!Array.isArray(subscription_ids) || !subscription_ids.length || !days) {
-      return res.status(400).json({ success: false, message: 'subscription_ids array and days required' });
+    const { subscription_ids, days, extend_value, extend_unit } = req.body;
+    if (!Array.isArray(subscription_ids) || !subscription_ids.length) {
+      return res.status(400).json({ success: false, message: 'subscription_ids array required' });
     }
-    const d = parseInt(days);
-    if (d < 1 || d > 3650) return res.status(400).json({ success: false, message: 'Days must be 1-3650' });
+    const unit = ['minutes', 'hours', 'days'].includes(extend_unit) ? extend_unit : 'days';
+    const val = parseInt(extend_value) || parseInt(days) || 0;
+    if (val < 1) return res.status(400).json({ success: false, message: 'Extension value required' });
 
     const subs = await prisma.userSubscription.findMany({
       where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
@@ -100,21 +106,19 @@ router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (r
 
     let updated = 0;
     for (const sub of subs) {
-      const currentEnd = new Date(sub.endDate);
-      const baseDate = currentEnd > new Date() ? currentEnd : new Date();
-      baseDate.setDate(baseDate.getDate() + d);
+      const newEnd = extendEndDate(sub.endDate, val, unit);
       await prisma.userSubscription.update({
         where: { id: sub.id },
-        data: { endDate: baseDate.toISOString().substring(0, 10), isActive: 1 },
+        data: { endDate: newEnd, isActive: 1 },
       });
       updated++;
     }
 
     await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Bulk extended ${updated} subscriptions by ${d} days`, ipAddress: req.ip || null, createdAt: nowISO() },
+      data: { userId: req.user.id, action: `Bulk extended ${updated} subscriptions by ${val} ${unit}`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
 
-    res.json({ success: true, message: `${updated} subscription(s) extended by ${d} days` });
+    res.json({ success: true, message: `${updated} subscription(s) extended by ${val} ${unit}` });
   } catch (err) {
     console.error('bulk_extend error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -159,13 +163,16 @@ router.get('/get_user_subscriptions', authenticate, async (req, res) => {
       orderBy: { endDate: 'desc' },
     });
 
-    const today = todayISO();
+    const now = new Date();
     res.json({
       success: true,
       subscriptions: subs.map(s => {
-        const daysLeft = Math.ceil((new Date(s.endDate) - new Date(today)) / 86400000);
+        const expired = isSubExpired(s.endDate);
+        const endParsed = new Date(s.endDate && s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
+        const remainMs = endParsed - now;
+        const daysLeft = Math.ceil(remainMs / 86400000);
         let statusLabel = 'ACTIVE';
-        if (!s.isActive || daysLeft <= 0) statusLabel = 'EXPIRED';
+        if (!s.isActive || expired) statusLabel = 'EXPIRED';
         else if (daysLeft <= 3) statusLabel = 'WARNING';
 
         return {
@@ -174,6 +181,7 @@ router.get('/get_user_subscriptions', authenticate, async (req, res) => {
           login_url: s.platform?.loginUrl, start_date: s.startDate,
           end_date: s.endDate, is_active: s.isActive,
           days_left: daysLeft, status: statusLabel,
+          duration_value: s.durationValue, duration_unit: s.durationUnit,
         };
       }),
     });
@@ -185,22 +193,25 @@ router.get('/get_user_subscriptions', authenticate, async (req, res) => {
 
 router.post('/add_subscription', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { user_id, platform_id, duration_days, end_date } = req.body;
+    const { user_id, platform_id, duration_days, duration_value, duration_unit, end_date } = req.body;
     if (!user_id || !platform_id) {
       return res.status(400).json({ success: false, message: 'User ID and Platform ID required' });
     }
 
-    const endDateValue = end_date || futureDate(parseInt(duration_days) || 30);
+    const unit = ['minutes', 'hours', 'days'].includes(duration_unit) ? duration_unit : 'days';
+    const durVal = parseInt(duration_value) || parseInt(duration_days) || 30;
+    const endDateValue = end_date || computeEndDate(durVal, unit);
 
     const sub = await prisma.userSubscription.create({
       data: {
         userId: parseInt(user_id), platformId: parseInt(platform_id),
-        startDate: todayISO(), endDate: endDateValue, isActive: 1,
+        startDate: nowISO(), endDate: endDateValue, isActive: 1,
+        durationValue: durVal, durationUnit: unit,
       },
     });
 
     await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Added subscription for user ${user_id} on platform ${platform_id}`, ipAddress: req.ip || null, createdAt: nowISO() },
+      data: { userId: req.user.id, action: `Added subscription for user ${user_id} on platform ${platform_id} (${durVal} ${unit})`, ipAddress: req.ip || null, createdAt: nowISO() },
     });
 
     res.json({ success: true, message: 'Subscription added', subscription_id: sub.id });
@@ -225,20 +236,26 @@ router.post('/delete_subscription', authenticate, requireAdmin(), async (req, re
 
 router.post('/extend_subscription', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { subscription_id, days } = req.body;
-    if (!subscription_id || !days) return res.status(400).json({ success: false, message: 'Subscription ID and days required' });
+    const { subscription_id, days, extend_value, extend_unit } = req.body;
+    if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });
 
     const sub = await prisma.userSubscription.findUnique({ where: { id: parseInt(subscription_id) } });
     if (!sub) return res.status(404).json({ success: false, message: 'Subscription not found' });
 
-    const currentEnd = new Date(sub.endDate);
-    const baseDate = currentEnd > new Date() ? currentEnd : new Date();
-    baseDate.setDate(baseDate.getDate() + parseInt(days));
-    const newEndDate = baseDate.toISOString().substring(0, 10);
+    const unit = ['minutes', 'hours', 'days'].includes(extend_unit) ? extend_unit : 'days';
+    const val = parseInt(extend_value) || parseInt(days) || 0;
+    if (val < 1) return res.status(400).json({ success: false, message: 'Extension value required' });
 
+    const newEndDate = extendEndDate(sub.endDate, val, unit);
+
+    const updateData = { endDate: newEndDate, isActive: 1 };
+    if (unit !== 'days' || sub.durationUnit !== 'days') {
+      updateData.durationUnit = unit;
+      updateData.durationValue = val;
+    }
     await prisma.userSubscription.update({
       where: { id: sub.id },
-      data: { endDate: newEndDate, isActive: 1 },
+      data: updateData,
     });
 
     res.json({ success: true, message: 'Subscription extended', new_end_date: newEndDate });
@@ -401,7 +418,8 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
       await prisma.userSubscription.create({
         data: {
           userId: payment.userId, platformId: payment.platformId,
-          startDate: todayISO(), endDate: futureDate(days), isActive: 1,
+          startDate: nowISO(), endDate: computeEndDate(days, 'days'), isActive: 1,
+          durationValue: days, durationUnit: 'days',
         },
       });
     }

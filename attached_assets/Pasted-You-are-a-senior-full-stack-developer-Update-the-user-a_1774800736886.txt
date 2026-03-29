@@ -1,0 +1,387 @@
+You are a senior full-stack developer. Update the **user access duration system** and **user dashboard behavior** with the following exact business logic.
+
+## Main goal
+
+I want to support user access in:
+
+* minutes
+* hours
+* days
+
+This must work correctly in:
+
+* admin panel UI
+* backend expiry logic
+* database
+* login redirect
+* user dashboard visibility rules
+
+Do this as a production-grade feature without breaking existing day-based access.
+
+---
+
+## 1) Add support for 3 duration units
+
+The system must support:
+
+* `minutes`
+* `hours`
+* `days`
+
+For every user/platform access record, store:
+
+* duration value
+* duration unit
+* start time
+* expiry time
+* active status
+
+Examples:
+
+* 15 minutes
+* 2 hours
+* 7 days
+* 30 days
+
+Always calculate the exact expiry timestamp in backend.
+
+---
+
+## 2) Admin panel update
+
+In **Create User + Assign Access** and anywhere access is edited:
+
+### Add duration input system
+
+Admin should be able to choose:
+
+* Minutes
+* Hours
+* Days
+
+### Behavior
+
+#### Minutes
+
+Allow values like:
+
+* 5
+* 10
+* 15
+* 30
+* 45
+* 60
+* 90
+
+#### Hours
+
+Allow values like:
+
+* 1
+* 2
+* 3
+* 6
+* 12
+* 24
+
+#### Days
+
+Keep current day system and presets:
+
+* 7d
+* 30d
+* 90d
+* 180d
+* 1yr
+* custom input
+
+### UI requirement
+
+Make the duration section clean and clear:
+
+* number field
+* unit selector
+* expiry preview
+* helper text
+
+Example:
+
+* `30 minutes → expires at 2:45 PM`
+* `3 hours → expires today at 8:00 PM`
+* `7 days → expires on 05 Apr 2026`
+
+Do not remove existing day-based functionality.
+
+---
+
+## 3) Correct dashboard behavior
+
+This is the key requirement.
+
+### Rule A: If access is in minutes or hours
+
+When a user has active access in **minutes** or **hours**:
+
+* after login, user should still see the **normal dashboard/home**
+* but do **not** show:
+
+  * give detail page
+  * edit profile page
+  * forced profile completion flow
+  * any mandatory onboarding/profile-completion screen
+
+Important:
+
+* user should not be forced to fill details
+* user should be able to use the dashboard and assigned platform access normally
+* simply hide or disable detail/profile completion pages for short-access users
+
+### Rule B: If access is in days
+
+When a user has active access in **days**:
+
+* after login, user should see the **normal dashboard**
+* edit profile page can be available
+* profile/details page can be available
+* but still **do not force** profile completion
+
+Important:
+
+* even for day-based users, profile completion must be optional
+* no forced redirect to detail form
+* no blocking dashboard until profile is completed
+
+---
+
+## 4) Most important UX rule
+
+Remove any logic that forces:
+
+* “complete profile first”
+* “fill details before continuing”
+* “redirect to edit profile before dashboard”
+* “mandatory give detail page”
+
+### Final desired behavior
+
+#### Minutes/Hours users:
+
+* normal dashboard opens
+* no forced detail flow
+* edit profile/detail pages hidden or unavailable
+
+#### Days users:
+
+* normal dashboard opens
+* edit profile/detail pages available
+* but optional only
+* never forced
+
+---
+
+## 5) Dynamic logic based on active access
+
+This behavior must depend on the user’s **current active access type**, not just what happened at account creation.
+
+### Example
+
+* user has `30 minutes` access → normal dashboard opens, but detail/edit profile hidden
+* later admin changes access to `30 days` → normal dashboard still opens, and now edit profile/detail pages become available
+* later admin changes to `2 hours` → normal dashboard still opens, but edit profile/detail pages hide again
+
+This must work dynamically from active subscription/access data.
+
+---
+
+## 6) Access mode logic
+
+Create a clean backend helper/service to determine dashboard profile behavior.
+
+### Suggested derived modes
+
+#### Short access mode
+
+If user only has active:
+
+* minutes
+* hours
+
+Then:
+
+* dashboard allowed
+* platform access allowed
+* profile detail/edit pages hidden
+* no forced profile completion
+
+#### Regular access mode
+
+If user has at least one active:
+
+* day-based access
+
+Then:
+
+* dashboard allowed
+* platform access allowed
+* profile detail/edit pages available
+* profile completion still optional
+
+### Mixed-case rule
+
+If user has at least one active day-based access, treat them as:
+
+* `regular_access_mode`
+
+If user has only minutes/hours active access:
+
+* `short_access_mode`
+
+---
+
+## 7) Routing and guard behavior
+
+Update login redirect and frontend route guards.
+
+### Login behavior
+
+After login:
+
+* always send user to the **normal dashboard/home**
+* do not redirect to profile completion page
+* do not redirect to give detail page automatically
+
+### Route access behavior
+
+#### For short-access users
+
+Hide or block:
+
+* edit profile page
+* give detail page
+* profile completion page
+
+If they manually try to open those URLs:
+
+* redirect them back to dashboard safely
+
+#### For regular-access users
+
+Allow:
+
+* dashboard
+* edit profile
+* detail/profile pages
+
+But again:
+
+* no forced redirect
+* no mandatory completion gate
+
+---
+
+## 8) Database/schema changes
+
+Add or update fields cleanly:
+
+* `duration_value`
+* `duration_unit`
+* `expires_at`
+
+Optional derived/cached fields only if truly needed:
+
+* `access_mode`
+* `profile_pages_enabled`
+
+Prefer deriving logic from active access records where possible.
+
+---
+
+## 9) Admin edit/update behavior
+
+When admin changes a user access:
+
+* unit can switch between minutes / hours / days
+* expiry is recalculated immediately
+* dashboard/profile availability updates immediately
+* no stale cache issue
+* no relogin bugs if session refresh is needed
+
+Examples:
+
+* 45 minutes → dashboard yes, profile pages hidden
+* 2 hours → dashboard yes, profile pages hidden
+* 7 days → dashboard yes, profile pages available
+* 30 days → dashboard yes, profile pages available
+
+---
+
+## 10) UI labels for admin
+
+Use clear wording in admin panel:
+
+* Access Duration
+* Duration Value
+* Unit
+* Expires On
+* Access Type
+* Dashboard Access
+* Profile Pages
+
+Helper text:
+
+* **Minutes/Hours: normal dashboard allowed, profile detail/edit pages hidden**
+* **Days: normal dashboard allowed, profile pages available**
+* **Profile completion is optional for all users**
+
+---
+
+## 11) Important constraints
+
+* Do not break existing users
+* Do not break platform assignment
+* Do not break expiry handling
+* Do not break login flow
+* Do not break normal dashboard
+* Do not force profile completion anywhere
+* keep code clean and maintainable
+
+---
+
+## 12) Performance
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+So:
+
+* lightweight access checks during login
+* efficient route guards
+* minimal extra queries
+* safe caching only where needed
+
+---
+
+## 13) Deliverables
+
+Implement and provide:
+
+1. updated admin UI for minutes/hours/days access
+2. updated backend expiry and duration logic
+3. updated schema/migration
+4. login redirect logic
+5. route guard logic
+6. short-access vs regular-access profile-page handling
+7. removal of forced profile completion behavior
+8. explanation of final behavior
+
+## Final instruction
+
+Build this as a proper feature, not a quick patch.
+
+Final expected behavior:
+
+* admin can assign access in **minutes, hours, or days**
+* all users open into the **normal dashboard**
+* **minutes/hours** users cannot access detail/edit profile pages
+* **days** users can access detail/edit profile pages
+* **no user is forced** to fill profile details before using dashboard
+* everything works dynamically based on current active access

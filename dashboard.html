@@ -684,6 +684,13 @@ let ALL_CARDS = [];
 let TIMERS = {};
 let CURRENT_MODAL_PLATFORM = null;
 
+function parseEndDate(d) {
+    if (!d) return new Date(0);
+    if (d.includes(' ')) return new Date(d.replace(' ', 'T'));
+    if (d.includes('T')) return new Date(d);
+    return new Date(d + 'T23:59:59');
+}
+
 function escHtml(s) {
     const d = document.createElement('div');
     d.textContent = s ?? '';
@@ -895,11 +902,6 @@ async function loadDashboard() {
             sessionStorage.setItem('csrf_token', CSRF_TOKEN);
         }
 
-        if (data.profile_completed === 0) {
-            window.location.href = 'profile.html?complete=1';
-            return;
-        }
-
         const username = data.username || 'User';
         const displayName = data.name || username;
         document.getElementById('headerUser').textContent = displayName.split(' ')[0];
@@ -998,7 +1000,7 @@ function renderCards(cards) {
             </div>`;
         }
 
-        const endDate = new Date(c.end_date + 'T23:59:59');
+        const endDate = parseEndDate(c.end_date);
         const startDate = c.start_date ? new Date(c.start_date) : new Date();
         const totalMs = Math.max(1, endDate - startDate);
         const remainMs = endDate - now;
@@ -1064,7 +1066,7 @@ function renderCards(cards) {
 
     cards.forEach(c => {
         if (c.subscribed !== false && c.end_date) {
-            const endDate = new Date(c.end_date + 'T23:59:59');
+            const endDate = parseEndDate(c.end_date);
             if (endDate > now) {
                 startCountdown(c.platform_id || c.id, c.end_date);
             }
@@ -1126,7 +1128,7 @@ function timerHtml(d, h, m, expired) {
 function startCountdown(platformId, endDateStr) {
     const update = () => {
         const now = new Date();
-        const end = new Date(endDateStr + 'T23:59:59');
+        const end = parseEndDate(endDateStr);
         const diff = end - now;
         const el = document.getElementById('timer-' + platformId);
         if (!el) return;

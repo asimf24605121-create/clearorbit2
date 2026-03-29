@@ -824,8 +824,15 @@
                                 </div>
                                 <div class="grid grid-cols-1 lg:grid-cols-2" style="gap:1.5rem">
                                     <div>
-                                        <label class="label" style="margin-bottom:.625rem">Duration</label>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem">
+                                        <label class="label" style="margin-bottom:.625rem">Access Duration</label>
+                                        <div style="display:flex;gap:6px;margin-bottom:.75rem">
+                                            <select id="cuDurUnit" class="input" style="width:110px;font-size:.8125rem;border-radius:8px" onchange="cuUnitChanged()">
+                                                <option value="minutes">Minutes</option>
+                                                <option value="hours">Hours</option>
+                                                <option value="days" selected>Days</option>
+                                            </select>
+                                        </div>
+                                        <div id="cuPresetsWrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem">
                                             <button type="button" onclick="cuSetDuration(7)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="7">7d</button>
                                             <button type="button" onclick="cuSetDuration(30)" class="btn btn-secondary btn-sm cu-dur-preset active-preset" data-days="30">30d</button>
                                             <button type="button" onclick="cuSetDuration(90)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="90">90d</button>
@@ -833,9 +840,10 @@
                                             <button type="button" onclick="cuSetDuration(365)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="365">1yr</button>
                                         </div>
                                         <div class="flex items-center gap-2" style="margin-bottom:.5rem">
-                                            <input id="cuDays" type="number" min="0" max="3650" value="30" class="input" style="max-width:100px" placeholder="Days" oninput="cuClearPreset();cuUpdateHint()"/>
+                                            <input id="cuDays" type="number" min="0" max="3650" value="30" class="input" style="max-width:100px" placeholder="Value" oninput="cuClearPreset();cuUpdateHint()"/>
                                             <span id="cuDaysLabel" style="font-size:.75rem;color:#94A3B8;white-space:nowrap;font-weight:500">30 days</span>
                                         </div>
+                                        <div id="cuExpiryPreview" style="font-size:.6875rem;color:#64748B;margin-bottom:.5rem;display:none"></div>
                                         <div id="cuAccessHint" class="cu-hint cu-hint-info" style="margin-top:.5rem">
                                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <span>Select platforms below and set duration. User will get access immediately after creation.</span>
@@ -1093,10 +1101,17 @@
                                     <div id="amPlatformCount" class="text-[10px] text-gray-400 mt-1">0 selected</div>
                                 </div>
                                 <div class="mt-3">
+                                    <label class="label">Duration Unit</label>
+                                    <select id="amDurUnit" class="input text-sm" onchange="amUnitChanged()" style="margin-bottom:.5rem">
+                                        <option value="minutes">Minutes</option>
+                                        <option value="hours">Hours</option>
+                                        <option value="days" selected>Days</option>
+                                    </select>
                                     <label class="label">Duration</label>
                                     <select id="amDuration" class="input text-sm" onchange="amDurationChanged()"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">1 year</option><option value="custom">Custom...</option></select>
                                 </div>
-                                <div id="amCustomDurWrap" class="mt-2 hidden"><label class="label">Custom Days</label><input id="amCustomDays" type="number" class="input text-sm" min="1" max="3650" placeholder="Enter days" value="30"/></div>
+                                <div id="amCustomDurWrap" class="mt-2 hidden"><label class="label">Custom Value</label><input id="amCustomDays" type="number" class="input text-sm" min="1" max="3650" placeholder="Enter value" value="30"/></div>
+                                <div id="amExpiryPreview" class="mt-1" style="font-size:.6875rem;color:#64748B;display:none"></div>
                                 <button onclick="amAddSubscription()" id="amAddBtn" class="btn w-full mt-3 text-white font-semibold" style="background:linear-gradient(135deg,#059669,#10B981);border:none;border-radius:10px;font-size:13px">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                     Assign Access
@@ -5079,10 +5094,10 @@ function cuFilterPlats() {
     });
 }
 
-function cuSetDuration(days) {
-    document.getElementById('cuDays').value = days;
+function cuSetDuration(val) {
+    document.getElementById('cuDays').value = val;
     document.querySelectorAll('.cu-dur-preset').forEach(b => {
-        b.classList.toggle('active-preset', parseInt(b.dataset.days) === days);
+        b.classList.toggle('active-preset', parseInt(b.dataset.days) === val);
     });
     cuUpdateHint();
 }
@@ -5092,6 +5107,32 @@ function cuClearPreset() {
     document.querySelectorAll('.cu-dur-preset').forEach(b => {
         b.classList.toggle('active-preset', parseInt(b.dataset.days) === val);
     });
+}
+
+function cuUnitChanged() {
+    const unit = document.getElementById('cuDurUnit').value;
+    const presetsWrap = document.getElementById('cuPresetsWrap');
+    const input = document.getElementById('cuDays');
+    if (unit === 'minutes') {
+        presetsWrap.innerHTML = [5,10,15,30,45,60,90].map(v =>
+            `<button type="button" onclick="cuSetDuration(${v})" class="btn btn-secondary btn-sm cu-dur-preset" data-days="${v}">${v}m</button>`
+        ).join('');
+        input.value = '30'; input.max = '1440'; input.placeholder = 'Minutes';
+    } else if (unit === 'hours') {
+        presetsWrap.innerHTML = [1,2,3,6,12,24].map(v =>
+            `<button type="button" onclick="cuSetDuration(${v})" class="btn btn-secondary btn-sm cu-dur-preset" data-days="${v}">${v}h</button>`
+        ).join('');
+        input.value = '1'; input.max = '720'; input.placeholder = 'Hours';
+    } else {
+        presetsWrap.innerHTML = `
+            <button type="button" onclick="cuSetDuration(7)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="7">7d</button>
+            <button type="button" onclick="cuSetDuration(30)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="30">30d</button>
+            <button type="button" onclick="cuSetDuration(90)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="90">90d</button>
+            <button type="button" onclick="cuSetDuration(180)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="180">180d</button>
+            <button type="button" onclick="cuSetDuration(365)" class="btn btn-secondary btn-sm cu-dur-preset" data-days="365">1yr</button>`;
+        input.value = '30'; input.max = '3650'; input.placeholder = 'Days';
+    }
+    cuUpdateHint();
 }
 
 function cuGetSelectedPlatIds() {
@@ -5111,21 +5152,38 @@ function cuTogglePassword() {
 }
 
 function cuUpdateHint() {
-    const days = parseInt(document.getElementById('cuDays')?.value) || 0;
+    const val = parseInt(document.getElementById('cuDays')?.value) || 0;
+    const unit = document.getElementById('cuDurUnit')?.value || 'days';
     const platCount = cuGetSelectedPlatIds().length;
     const hint = document.getElementById('cuAccessHint');
     const label = document.getElementById('cuDaysLabel');
+    const preview = document.getElementById('cuExpiryPreview');
     if (!hint) return;
-    if (label) label.textContent = days === 1 ? '1 day' : days + ' days';
-    if (days === 0) {
+    const unitLabel = unit === 'minutes' ? (val === 1 ? 'minute' : 'minutes') : unit === 'hours' ? (val === 1 ? 'hour' : 'hours') : (val === 1 ? 'day' : 'days');
+    if (label) label.textContent = val + ' ' + unitLabel;
+    if (val === 0) {
         hint.className = 'cu-hint cu-hint-info';
         hint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>User will be created without platform access. You can assign platforms later from the edit modal.</span>';
+        if (preview) preview.style.display = 'none';
     } else if (platCount === 0) {
         hint.className = 'cu-hint cu-hint-warn';
         hint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg><span>Duration is set but no platforms selected. Select platforms to assign access, or set duration to 0.</span>';
+        if (preview) preview.style.display = 'none';
     } else {
+        const modeNote = unit !== 'days' ? ' (short access — profile pages hidden)' : '';
         hint.className = 'cu-hint cu-hint-info';
-        hint.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>${platCount} platform${platCount > 1 ? 's' : ''} will be assigned for ${days} day${days > 1 ? 's' : ''}.</span>`;
+        hint.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>${platCount} platform${platCount > 1 ? 's' : ''} will be assigned for ${val} ${unitLabel}${modeNote}.</span>`;
+    }
+    if (preview && val > 0) {
+        const now = new Date();
+        if (unit === 'minutes') now.setMinutes(now.getMinutes() + val);
+        else if (unit === 'hours') now.setHours(now.getHours() + val);
+        else now.setDate(now.getDate() + val);
+        const fmt = unit === 'days'
+            ? now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : now.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+        preview.textContent = 'Expires: ' + fmt;
+        preview.style.display = '';
     }
 }
 
@@ -5137,6 +5195,8 @@ function cuResetFormFields() {
     pwdInput.type = 'password';
     const eyeIcon = document.getElementById('cuPwdEyeIcon');
     if (eyeIcon) eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    document.getElementById('cuDurUnit').value = 'days';
+    cuUnitChanged();
     document.getElementById('cuDays').value = '30';
     document.getElementById('cuPlatSearch').value = '';
     document.getElementById('cuSelectAll').checked = false;
@@ -5183,6 +5243,7 @@ async function createUserWithSub() {
     const email = document.getElementById('newEmail').value.trim();
     const password = document.getElementById('newPassword').value;
     const duration = parseInt(document.getElementById('cuDays').value) || 0;
+    const durationUnit = document.getElementById('cuDurUnit').value;
     const platIds = cuGetSelectedPlatIds();
 
     if (!username || !email || !password) { showAlert('Username, email, and password are required.', true); return; }
@@ -5196,7 +5257,7 @@ async function createUserWithSub() {
     try {
         const res = await fetch('api/create_user_with_sub', {
             method: 'POST', headers: csrfHeaders(), credentials: 'include',
-            body: JSON.stringify({ username, password, email, duration_in_days: duration, platform_ids: platIds })
+            body: JSON.stringify({ username, password, email, duration_value: duration, duration_unit: durationUnit, platform_ids: platIds })
         });
         const data = await res.json();
 
@@ -5236,7 +5297,7 @@ async function createUserWithSub() {
                             <div class="text-[10px] text-gray-500 font-medium mt-0.5">Platforms</div>
                         </div>
                         <div class="text-center py-3 px-2 rounded-xl bg-gray-50 border border-gray-100">
-                            <div class="text-lg font-bold text-blue-600">${data.duration_days || 0} days</div>
+                            <div class="text-lg font-bold text-blue-600">${duration} ${durationUnit}</div>
                             <div class="text-[10px] text-gray-500 font-medium mt-0.5">Duration</div>
                         </div>
                     </div>`;
@@ -5272,6 +5333,8 @@ async function createUserWithSub() {
 
 function cuResetForm() {
     ['newUsername','newEmail','newPassword'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cuDurUnit').value = 'days';
+    cuUnitChanged();
     document.getElementById('cuDays').value = '30';
     cuSetDuration(30);
     document.querySelectorAll('#cuPlatGrid .cu-plat-cb').forEach(cb => {
@@ -8911,6 +8974,38 @@ function openAccessModal(userId) {
 function amDurationChanged() {
     const val = document.getElementById('amDuration').value;
     document.getElementById('amCustomDurWrap').classList.toggle('hidden', val !== 'custom');
+    amUpdateExpiryPreview();
+}
+
+function amUnitChanged() {
+    const unit = document.getElementById('amDurUnit').value;
+    const durSel = document.getElementById('amDuration');
+    if (unit === 'minutes') {
+        durSel.innerHTML = '<option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="custom">Custom...</option>';
+    } else if (unit === 'hours') {
+        durSel.innerHTML = '<option value="1">1 hour</option><option value="2">2 hours</option><option value="3" selected>3 hours</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="24">24 hours</option><option value="custom">Custom...</option>';
+    } else {
+        durSel.innerHTML = '<option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">1 year</option><option value="custom">Custom...</option>';
+    }
+    document.getElementById('amCustomDurWrap').classList.add('hidden');
+    amUpdateExpiryPreview();
+}
+
+function amUpdateExpiryPreview() {
+    const unit = document.getElementById('amDurUnit').value;
+    const durSel = document.getElementById('amDuration').value;
+    const val = durSel === 'custom' ? parseInt(document.getElementById('amCustomDays').value) || 0 : parseInt(durSel) || 0;
+    const preview = document.getElementById('amExpiryPreview');
+    if (!preview || val <= 0) { if (preview) preview.style.display = 'none'; return; }
+    const now = new Date();
+    if (unit === 'minutes') now.setMinutes(now.getMinutes() + val);
+    else if (unit === 'hours') now.setHours(now.getHours() + val);
+    else now.setDate(now.getDate() + val);
+    const fmt = unit === 'days'
+        ? now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : now.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true });
+    preview.textContent = 'Expires approx: ' + fmt;
+    preview.style.display = '';
 }
 
 function amRefresh() { if (_uwUserId) amLoadSubs(_uwUserId); }
@@ -8975,12 +9070,21 @@ function amSubCard(s, isActive) {
     const logoHtml = logo
         ? `<img src="${escHtml(logo)}" class="am-sub-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="am-sub-initial" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
         : `<div class="am-sub-initial" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
-    const daysLeft = s.days_left !== undefined ? s.days_left : Math.ceil((new Date(s.end_date) - new Date()) / 86400000);
+    const ed = s.end_date || '';
+    const endDt = new Date(ed.includes(' ') ? ed.replace(' ', 'T') : (ed.includes('T') ? ed : ed + 'T23:59:59'));
+    const diffMs = endDt - new Date();
+    const daysLeft = Math.ceil(diffMs / 86400000);
+    const hoursLeft = Math.ceil(diffMs / 3600000);
+    const minsLeft = Math.ceil(diffMs / 60000);
     let dotColor, statusText;
     if (!isActive) { dotColor = '#EF4444'; statusText = s.is_active == 0 ? 'Revoked' : 'Expired'; }
-    else if (daysLeft <= 3) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
-    else if (daysLeft <= 7) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
-    else { dotColor = '#10B981'; statusText = `${daysLeft}d`; }
+    else if (daysLeft >= 1) {
+        if (daysLeft <= 3) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
+        else if (daysLeft <= 7) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
+        else { dotColor = '#10B981'; statusText = `${daysLeft}d`; }
+    } else if (hoursLeft >= 1) { dotColor = '#F59E0B'; statusText = `${hoursLeft}h`; }
+    else if (minsLeft > 0) { dotColor = '#EF4444'; statusText = `${minsLeft}m`; }
+    else { dotColor = '#EF4444'; statusText = 'Expired'; }
 
     return `<div class="am-sub-row${isActive ? '' : ' am-sub-expired'}">
         <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -9038,16 +9142,17 @@ async function amAddSubscription() {
     if (!_uwUserId) return;
     const selectedCbs = document.querySelectorAll('.am-plat-cb:checked');
     const platformIds = Array.from(selectedCbs).map(cb => parseInt(cb.value));
+    const durationUnit = document.getElementById('amDurUnit').value;
     const durSel = document.getElementById('amDuration').value;
     const duration = durSel === 'custom' ? parseInt(document.getElementById('amCustomDays').value) : parseInt(durSel);
     if (!platformIds.length) { showAlert('Select at least one platform', true); return; }
-    if (!duration || duration < 1 || duration > 3650) { showAlert('Enter a valid duration (1-3650 days)', true); return; }
+    if (!duration || duration < 1) { showAlert('Enter a valid duration', true); return; }
     const btn = document.getElementById('amAddBtn');
     btn.disabled = true; btn.style.opacity = '0.6';
     let successCount = 0, failCount = 0, lastError = '';
     for (const pid of platformIds) {
         try {
-            const res = await fetch('api/add_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: _uwUserId, platform_id: pid, duration_days: parseInt(duration) }) });
+            const res = await fetch('api/add_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: _uwUserId, platform_id: pid, duration_value: duration, duration_unit: durationUnit }) });
             const data = await res.json();
             if (data.success) successCount++;
             else { failCount++; lastError = data.message || 'Failed'; }

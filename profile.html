@@ -106,7 +106,7 @@
 <body>
 <div id="toastContainer" class="toast-container"></div>
 
-<div id="profileGate" class="profile-gate-overlay hidden">
+<div id="profileGate" class="profile-gate-overlay hidden" data-hide-short>
     <div class="profile-gate-card">
         <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -179,7 +179,7 @@
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     View
                 </button>
-                <button class="tab-btn" onclick="switchTab('edit')" id="tabEdit" data-testid="tab-edit">
+                <button class="tab-btn" onclick="switchTab('edit')" id="tabEdit" data-testid="tab-edit" data-hide-short>
                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     Edit Profile
                 </button>
@@ -481,6 +481,7 @@ function csrfHeaders() {
 }
 
 function switchTab(tab) {
+    if (tab === 'edit' && PROFILE_DATA && PROFILE_DATA.access_mode === 'short') return;
     const validTabs = ['view', 'edit', 'password'];
     if (!validTabs.includes(tab)) tab = 'view';
 
@@ -833,7 +834,9 @@ async function loadProfile() {
         populateView(p);
 
         const params = new URLSearchParams(window.location.search);
-        if (params.get('complete') === '1' && !p.profile_completed) {
+        if (p.access_mode === 'short') {
+            document.querySelectorAll('[data-hide-short]').forEach(el => el.style.display = 'none');
+        } else if (params.get('complete') === '1' && !p.profile_completed) {
             document.getElementById('profileGate').classList.remove('hidden');
         }
 
@@ -846,13 +849,23 @@ async function loadProfile() {
 
         const now = new Date();
         container.innerHTML = '<div class="space-y-3">' + subs.map(s => {
-            const end = new Date(s.end_date + 'T23:59:59');
-            const diffDays = Math.max(0, Math.ceil((end - now) / 86400000));
+            const ed = s.end_date || '';
+            const end = new Date(ed.includes(' ') ? ed.replace(' ', 'T') : (ed.includes('T') ? ed : ed + 'T23:59:59'));
+            const diffMs = end - now;
+            const diffDays = Math.max(0, Math.ceil(diffMs / 86400000));
+            const diffHours = Math.max(0, Math.ceil(diffMs / 3600000));
+            const diffMins = Math.max(0, Math.ceil(diffMs / 60000));
             let remainBadge;
-            if (diffDays <= 0) remainBadge = '<span class="badge badge-red">Expired</span>';
-            else if (diffDays <= 3) remainBadge = `<span class="badge badge-orange">${diffDays}d left</span>`;
-            else if (diffDays <= 7) remainBadge = `<span class="badge badge-yellow">${diffDays}d left</span>`;
-            else remainBadge = `<span class="badge badge-green">${diffDays}d left</span>`;
+            if (diffMs <= 0) remainBadge = '<span class="badge badge-red">Expired</span>';
+            else if (diffDays >= 1) {
+                if (diffDays <= 3) remainBadge = `<span class="badge badge-orange">${diffDays}d left</span>`;
+                else if (diffDays <= 7) remainBadge = `<span class="badge badge-yellow">${diffDays}d left</span>`;
+                else remainBadge = `<span class="badge badge-green">${diffDays}d left</span>`;
+            } else if (diffHours >= 1) {
+                remainBadge = `<span class="badge badge-orange">${diffHours}h left</span>`;
+            } else {
+                remainBadge = `<span class="badge badge-red">${diffMins}m left</span>`;
+            }
 
             const logo = s.logo_url
                 ? `<img src="${escHtml(s.logo_url)}" alt="${escHtml(s.platform_name)}" class="w-10 h-10 rounded-lg object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="display:none;background:${escHtml(s.bg_color_hex || '#4F46E5')}">${escHtml((s.platform_name||'?')[0].toUpperCase())}</div>`

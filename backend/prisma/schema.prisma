@@ -122,12 +122,14 @@ model CookieVault {
 }
 
 model UserSubscription {
-  id         Int    @id @default(autoincrement())
-  userId     Int    @map("user_id")
-  platformId Int    @map("platform_id")
-  startDate  String @map("start_date")
-  endDate    String @map("end_date")
-  isActive   Int    @default(1) @map("is_active")
+  id            Int    @id @default(autoincrement())
+  userId        Int    @map("user_id")
+  platformId    Int    @map("platform_id")
+  startDate     String @map("start_date")
+  endDate       String @map("end_date")
+  isActive      Int    @default(1) @map("is_active")
+  durationValue Int?   @map("duration_value")
+  durationUnit  String @default("days") @map("duration_unit")
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)

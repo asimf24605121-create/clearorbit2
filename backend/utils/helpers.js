@@ -18,6 +18,54 @@ export function futureDate(days) {
   return d.toISOString().substring(0, 10);
 }
 
+export function computeEndDate(value, unit) {
+  const now = new Date();
+  if (unit === 'minutes') {
+    now.setMinutes(now.getMinutes() + value);
+    return now.toISOString().replace('T', ' ').substring(0, 19);
+  } else if (unit === 'hours') {
+    now.setHours(now.getHours() + value);
+    return now.toISOString().replace('T', ' ').substring(0, 19);
+  }
+  now.setDate(now.getDate() + value);
+  return now.toISOString().substring(0, 10);
+}
+
+export function extendEndDate(currentEnd, value, unit) {
+  const current = new Date(currentEnd);
+  const base = current > new Date() ? current : new Date();
+  if (unit === 'minutes') {
+    base.setMinutes(base.getMinutes() + value);
+    return base.toISOString().replace('T', ' ').substring(0, 19);
+  } else if (unit === 'hours') {
+    base.setHours(base.getHours() + value);
+    return base.toISOString().replace('T', ' ').substring(0, 19);
+  }
+  base.setDate(base.getDate() + value);
+  return base.toISOString().substring(0, 10);
+}
+
+export function isSubExpired(endDate) {
+  if (!endDate) return true;
+  const end = new Date(endDate.includes(' ') ? endDate.replace(' ', 'T') : endDate);
+  return end <= new Date();
+}
+
+export async function getUserAccessMode(prisma, userId) {
+  const now = new Date();
+  const activeSubs = await prisma.userSubscription.findMany({
+    where: { userId, isActive: 1 },
+    select: { endDate: true, durationUnit: true },
+  });
+  const validSubs = activeSubs.filter(s => {
+    const end = new Date(s.endDate.includes(' ') ? s.endDate.replace(' ', 'T') : s.endDate);
+    return end > now;
+  });
+  if (validSubs.length === 0) return 'none';
+  const hasDays = validSubs.some(s => s.durationUnit === 'days');
+  return hasDays ? 'regular' : 'short';
+}
+
 export function randomToken(bytes = 32) {
   return crypto.randomBytes(bytes).toString('hex');
 }
