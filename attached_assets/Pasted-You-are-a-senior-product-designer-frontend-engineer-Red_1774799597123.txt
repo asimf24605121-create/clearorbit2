@@ -1,0 +1,408 @@
+You are a senior **product designer + frontend engineer**. Redesign and polish the **Users page / Create User + Assign Access** interface into a **premium, modern, highly professional admin dashboard UI**.
+
+## Main goal
+
+Current UI works, but it still looks basic and slightly unbalanced. I want you to transform it into a **clean SaaS-grade professional dashboard** that feels like a polished premium admin panel.
+
+The page must look:
+
+* modern
+* minimal
+* premium
+* spacious
+* perfectly aligned
+* visually balanced
+* enterprise-grade
+
+Do **not** break functionality. Keep all existing features working.
+
+---
+
+## Core redesign direction
+
+### 1) Overall visual style
+
+Upgrade the design to a professional SaaS admin style:
+
+* cleaner spacing
+* better visual hierarchy
+* stronger section separation
+* smoother borders
+* softer shadows
+* premium card layout
+* better typography scale
+* more polished buttons, inputs, pills, checkboxes, tables, and lists
+
+Use a look similar to:
+
+* Stripe-style cleanliness
+* Linear / Notion-level spacing discipline
+* modern SaaS admin dashboard quality
+
+Avoid:
+
+* crowded layout
+* uneven spacing
+* random element sizes
+* flat boring sections
+* oversized empty areas
+* weak alignment
+* basic default form styling
+
+---
+
+## 2) Page structure improvements
+
+Redesign the entire **Users** page layout.
+
+### Desired structure:
+
+#### Header area
+
+* Better page title styling
+* Cleaner subtitle
+* More professional spacing
+* Right side top actions aligned properly
+* Improve top navbar/admin badge visual quality
+
+#### Main content
+
+Convert the current form into a **2-column premium layout** inside a large elegant card.
+
+### Left side:
+
+**User Credentials**
+
+* Username
+* Email
+* Password
+
+### Right side:
+
+**Platform Access**
+
+* Duration selector
+* Custom duration input
+* Platform selection grid
+* Selected platform counter
+* Helper / info note
+
+This layout should feel intentional and visually balanced, not stretched awkwardly.
+
+---
+
+## 3) Form redesign
+
+Make the form look premium.
+
+### Inputs
+
+Upgrade all inputs:
+
+* larger height
+* better padding
+* softer radius
+* stronger focus states
+* better placeholder color
+* cleaner label spacing
+* subtle hover effect
+* visible validation states
+
+### Password input
+
+* improve eye icon positioning
+* better alignment
+* refined icon styling
+* consistent input height with others
+
+### Labels
+
+* make labels clearer and more elegant
+* slightly bolder
+* proper spacing above inputs
+* required asterisk should be subtle but visible
+
+---
+
+## 4) Card design improvements
+
+The main "Create User + Assign Access" card should feel premium.
+
+### Improve:
+
+* card padding
+* border radius
+* border color
+* background contrast
+* header strip styling
+* section dividers
+* subtle shadow
+* consistent internal spacing
+
+Create visually distinct sub-sections:
+
+* User Details
+* Access Duration
+* Platform Selection
+* Action Area
+
+Each section should feel deliberate.
+
+---
+
+## 5) Platform selection area
+
+This section needs a major professional upgrade.
+
+### Current issue
+
+The platform list feels plain, cramped, and not premium enough.
+
+### Redesign it as:
+
+* a cleaner responsive selection grid
+* each platform inside a polished selectable tile/card
+* logo/icon aligned perfectly
+* platform name typography improved
+* checkbox alignment fixed
+* hover state
+* active/selected state clearly highlighted
+* subtle border glow or background tint on selected platforms
+
+### Platform tile behavior
+
+When selected:
+
+* border becomes primary
+* background becomes lightly tinted
+* checkbox state looks clean
+* tile feels active and premium
+
+### Search + All toggle
+
+Redesign the search and all-select area:
+
+* search box should be compact and elegant
+* “All” checkbox should align perfectly
+* top controls should not feel floating or disconnected
+
+### Scrolling
+
+* improve internal platform list scroll styling
+* smooth modern scrollbar
+* no broken clipping
+* no logos cut off
+* no awkward overflow
+
+---
+
+## 6) Duration selector redesign
+
+Make the duration pills feel much more modern.
+
+### Improve:
+
+* pill buttons styling
+* active selected state
+* spacing between options
+* hover feedback
+* typography inside pills
+* custom duration input alignment
+
+The duration area should feel like a premium segmented selection control.
+
+---
+
+## 7) Better hierarchy and spacing
+
+This is very important:
+
+* fix horizontal spacing
+* fix vertical rhythm
+* align both columns properly
+* remove awkward large blank areas
+* ensure button row does not look detached
+* improve consistency between top section and lower section
+
+Everything should look intentionally designed on an 8px or 4px spacing system.
+
+---
+
+## 8) Action buttons redesign
+
+Upgrade:
+
+* **Create User & Activate**
+* **Clear Form**
+
+### Create button
+
+Make it feel like a premium primary CTA:
+
+* stronger presence
+* better icon alignment
+* richer hover state
+* subtle depth
+* proper padding
+* cleaner radius
+
+### Secondary button
+
+Clear Form should look elegant and secondary, not weak or ugly.
+
+Both buttons must align cleanly and feel professional.
+
+---
+
+## 9) Sidebar improvement
+
+Polish the left admin sidebar too.
+
+### Improve:
+
+* menu item spacing
+* icon alignment
+* active state styling
+* hover state
+* logo/header area
+* badge styling for “Super Admin”
+* scrollbar appearance
+* overall typography balance
+
+Make sidebar look more premium and less default/basic.
+
+---
+
+## 10) Typography system
+
+Use a strong modern typography hierarchy:
+
+* page title prominent
+* subtitles muted but readable
+* section titles strong
+* form labels clean
+* helper text subtle
+* counters and notes visually lighter
+* button text crisp
+
+Typography should feel consistent across the whole page.
+
+---
+
+## 11) Color and style system
+
+Keep the same core brand direction if already purple/indigo, but refine it.
+
+### Use:
+
+* elegant neutral backgrounds
+* softer gray borders
+* premium purple/indigo accent
+* better contrast
+* more polished selected states
+* subtle shadow layers
+
+Avoid:
+
+* harsh saturation
+* too many colors
+* childish gradients
+* overly flashy effects
+
+The final result should feel **premium and trustworthy**, not decorative.
+
+---
+
+## 12) Responsiveness
+
+Make the entire page fully responsive.
+
+### Desktop
+
+* 2-column layout
+* balanced spacing
+* no stretched empty sections
+
+### Tablet
+
+* stack intelligently
+* preserve section clarity
+
+### Mobile
+
+* full responsive form
+* action buttons wrap properly
+* platform tiles stay usable
+* labels and fields remain clean
+
+No broken layout on small screens.
+
+---
+
+## 13) UX improvements
+
+Add professional UX polish:
+
+* smooth hover transitions
+* subtle focus ring
+* selected platform count clearer
+* helper note styled better
+* empty states more elegant
+* validation messages more refined
+* consistent disabled states
+* preserve accessibility
+
+---
+
+## 14) Engineering requirements
+
+Do a real professional refactor, not superficial CSS only.
+
+### Requirements:
+
+* clean component structure
+* reusable UI classes/components
+* no duplicated messy styles
+* proper responsive layout
+* consistent spacing tokens
+* proper hover/focus/active states
+* polished scrollbar
+* no layout jumpiness
+* no overflow bugs
+* no broken alignment
+
+---
+
+## 15) Performance
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+So while redesigning:
+
+* keep UI performant
+* avoid heavy unnecessary animations
+* avoid bloated dependencies
+* keep rendering efficient
+* maintain smooth experience
+
+---
+
+## 16) Final output expected
+
+Implement the redesign and provide:
+
+1. updated page layout
+2. polished sidebar styling
+3. polished create-user card
+4. premium platform selection UI
+5. improved form controls
+6. responsive behavior
+7. final UI that looks production-grade and enterprise-ready
+
+### Final instruction
+
+Do not give me a generic redesign.
+I want a **seriously polished, premium, professional admin dashboard UI** that looks like a real paid SaaS product.
+
+Make it feel like:
+**clean, modern, premium, balanced, confident, and high-end.**
