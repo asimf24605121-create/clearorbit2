@@ -513,16 +513,34 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
       const expiry = parsed.length > 0 ? extractCookieExpiry(parsed) : null;
       const isExpired = expiry ? new Date(expiry) < new Date() : false;
       const cookieStatus = parsed.length === 0 ? 'MISSING' : isExpired ? 'EXPIRED' : score >= 50 ? 'VALID' : 'WEAK';
+      const newStability = score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD';
+      const wasRecovered = newStability !== 'DEAD' && account.stabilityStatus === 'DEAD';
 
       await prisma.platformAccount.update({
         where: { id: parseInt(account_id) },
         data: {
           cookieStatus, intelligenceScore: score,
-          stabilityStatus: score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD',
+          stabilityStatus: newStability,
           healthStatus: score >= 50 ? 'healthy' : 'degraded',
           lastCheckedAt: nowISO(), updatedAt: nowISO(),
         },
       });
+
+      if (wasRecovered) {
+        const resolved = await prisma.$transaction(async (tx) => {
+          const stillDead = await tx.platformAccount.count({
+            where: { platformId: account.platformId, isActive: 1, stabilityStatus: 'DEAD' },
+          });
+          if (stillDead > 0) return 0;
+          const deleted = await tx.adminNotification.deleteMany({
+            where: { type: 'platform_dead', platformId: account.platformId },
+          });
+          return deleted.count;
+        });
+        if (resolved > 0) {
+          emitAdminEvent('platform_dead_resolved', { platformId: account.platformId, platformName: account.platform?.name });
+        }
+      }
 
       invalidateAccountCaches();
       emitAdminEvent('slot_updated', { action: 'recheck', account_id: parseInt(account_id) });
@@ -548,9 +566,13 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
       const where = { isActive: 1 };
       if (platform_id) where.platformId = parseInt(platform_id);
 
-      const accounts = await prisma.platformAccount.findMany({ where });
+      const accounts = await prisma.platformAccount.findMany({
+        where,
+        include: { platform: { select: { name: true } } },
+      });
       let checked = 0, updated = 0;
       const statuses = { VALID: 0, WEAK: 0, EXPIRED: 0, DEAD: 0, MISSING: 0 };
+      const recoveredPlatformIds = new Map();
 
       for (const account of accounts) {
         let raw = account.cookieData ? Buffer.from(account.cookieData, 'base64').toString('utf-8') : '';
@@ -561,6 +583,10 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
         const cookieStatus = parsed.length === 0 ? 'MISSING' : isExpired ? 'EXPIRED' : score < 20 ? 'DEAD' : score >= 50 ? 'VALID' : 'WEAK';
         const newStability = score >= 70 ? 'STABLE' : score >= 40 ? 'RISKY' : 'DEAD';
         const h = score >= 50 ? 'healthy' : 'degraded';
+
+        if (newStability !== 'DEAD' && account.stabilityStatus === 'DEAD') {
+          recoveredPlatformIds.set(account.platformId, account.platform?.name || `Platform ${account.platformId}`);
+        }
 
         statuses[cookieStatus] = (statuses[cookieStatus] || 0) + 1;
 
@@ -576,6 +602,26 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
 
         if (changed) updated++;
         checked++;
+      }
+
+      for (const [platId, platName] of recoveredPlatformIds) {
+        try {
+          const resolved = await prisma.$transaction(async (tx) => {
+            const stillDead = await tx.platformAccount.count({
+              where: { platformId: platId, isActive: 1, stabilityStatus: 'DEAD' },
+            });
+            if (stillDead > 0) return 0;
+            const deleted = await tx.adminNotification.deleteMany({
+              where: { type: 'platform_dead', platformId: platId },
+            });
+            return deleted.count;
+          });
+          if (resolved > 0) {
+            emitAdminEvent('platform_dead_resolved', { platformId: platId, platformName: platName });
+          }
+        } catch (e) {
+          console.error(`Notification auto-resolve error for platform ${platId}:`, e.message);
+        }
       }
 
       invalidateAccountCaches();

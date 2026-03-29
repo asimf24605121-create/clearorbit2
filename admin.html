@@ -2560,6 +2560,16 @@ function _ingestNewNotif(notifData) {
     showDeadPlatformToast(notifData.platformName, notifData.notificationId, notifData.platformId);
 }
 
+function _resolveDeadNotifs(platformId, platformName) {
+    const before = _adminNotifications.length;
+    _adminNotifications = _adminNotifications.filter(n => !(n.type === 'platform_dead' && n.platformId === platformId));
+    if (_adminNotifications.length < before) {
+        _renderNotifBadge();
+        _renderNotifList();
+        showAlert(`${platformName || 'Platform'} recovered — dead alert auto-resolved`, false);
+    }
+}
+
 const sectionTitles = {
     overview: ['Overview', 'System dashboard and quick stats'],
     users: ['Users', 'Manage user accounts, profiles, and access credentials'],
@@ -8293,6 +8303,9 @@ function initSocket() {
         });
         _socket.on('platform_dead_alert', (data) => {
             _ingestNewNotif(data);
+        });
+        _socket.on('platform_dead_resolved', (data) => {
+            _resolveDeadNotifs(data.platformId, data.platformName);
         });
         _socket.on('disconnect', () => console.log('Socket disconnected'));
     } catch(e) { console.warn('Socket init failed:', e.message); }

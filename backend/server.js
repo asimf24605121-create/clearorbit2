@@ -205,6 +205,7 @@ async function autoRecheckJob(data, updateProgress) {
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
   const today = new Date().toISOString().substring(0, 10);
   const deadTransitionPlatforms = new Map();
+  const recoveredPlatforms = new Map();
 
   for (let i = 0; i < accounts.length; i++) {
     const account = accounts[i];
@@ -223,6 +224,12 @@ async function autoRecheckJob(data, updateProgress) {
         }
       }
 
+      if (newStability !== 'DEAD' && account.stabilityStatus === 'DEAD') {
+        if (!recoveredPlatforms.has(account.platformId)) {
+          recoveredPlatforms.set(account.platformId, account.platform?.name || `Platform ${account.platformId}`);
+        }
+      }
+
       await prisma.platformAccount.update({
         where: { id: account.id },
         data: {
@@ -237,6 +244,28 @@ async function autoRecheckJob(data, updateProgress) {
       console.error(`Auto-recheck error for account ${account.id}:`, e.message);
     }
     updateProgress(Math.round(((i + 1) / accounts.length) * 100));
+  }
+
+  for (const [platformId, platformName] of recoveredPlatforms) {
+    if (deadTransitionPlatforms.has(platformId)) continue;
+    try {
+      const resolved = await prisma.$transaction(async (tx) => {
+        const stillDead = await tx.platformAccount.count({
+          where: { platformId, isActive: 1, stabilityStatus: 'DEAD' },
+        });
+        if (stillDead > 0) return 0;
+        const deleted = await tx.adminNotification.deleteMany({
+          where: { type: 'platform_dead', platformId },
+        });
+        return deleted.count;
+      });
+      if (resolved > 0) {
+        console.log(`Auto-resolved ${resolved} dead-platform notification(s) for ${platformName} (recovered)`);
+        emitAdminEvent('platform_dead_resolved', { platformId, platformName });
+      }
+    } catch (e) {
+      console.error(`Notification auto-resolve error for platform ${platformId}:`, e.message);
+    }
   }
 
   for (const [platformId, platformName] of deadTransitionPlatforms) {
