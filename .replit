@@ -49,6 +49,8 @@ waitForPort = 5000
 
 [userenv.shared]
 PORT = "5000"
+JWT_SECRET = "bojji3G9gsZ_aa_Bptm66y9MMOILfgNous_jmNurC4hTzacK0D7v1raLOcFYkIYE"
+CSRF_SECRET = "_HuVKh95Z8YuaL1qucs8EjGLXQYTb1MPwWmmhgPk5N3ORvve2DtQLcQZcP6pQcjE"
 
 [userenv.production]
 NODE_ENV = "production"
