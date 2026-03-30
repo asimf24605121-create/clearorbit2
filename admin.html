@@ -1840,6 +1840,57 @@
                     </div>
                     <div id="paymentsPagination" class="pagination-bar"></div>
                 </div>
+                <div class="card" style="margin-top:16px">
+                    <div class="px-5 py-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <h3 class="font-semibold text-gray-900 text-sm">Payment Methods</h3>
+                            <button onclick="openPaymentMethodForm()" class="btn btn-primary btn-sm">+ Add Method</button>
+                        </div>
+                    </div>
+                    <div id="paymentMethodsFormWrap" style="display:none;padding:16px 20px;border-bottom:1px solid #f3f4f6;background:#fafbfc">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Name *</label>
+                                <input id="pmName" class="cm-input" placeholder="e.g. Easypaisa" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Type</label>
+                                <select id="pmType" class="cm-input">
+                                    <option value="easypaisa">Easypaisa</option>
+                                    <option value="jazzcash">JazzCash</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="mobile_wallet">Mobile Wallet</option>
+                                    <option value="crypto">Crypto</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Account Title</label>
+                                <input id="pmAccountTitle" class="cm-input" placeholder="Account holder name" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Account Number</label>
+                                <input id="pmAccountNumber" class="cm-input" placeholder="03001234567" />
+                            </div>
+                            <div style="grid-column:1/-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Instructions</label>
+                                <input id="pmInstructions" class="cm-input" placeholder="e.g. Send payment and share screenshot" />
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:12px">
+                            <button onclick="savePaymentMethod()" class="btn btn-primary btn-sm">Save</button>
+                            <button onclick="closePaymentMethodForm()" class="btn btn-secondary btn-sm">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Type</th><th>Account Title</th><th>Account Number</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="paymentMethodsBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="paymentMethodsEmpty" class="hidden p-6 text-center text-gray-400 text-sm">No payment methods configured. Add one to show payment options to users.</div>
+                </div>
+
                 <div id="paymentDetailModal" class="modal-overlay hidden" onclick="if(event.target===this)closePaymentDetail()">
                     <div style="background:#fff;border-radius:16px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,0.15)">
                         <div style="padding:20px 24px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between">
@@ -2820,7 +2871,7 @@ function showSection(name) {
     if (name === 'pricing') populatePricingDropdown();
     if (name === 'whatsapp') { populateWhatsAppDropdown(); loadWhatsAppTable(); loadGlobalWhatsApp(); }
     if (name === 'resellers') { loadResellers(); loadRechargeRequests(); loadResellerSettings(); }
-    if (name === 'payments') loadPayments();
+    if (name === 'payments') { loadPayments(); loadAdminPaymentMethods(); }
     if (name === 'logs') loadActivityLogs();
     if (name === 'admins') loadAdmins();
     if (name === 'tickets') loadTickets();
@@ -6544,6 +6595,121 @@ function promptRejectPayment(paymentId) {
         })
         .catch(() => showAlert('Network error.', true))
         .finally(() => _releaseAction(k));
+}
+
+let _adminPaymentMethods = [];
+let _editingPmId = null;
+
+async function loadAdminPaymentMethods() {
+    try {
+        const res = await fetch('api/get_payment_methods', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.success) return;
+        _adminPaymentMethods = data.methods || [];
+        renderAdminPaymentMethods();
+    } catch(e) {}
+}
+
+function renderAdminPaymentMethods() {
+    const body = document.getElementById('paymentMethodsBody');
+    const empty = document.getElementById('paymentMethodsEmpty');
+    if (_adminPaymentMethods.length === 0) {
+        body.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+    const typeLabels = { easypaisa: 'Easypaisa', jazzcash: 'JazzCash', bank_transfer: 'Bank Transfer', mobile_wallet: 'Mobile Wallet', crypto: 'Crypto', other: 'Other' };
+    body.innerHTML = _adminPaymentMethods.map(m => `
+        <tr>
+            <td style="font-weight:600;font-size:13px">${escHtml(m.name)}</td>
+            <td style="font-size:12px;text-transform:capitalize">${escHtml(typeLabels[m.type] || m.type)}</td>
+            <td style="font-size:12px">${escHtml(m.account_title || '—')}</td>
+            <td style="font-size:12px;font-family:monospace">${escHtml(m.account_number || '—')}</td>
+            <td>${m.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Inactive</span>'}</td>
+            <td>
+                <div style="display:flex;gap:4px">
+                    <button onclick="editPaymentMethod(${m.id})" class="tbl-act tbl-act-view" title="Edit"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                    <button onclick="togglePaymentMethod(${m.id})" class="tbl-act ${m.is_active ? 'tbl-act-danger' : 'tbl-act-success'}" title="${m.is_active ? 'Disable' : 'Enable'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${m.is_active ? 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'}"/></svg></button>
+                    <button onclick="deletePaymentMethod(${m.id})" class="tbl-act tbl-act-danger" title="Delete"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+function openPaymentMethodForm(editId) {
+    _editingPmId = editId || null;
+    const form = document.getElementById('paymentMethodsFormWrap');
+    if (_editingPmId) {
+        const m = _adminPaymentMethods.find(x => x.id === _editingPmId);
+        if (m) {
+            document.getElementById('pmName').value = m.name;
+            document.getElementById('pmType').value = m.type;
+            document.getElementById('pmAccountTitle').value = m.account_title || '';
+            document.getElementById('pmAccountNumber').value = m.account_number || '';
+            document.getElementById('pmInstructions').value = m.instructions || '';
+        }
+    } else {
+        document.getElementById('pmName').value = '';
+        document.getElementById('pmType').value = 'easypaisa';
+        document.getElementById('pmAccountTitle').value = '';
+        document.getElementById('pmAccountNumber').value = '';
+        document.getElementById('pmInstructions').value = '';
+    }
+    form.style.display = '';
+}
+
+function closePaymentMethodForm() {
+    document.getElementById('paymentMethodsFormWrap').style.display = 'none';
+    _editingPmId = null;
+}
+
+function editPaymentMethod(id) {
+    openPaymentMethodForm(id);
+}
+
+async function savePaymentMethod() {
+    const name = document.getElementById('pmName').value.trim();
+    if (!name) { showAlert('Name is required', true); return; }
+    const k = 'savePm_' + (_editingPmId || 'new');
+    if (!_guardAction(k)) return;
+    try {
+        const body = {
+            name,
+            type: document.getElementById('pmType').value,
+            account_title: document.getElementById('pmAccountTitle').value.trim(),
+            account_number: document.getElementById('pmAccountNumber').value.trim(),
+            instructions: document.getElementById('pmInstructions').value.trim(),
+        };
+        if (_editingPmId) body.id = _editingPmId;
+        const res = await fetch('api/save_payment_method', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify(body) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) { closePaymentMethodForm(); loadAdminPaymentMethods(); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
+}
+
+async function togglePaymentMethod(id) {
+    const k = 'togglePm_' + id;
+    if (!_guardAction(k)) return;
+    try {
+        const res = await fetch('api/toggle_payment_method', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ id }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) loadAdminPaymentMethods();
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
+}
+
+async function deletePaymentMethod(id) {
+    if (!confirm('Delete this payment method?')) return;
+    const k = 'delPm_' + id;
+    if (!_guardAction(k)) return;
+    try {
+        const res = await fetch('api/delete_payment_method', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ id }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) loadAdminPaymentMethods();
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
 }
 
 let ALL_ADMINS = [];

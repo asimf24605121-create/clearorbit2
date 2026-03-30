@@ -651,6 +651,22 @@ model SystemSettings {
   @@map("system_settings")
 }
 
+model PaymentMethod {
+  id           Int     @id @default(autoincrement())
+  name         String
+  type         String  @default("mobile_wallet")
+  accountTitle String? @map("account_title")
+  accountNumber String? @map("account_number")
+  instructions String?
+  icon         String?
+  isActive     Int     @default(1) @map("is_active")
+  sortOrder    Int     @default(0) @map("sort_order")
+  createdAt    String  @default("") @map("created_at")
+  updatedAt    String  @default("") @map("updated_at")
+
+  @@map("payment_methods")
+}
+
 model AdminNotification {
   id           Int     @id @default(autoincrement())
   type         String  @default("platform_dead")

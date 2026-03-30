@@ -774,6 +774,120 @@ router.post('/upload_payment_screenshot', authenticate, (req, res) => {
   });
 });
 
+router.get('/get_payment_methods', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const methods = await prisma.paymentMethod.findMany({ orderBy: { sortOrder: 'asc' } });
+    res.json({
+      success: true,
+      methods: methods.map(m => ({
+        id: m.id, name: m.name, type: m.type,
+        account_title: m.accountTitle, account_number: m.accountNumber,
+        instructions: m.instructions, icon: m.icon,
+        is_active: m.isActive, sort_order: m.sortOrder,
+        created_at: m.createdAt, updated_at: m.updatedAt,
+      })),
+    });
+  } catch (err) {
+    logger.subscription({ action: 'get_payment_methods', level: 'error', error: err.message });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+const VALID_PM_TYPES = new Set(['easypaisa', 'jazzcash', 'bank_transfer', 'mobile_wallet', 'crypto', 'other']);
+
+router.post('/save_payment_method', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id, name, type, account_title, account_number, instructions, icon, is_active, sort_order } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Name is required' });
+    const pmType = type || 'mobile_wallet';
+    if (!VALID_PM_TYPES.has(pmType)) return res.status(400).json({ success: false, message: 'Invalid payment method type' });
+
+    const now = nowISO();
+    const data = {
+      name: name.trim(),
+      type: pmType,
+      accountTitle: account_title || null,
+      accountNumber: account_number || null,
+      instructions: instructions || null,
+      icon: icon || null,
+      isActive: is_active !== undefined ? (parseInt(is_active) === 1 ? 1 : 0) : 1,
+      sortOrder: sort_order !== undefined ? (parseInt(sort_order) || 0) : 0,
+      updatedAt: now,
+    };
+
+    let method;
+    if (id) {
+      const pid = parseInt(id);
+      if (!pid || isNaN(pid)) return res.status(400).json({ success: false, message: 'Invalid ID' });
+      const existing = await prisma.paymentMethod.findUnique({ where: { id: pid } });
+      if (!existing) return res.status(404).json({ success: false, message: 'Payment method not found' });
+      method = await prisma.paymentMethod.update({ where: { id: pid }, data });
+      logger.admin({ action: 'update_payment_method', methodId: id });
+    } else {
+      data.createdAt = now;
+      method = await prisma.paymentMethod.create({ data });
+      logger.admin({ action: 'create_payment_method', methodId: method.id });
+    }
+
+    res.json({ success: true, message: id ? 'Payment method updated' : 'Payment method created', method_id: method.id });
+  } catch (err) {
+    logger.subscription({ action: 'save_payment_method', level: 'error', error: err.message });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/toggle_payment_method', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    const pid = parseInt(id);
+    if (!pid || isNaN(pid)) return res.status(400).json({ success: false, message: 'Valid ID required' });
+    const existing = await prisma.paymentMethod.findUnique({ where: { id: pid } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Payment method not found' });
+    await prisma.paymentMethod.update({
+      where: { id: pid },
+      data: { isActive: existing.isActive === 1 ? 0 : 1, updatedAt: nowISO() },
+    });
+    logger.admin({ action: 'toggle_payment_method', methodId: pid, newState: existing.isActive === 1 ? 0 : 1 });
+    res.json({ success: true, message: existing.isActive === 1 ? 'Method disabled' : 'Method enabled' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/delete_payment_method', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    const pid = parseInt(id);
+    if (!pid || isNaN(pid)) return res.status(400).json({ success: false, message: 'Valid ID required' });
+    const existing = await prisma.paymentMethod.findUnique({ where: { id: pid } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Payment method not found' });
+    await prisma.paymentMethod.delete({ where: { id: pid } });
+    logger.admin({ action: 'delete_payment_method', methodId: pid });
+    res.json({ success: true, message: 'Payment method deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/get_public_payment_methods', async (req, res) => {
+  try {
+    const methods = await prisma.paymentMethod.findMany({
+      where: { isActive: 1 },
+      orderBy: { sortOrder: 'asc' },
+    });
+    res.json({
+      success: true,
+      methods: methods.map(m => ({
+        id: m.id, name: m.name, type: m.type,
+        account_title: m.accountTitle, account_number: m.accountNumber,
+        instructions: m.instructions, icon: m.icon,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 router.post('/create_payment', authenticate, async (req, res) => {
   try {
     const { platform_id, account_type, payment_method, screenshot, plan_id, duration_key } = req.body;
