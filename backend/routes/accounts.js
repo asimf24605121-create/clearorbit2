@@ -272,7 +272,7 @@ function enrichAccount(a) {
   let daysRemaining = null;
   let expiryStatus = 'ACTIVE';
   if (expiresAt) {
-    daysRemaining = Math.ceil((expiresAt - now) / 86400000);
+    daysRemaining = Math.floor((expiresAt - now) / 86400000);
     if (isExpired) expiryStatus = 'EXPIRED';
     else if (daysRemaining <= 7) expiryStatus = 'EXPIRING_SOON';
   }
@@ -844,7 +844,7 @@ router.post('/add_account_unified', authenticate, requireAdmin(), importLimiter,
 
       let expiryDaysRemaining = null;
       if (finalExpiry) {
-        expiryDaysRemaining = Math.ceil((new Date(finalExpiry).getTime() - Date.now()) / 86400000);
+        expiryDaysRemaining = Math.floor((new Date(finalExpiry).getTime() - Date.now()) / 86400000);
       }
 
       const hasStorage = importLocalStorage && Object.keys(importLocalStorage).length > 0;

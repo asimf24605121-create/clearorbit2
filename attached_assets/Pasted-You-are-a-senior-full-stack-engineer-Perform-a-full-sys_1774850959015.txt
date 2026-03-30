@@ -1,0 +1,243 @@
+You are a senior full-stack engineer. Perform a **full system audit and correction** for the access duration, expiry logic, and UI behavior across the entire platform.
+
+This is a **critical cross-cutting feature fix** — do not patch one screen. Fix everything consistently.
+
+---
+
+# 🔥 NEW CRITICAL REQUIREMENT (ADD THIS)
+
+## Smart expiry display fix (1 day issue)
+
+Currently the system incorrectly shows:
+
+* `1 day left`
+
+even when the actual remaining time is:
+
+* few hours or minutes
+
+This is WRONG and must be fixed everywhere.
+
+---
+
+# ✅ 1) Correct time display logic (GLOBAL RULE)
+
+Use exact remaining time from expiry timestamp.
+
+### RULES:
+
+### ✅ If remaining > 24 hours
+
+Show:
+
+* `2d left`
+* `7d left`
+
+---
+
+### 🚨 If remaining ≤ 24 hours (IMPORTANT FIX)
+
+DO NOT show `1 day`
+
+Instead show:
+
+* `23h 40m left`
+* `18h left`
+* `5h 10m left`
+
+---
+
+### 🚨 If remaining ≤ 1 hour
+
+Show:
+
+* `45m left`
+* `12m left`
+
+---
+
+### 🚨 If remaining ≤ 1 minute
+
+Show:
+
+* `expiring now`
+  or
+* `less than 1 min`
+
+---
+
+### ❌ NEVER show:
+
+* `1 day` for <24h
+* incorrect rounded days
+* NaN / NaNd
+* stale values
+
+---
+
+# 🧠 2) Apply this logic EVERYWHERE (NO EXCEPTIONS)
+
+Audit full project and update:
+
+## Admin side
+
+* Users table (expiry column)
+* Status badges
+* User modal
+* Manage subscription page
+* Assign platform page
+* Extend popup
+* Sorting logic
+
+## User side
+
+* Dashboard cards
+* Platform cards
+* Expiry banners
+* Locked/unlocked states
+* Profile page
+* Subscription cards
+
+## Backend responses
+
+* Remove day-only calculations
+* Always return exact expiry timestamp
+* Never return pre-rounded "days_left"
+
+---
+
+# ⏱ 3) Real-time countdown (short access)
+
+For minutes/hours access:
+
+* show live countdown
+* auto-update UI
+* auto-switch formats:
+
+  * day → hours
+  * hours → minutes
+* no page refresh needed
+
+---
+
+# 🔴 4) Expired user behavior
+
+When expired:
+
+* user becomes RED
+* status = expired
+* no stale active state
+
+### Admin UX:
+
+* expired users move up / highlighted
+* easy to notice
+
+---
+
+# ⚡ 5) Quick action flow (VERY IMPORTANT)
+
+When admin clicks expired user:
+
+* open that user's context
+* redirect directly to:
+  → assign platform / manage subscription page
+
+### Pre-filled:
+
+* selected user
+* affected platform
+* expired state
+
+### Admin can:
+
+* extend time
+* change unit (minutes/hours/days)
+* save immediately
+
+NO manual searching.
+
+---
+
+# 📊 6) Sorting improvement
+
+Sort users by urgency:
+
+1. expired users
+2. expiring soon (minutes/hours)
+3. active users
+
+---
+
+# 🧩 7) Backend must be fixed
+
+* use UTC consistently
+* calculate expiry using timestamp
+* remove day-based comparisons
+* fix all helpers:
+
+  * isExpired
+  * remainingTime
+  * accessMode
+
+---
+
+# 🧹 8) Remove ALL old logic
+
+Search and replace:
+
+* duration_in_days logic
+* date-only comparisons
+* `split('T')` hacks
+* hardcoded day labels
+* stale UI assumptions
+
+---
+
+# 🎯 9) Fix all bugs like:
+
+* showing "1 day" incorrectly
+* wrong countdown after refresh
+* mismatch between admin & user
+* expired but still active
+* active but already expired
+
+---
+
+# 🎨 10) UI polish (professional)
+
+States:
+
+* active → neutral
+* expiring soon → orange
+* expired → red
+
+Countdown badge:
+
+* clean
+* compact
+* real-time
+
+---
+
+# 🚀 FINAL EXPECTED RESULT
+
+After implementation:
+
+✅ minutes/hours users → real-time countdown
+✅ <24h → NEVER shows "1 day"
+✅ expired users → red + visible
+✅ click → direct manage subscription page
+✅ admin → extend instantly
+✅ no wrong expiry anywhere
+✅ no leftover old logic
+
+---
+
+# ⚠️ FINAL INSTRUCTION
+
+Do NOT do partial fix.
+
+Audit entire codebase and fix ALL affected areas.
+
+This is a **system-level correction**, not a UI tweak.

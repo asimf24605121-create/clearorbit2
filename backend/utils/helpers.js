@@ -76,7 +76,7 @@ export function formatRemainingLabel(endDate) {
   const hours = Math.floor(ms / 3600000);
   const mins = Math.floor((ms % 3600000) / 60000);
   if (hours < 24) return mins > 0 ? `${hours}h ${mins}m left` : `${hours}h left`;
-  const totalDays = Math.ceil(ms / 86400000);
+  const totalDays = Math.floor(ms / 86400000);
   return `${totalDays}d left`;
 }
 

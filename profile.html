@@ -861,9 +861,9 @@ async function loadProfile() {
                 const mins = Math.floor((totalMs % 3600000) / 60000);
                 remainBadge = `<span class="badge badge-orange">${hrs}h ${mins}m left</span>`;
             } else if (totalMs <= 3 * 86400000) {
-                remainBadge = `<span class="badge badge-orange">${Math.ceil(totalMs / 86400000)}d left</span>`;
+                remainBadge = `<span class="badge badge-orange">${Math.floor(totalMs / 86400000)}d left</span>`;
             } else if (totalMs < 7 * 86400000) {
-                remainBadge = `<span class="badge badge-yellow">${Math.ceil(totalMs / 86400000)}d left</span>`;
+                remainBadge = `<span class="badge badge-yellow">${Math.floor(totalMs / 86400000)}d left</span>`;
             } else {
                 remainBadge = `<span class="badge badge-green">${Math.floor(totalMs / 86400000)}d left</span>`;
             }

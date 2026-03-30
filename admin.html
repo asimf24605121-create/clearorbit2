@@ -3471,7 +3471,7 @@ function smartTimeLabel(ms) {
     const hours = Math.floor(ms / 3600000);
     const mins = Math.floor((ms % 3600000) / 60000);
     if (hours < 24) return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
-    const days = Math.ceil(ms / 86400000);
+    const days = Math.floor(ms / 86400000);
     return days + 'd';
 }
 
@@ -3503,7 +3503,7 @@ function getExpiryDisplay(u) {
         relText = m > 0 ? h + 'h ' + m + 'm left' : h + 'h left';
     }
     else {
-        const daysLeft = Math.ceil(diffMs / 86400000);
+        const daysLeft = Math.floor(diffMs / 86400000);
         if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
         else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
         else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
@@ -5507,26 +5507,33 @@ async function vuLoadUserSubs(userId) {
         if (expired.length) summaryHtml += `<div class="flex items-center gap-1.5"><span class="text-lg font-bold text-gray-400">${expired.length}</span><span class="text-[10px] text-gray-400">expired</span></div>`;
         summaryHtml += '</div>';
         container.innerHTML = summaryHtml + subs.map(s => {
-            const end = new Date(s.end_date);
-            const diffDays = Math.ceil((end - now) / 86400000);
-            const isActive = s.is_active == 1 && end >= now;
+            const end = parseEndDateFE(s.end_date);
+            const diffMs = end - now;
+            const isActive = s.is_active == 1 && diffMs >= 0;
             let statusCls, statusLabel;
             if (!isActive) { statusCls = 'badge-expired'; statusLabel = 'Expired'; }
-            else if (diffDays <= 3) { statusCls = 'badge-expiring'; statusLabel = `${diffDays}d left`; }
-            else if (diffDays <= 7) { statusCls = 'badge-expiring'; statusLabel = `${diffDays}d left`; }
-            else { statusCls = 'badge-active'; statusLabel = `${diffDays}d left`; }
+            else {
+                statusLabel = smartTimeLabel(diffMs);
+                if (diffMs < 3600000) statusCls = 'badge-expired';
+                else if (diffMs <= 3 * 86400000) statusCls = 'badge-expiring';
+                else if (diffMs <= 7 * 86400000) statusCls = 'badge-expiring';
+                else statusCls = 'badge-active';
+            }
             const initial = (s.platform_name || '?')[0].toUpperCase();
             const bgColor = s.platform_color || s.bg_color_hex || '#4F46E5';
             const logo = s.platform_logo || s.logo_url;
             const logoHtml = logo
                 ? `<img src="${escHtml(logo)}" class="w-6 h-6 rounded object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-6 h-6 rounded flex items-center justify-center text-white text-[9px] font-bold" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
                 : `<div class="w-6 h-6 rounded flex items-center justify-center text-white text-[9px] font-bold" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
+            const endDisplay = diffMs > 0 && diffMs <= 86400000
+                ? end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) + ' today'
+                : formatDate(s.end_date);
             return `<div class="vu-sub-card" style="padding:8px 12px">
                 <div class="flex items-center gap-2 min-w-0">
                     ${logoHtml}
                     <div class="min-w-0">
                         <p class="text-xs font-semibold text-gray-800 truncate">${escHtml(s.platform_name)}</p>
-                        <p class="text-[10px] text-gray-400">${formatDate(s.start_date)} → ${formatDate(s.end_date)}</p>
+                        <p class="text-[10px] text-gray-400">${formatDate(s.start_date)} → ${endDisplay}</p>
                     </div>
                 </div>
                 <span class="badge-status ${statusCls}" style="font-size:10px;padding:1px 8px"><span class="badge-dot"></span>${statusLabel}</span>

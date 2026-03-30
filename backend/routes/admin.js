@@ -409,7 +409,7 @@ function mapUserRow(u, today) {
       const m = Math.floor((ms % 3600000) / 60000);
       nearestRemainingLabel = m > 0 ? `${h}h ${m}m left` : `${h}h left`;
     } else {
-      nearestRemainingLabel = `${Math.ceil(ms / 86400000)}d left`;
+      nearestRemainingLabel = `${Math.floor(ms / 86400000)}d left`;
     }
   }
   return {
