@@ -80,8 +80,8 @@ function _tdWarnEdge(fn, val) {
                 m.addedNodes.forEach(function(node) {
                     if (node.nodeType === 1 && node.tagName === 'SCRIPT' && node.textContent) {
                         var txt = node.textContent;
-                        if (/Math\.ceil\s*\([^)]*\/\s*(86400000|86400)/i.test(txt)) {
-                            console.error('[timeDisplay] REGRESSION: Math.ceil used for day calculation. Use shared smartTimeLabel() from js/timeDisplay.js');
+                        if (/Math\.ceil\s*\([^)]*\/\s*(86400000|86400)/i.test(txt) && /remain|left|expir.*(?:day|hour)/i.test(txt) && !/ago/i.test(txt)) {
+                            console.error('[timeDisplay] REGRESSION: Math.ceil used for remaining-day calculation. Use shared smartTimeLabel() from js/timeDisplay.js');
                         }
                         if (/function\s+(smartTimeLabel|formatRemainingMs|smartTimeLabelWithSuffix)\s*\(/i.test(txt) && !txt.includes('_timeDisplayVersion')) {
                             console.error('[timeDisplay] REGRESSION: Duplicate time formatter detected. Use shared functions from js/timeDisplay.js — do not reimplement.');

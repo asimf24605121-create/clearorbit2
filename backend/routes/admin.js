@@ -25,6 +25,7 @@ router.get('/admin_init', authenticate, requireAdmin(), async (req, res) => {
       newSubsToday,
       expiringSoon,
       expiringSubs7d,
+      allActiveSubs,
       activeSessions,
       recentLogs,
       pendingPayments,
@@ -65,6 +66,10 @@ router.get('/admin_init', authenticate, requireAdmin(), async (req, res) => {
       }),
       prisma.userSubscription.count({
         where: { isActive: 1, endDate: { lte: futureDate(7) } },
+      }),
+      prisma.userSubscription.findMany({
+        where: { isActive: 1 },
+        select: { userId: true, endDate: true },
       }),
       prisma.userSession.count({ where: { status: 'active' } }),
       prisma.activityLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
@@ -115,6 +120,21 @@ router.get('/admin_init', authenticate, requireAdmin(), async (req, res) => {
           usedSlots += accts.filter(a => a.isActive).length;
         });
         const slotUtil = totalSlots > 0 ? Math.round((usedSlots / totalSlots) * 100) : 0;
+        const now = Date.now();
+        const userNearestMs = {};
+        for (const sub of allActiveSubs) {
+          const ms = Math.max(0, parseEndDateUTC(sub.endDate) - now);
+          if (!(sub.userId in userNearestMs) || ms < userNearestMs[sub.userId]) {
+            userNearestMs[sub.userId] = ms;
+          }
+        }
+        let expCritical = 0, expHigh = 0, expWarning = 0;
+        for (const uid in userNearestMs) {
+          const ms = userNearestMs[uid];
+          if (ms > 0 && ms < 3600000) expCritical++;
+          else if (ms > 0 && ms < 6 * 3600000) expHigh++;
+          else if (ms > 0 && ms < 86400000) expWarning++;
+        }
         return {
           total_users: totalUsers,
           active_users: activeUsers,
@@ -131,6 +151,10 @@ router.get('/admin_init', authenticate, requireAdmin(), async (req, res) => {
           pending_payments: pendingPayments,
           pending_tickets: pendingTickets,
           errors_last_hour: 0,
+          expiry_users_critical: expCritical,
+          expiry_users_high: expHigh,
+          expiry_users_warning: expWarning,
+          expiry_users_total: expCritical + expHigh + expWarning,
         };
       })(),
       system_health: 'healthy',
@@ -225,7 +249,7 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
     const [
       totalUsers, activeUsers, newUsersToday, totalPlatforms,
       activeSessions, activeSubs, newSubsToday,
-      expiringSubs24h, expiringSubs7d, pendingPayments,
+      expiringSubs24h, expiringSubs7d, ovAllActiveSubs, pendingPayments,
       platforms, recentLogs, recentPayments, securityLogs,
     ] = await Promise.all([
       prisma.user.count({ where: { role: 'user' } }),
@@ -237,6 +261,10 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
       prisma.userSubscription.count({ where: { isActive: 1, startDate: { gte: today } } }),
       prisma.userSubscription.count({ where: { isActive: 1, endDate: { lte: futureDate(1) } } }),
       prisma.userSubscription.count({ where: { isActive: 1, endDate: { lte: futureDate(7) } } }),
+      prisma.userSubscription.findMany({
+        where: { isActive: 1 },
+        select: { userId: true, endDate: true },
+      }),
       prisma.payment.count({ where: { status: 'pending' } }),
       prisma.platform.findMany({
         include: { platformAccounts: { select: { id: true, isActive: true } } },
@@ -306,11 +334,29 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
       where: { action: 'failed_login', createdAt: { gte: oneHourAgo } },
     });
 
+    const ovNow = Date.now();
+    const ovUserNearestMs = {};
+    for (const sub of ovAllActiveSubs) {
+      const ms = Math.max(0, parseEndDateUTC(sub.endDate) - ovNow);
+      if (!(sub.userId in ovUserNearestMs) || ms < ovUserNearestMs[sub.userId]) {
+        ovUserNearestMs[sub.userId] = ms;
+      }
+    }
+    let ovExpCritical = 0, ovExpHigh = 0, ovExpWarning = 0;
+    for (const uid in ovUserNearestMs) {
+      const ms = ovUserNearestMs[uid];
+      if (ms > 0 && ms < 3600000) ovExpCritical++;
+      else if (ms > 0 && ms < 6 * 3600000) ovExpHigh++;
+      else if (ms > 0 && ms < 86400000) ovExpWarning++;
+    }
+
     let systemHealth = 'healthy';
     const alerts = [];
     if (slotUtil >= 90) { systemHealth = 'critical'; alerts.push({ type: 'danger', message: 'Slot utilization above 90%' }); }
     else if (slotUtil >= 75) { systemHealth = 'warning'; alerts.push({ type: 'warning', message: 'Slot utilization above 75%' }); }
-    if (expiringSubs24h > 0) alerts.push({ type: 'warning', message: `${expiringSubs24h} subscription(s) expiring within 24 hours` });
+    if (ovExpCritical > 0) alerts.push({ type: 'danger', message: `${ovExpCritical} user(s) expiring within 1 hour — immediate action needed` });
+    if (ovExpHigh > 0) alerts.push({ type: 'warning', message: `${ovExpHigh} user(s) expiring within 6 hours` });
+    if (ovExpWarning > 0) alerts.push({ type: 'warning', message: `${ovExpWarning} user(s) expiring within 24 hours` });
     if (pendingPayments > 0) alerts.push({ type: 'info', message: `${pendingPayments} pending payment(s) awaiting approval` });
 
     res.json({
@@ -330,6 +376,10 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
         expiring_subs_7d: expiringSubs7d,
         pending_payments: pendingPayments,
         errors_last_hour: errorsLastHour,
+        expiry_users_critical: ovExpCritical,
+        expiry_users_high: ovExpHigh,
+        expiry_users_warning: ovExpWarning,
+        expiry_users_total: ovExpCritical + ovExpHigh + ovExpWarning,
       },
       system_health: systemHealth,
       alerts,
@@ -369,6 +419,15 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
   }
 });
 
+function getExpiryUrgency(nearestRemainingMs) {
+  if (nearestRemainingMs === null || nearestRemainingMs === undefined) return 'none';
+  if (nearestRemainingMs <= 0) return 'expired';
+  if (nearestRemainingMs < 3600000) return 'critical';
+  if (nearestRemainingMs < 6 * 3600000) return 'high';
+  if (nearestRemainingMs < 86400000) return 'warning';
+  return 'normal';
+}
+
 function computeUserStatus(user, today) {
   if (!user.isActive) return 'disabled';
   const subs = (user.subscriptions || []);
@@ -402,6 +461,7 @@ function mapUserRow(u, today) {
     nearestRemainingMs = Math.max(0, nearestEnd - new Date());
     nearestRemainingLabel = formatRemainingMs(nearestRemainingMs);
   }
+  const userStatus = computeUserStatus(u, today);
   return {
     id: u.id, username: u.username, name: u.name, email: u.email,
     phone: u.phone, is_active: u.isActive, created_at: u.createdAt,
@@ -413,7 +473,8 @@ function mapUserRow(u, today) {
     nearest_expiry: nearestExpiry,
     nearest_remaining_ms: nearestRemainingMs,
     nearest_remaining_label: nearestRemainingLabel,
-    status: computeUserStatus(u, today),
+    expiry_urgency: userStatus === 'expired' ? 'expired' : getExpiryUrgency(nearestRemainingMs),
+    status: userStatus,
     device_id: u.deviceId || null,
     last_login_ip: u.lastLoginIp || null,
     last_login_at: u.lastLoginAt || null,
@@ -452,7 +513,8 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
     else if (sort === 'username') orderBy = { username: 'asc' };
     else if (sort === 'recent_login') orderBy = { lastLoginAt: 'desc' };
 
-    const needsComputedFilter = status && !['all', 'disabled'].includes(status);
+    const needsComputedSort = sort === 'urgency';
+    const needsComputedFilter = needsComputedSort || (status && !['all', 'disabled'].includes(status));
 
     const userSelect = {
       id: true, username: true, name: true, email: true, phone: true,
@@ -470,7 +532,20 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
     if (needsComputedFilter) {
       const allUsers = await prisma.user.findMany({ where, select: userSelect, orderBy });
       const allMapped = allUsers.map(u => mapUserRow(u, today));
-      const filtered = allMapped.filter(u => u.status === status);
+      let filtered = (status && !['all', 'disabled'].includes(status))
+        ? allMapped.filter(u => u.status === status)
+        : allMapped;
+      if (needsComputedSort) {
+        const urgRank = { expired: 0, critical: 1, high: 2, warning: 3, normal: 4, none: 5 };
+        filtered.sort((a, b) => {
+          const ra = urgRank[a.expiry_urgency] ?? 5;
+          const rb = urgRank[b.expiry_urgency] ?? 5;
+          if (ra !== rb) return ra - rb;
+          const ma = a.nearest_remaining_ms ?? Infinity;
+          const mb = b.nearest_remaining_ms ?? Infinity;
+          return ma - mb;
+        });
+      }
       const total = filtered.length;
       const skip = (p - 1) * pp;
       const paged = filtered.slice(skip, skip + pp);

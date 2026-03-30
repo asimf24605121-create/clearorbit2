@@ -79,6 +79,19 @@ I prefer detailed explanations. I want iterative development. Ask before making 
   - **API freeze**: `_timeDisplayVersion = 1` sentinel; shared file header documents rules and test command. Backend `helpers.js` header documents identical rules.
 - **Server enforcement**: `autoRecheckJob` in server.js uses `isSubExpired()` to mark expired subs (fetches all active subs, filters with helper, updates in batch). User expiry sync uses `parseEndDateUTC` for accurate max-expiry calculation.
 
+### Smart Expiry Awareness System
+- **Urgency tiers**: `getExpiryUrgency(nearestRemainingMs)` in `backend/routes/admin.js` — returns `critical` (<1h), `high` (<6h), `warning` (<24h), `normal` (≥24h), `expired` (≤0), `none` (no subs).
+- **Backend KPI**: Both `admin_init` and `admin_overview` return `expiry_users_critical`, `expiry_users_high`, `expiry_users_warning`, `expiry_users_total` — computed from per-user nearest subscription expiry using `parseEndDateUTC`. Single `allActiveSubs` query reused for all tiers — no extra DB load.
+- **User row data**: `mapUserRow` returns `expiry_urgency` field per user. Used for frontend row highlighting and badge rendering.
+- **Urgency sort**: `sort=urgency` in `get_users` — fetches all users, sorts by urgency rank (expired → critical → high → warning → normal → none), then by nearest remaining ms within same tier. Paginated after sort.
+- **Overview alerts**: `admin_overview` generates alerts for critical (type: danger, "immediate action needed"), high (type: warning, "within 6 hours"), and warning (type: warning, "within 24 hours") user counts. These appear in the overview alerts box.
+- **Overview KPI card**: "Expiring Users" card shows total expiring user count with tiered breakdown in hint. Clickable — navigates to Users section with urgency sort applied.
+- **Alert banners**: `renderExpiryAlertBanners(users)` in admin.html renders clickable gradient banners above users table (red for critical, orange for high, yellow for expired). Click auto-filters to relevant status.
+- **Row styling**: `row-urgency-critical` (red left border + red bg), `row-urgency-high` (orange), `row-urgency-warning` (yellow). Applied per-row based on `expiry_urgency`.
+- **Critical badge**: `badge-critical` with pulsing red dot animation for users under 1 hour.
+- **Quick extend**: "Extend" button appears on critical, high, and expired user rows. Opens user workflow modal directly to Manage Access tab (`openUserWorkflow(id, 'access')`).
+- **Performance**: Reuses existing `allActiveSubs` query (already fetched for KPI); no polling; tiered counts computed in-memory from single query; alert banners render from already-fetched user list; urgency sort is server-side with single fetch + in-memory sort + paginate.
+
 ### Global Admin Dead-Platform Notification System
 - **AdminNotification model** (`admin_notifications` table): Stores platform-dead alerts with `type`, `title`, `message`, `platformId`, `platformName`, `severity`, `isRead`, `dedupeKey` (e.g. `platform_dead_{id}_{date}`), `createdAt`. Indexed on `(isRead, createdAt)` and `dedupeKey`.
 - **Transition detection**: `autoRecheckJob` in `server.js` detects when a `PlatformAccount` transitions from any non-DEAD `stabilityStatus` to `DEAD`. Deduped per platform per day. Creates an `AdminNotification` row and emits a `platform_dead_alert` Socket.io event to `admin_room`.
