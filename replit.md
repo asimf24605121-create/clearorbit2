@@ -156,7 +156,11 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Production secret guards**: `JWT_SECRET` and `CSRF_SECRET` throw on startup if not set when `NODE_ENV=production` (in `auth.js` and `csrf.js`). Dev fallback strings remain for development only.
 - **CORS enforcement**: CORS middleware now rejects unrecognized origins with an error instead of silently allowing all. `ALLOWED_ORIGINS` env var for explicit domain whitelist; Replit dev domain auto-added.
 - **Rate limiting (expanded)**: `forgotPasswordLimiter` (5 req/15min) on `/forgot_password`, `signupLimiter` (5 req/15min) on `/reseller_signup`, `contactLimiter` (10 req/15min) on `/submit_contact`. Added to existing `loginLimiter`, `apiLimiter`, `importLimiter`, `recheckLimiter`, `intelligenceLimiter`, `deleteLimiter`, `adminActionLimiter`.
-- **Environment variables**: `NODE_ENV=production` and `LOG_LEVEL=warn` set for production deployment. `JWT_SECRET` and `CSRF_SECRET` must be configured as Replit secrets.
+- **Environment variables**: `NODE_ENV=production` and `LOG_LEVEL=warn` set for production deployment. `JWT_SECRET` (64-char) and `CSRF_SECRET` (64-char) configured as Replit secrets with crypto-grade randomness.
+- **Production startup guards**: Server throws and refuses to start if `JWT_SECRET` or `CSRF_SECRET` is missing when `NODE_ENV=production`. No silent fallbacks in production.
+- **Cookie security**: `httpOnly: true`, `secure: true` (in prod/Replit), `sameSite: None` (Replit) or `Lax`, 24h maxAge, path `/`.
+- **Input sanitization**: Global `sanitizeMiddleware` on all `/api` POST/PUT/DELETE — strips XSS patterns, HTML-encodes strings, exempts cookie data fields. Mass assignment guards on sensitive routes.
+- **Error handling**: Global error handler returns safe messages (no stack traces for 5xx). `uncaughtException` and `unhandledRejection` handlers log structured JSON. Process signals (SIGTERM/SIGINT) handled for graceful shutdown.
 
 ## External Dependencies
 - **Node.js Libraries**: `express`, `@prisma/client`, `jsonwebtoken`, `bcryptjs`, `cookie-parser`, `socket.io`, `multer`, `express-rate-limit`.

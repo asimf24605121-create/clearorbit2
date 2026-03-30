@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-if (process.env.NODE_ENV === 'production' && !process.env.CSRF_SECRET && !process.env.JWT_SECRET) {
+if (process.env.NODE_ENV === 'production' && !process.env.CSRF_SECRET) {
   throw new Error('CSRF_SECRET must be set in production');
 }
 const CSRF_SECRET = process.env.CSRF_SECRET || process.env.JWT_SECRET || 'clearorbit_csrf_secret_change_in_production';
