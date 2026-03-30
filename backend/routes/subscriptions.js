@@ -231,7 +231,18 @@ router.post('/add_subscription', authenticate, requireAdmin(), async (req, res) 
 
     const unit = ['minutes', 'hours', 'days'].includes(duration_unit) ? duration_unit : 'days';
     const durVal = parseInt(duration_value) || parseInt(duration_days) || 30;
+    if (durVal < 1) return res.status(400).json({ success: false, message: 'Duration must be at least 1' });
     const endDateValue = end_date || computeEndDate(durVal, unit);
+
+    const existing = await prisma.userSubscription.findFirst({
+      where: { userId: parseInt(user_id), platformId: parseInt(platform_id), isActive: 1 },
+    });
+    if (existing) {
+      const { parseEndDateUTC } = await import('../utils/helpers.js');
+      if (parseEndDateUTC(existing.endDate) > Date.now()) {
+        return res.status(409).json({ success: false, message: 'User already has an active subscription for this platform. Use extend instead.' });
+      }
+    }
 
     const sub = await prisma.userSubscription.create({
       data: {
