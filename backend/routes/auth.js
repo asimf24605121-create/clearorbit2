@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma, emitUserEvent, emitAdminEvent } from '../server.js';
 import { generateToken, authenticate } from '../middleware/auth.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
-import { loginLimiter } from '../middleware/rateLimit.js';
+import { loginLimiter, forgotPasswordLimiter } from '../middleware/rateLimit.js';
 import { nowISO, randomToken, getClientIP, parseUserAgent } from '../utils/helpers.js';
 import { sessionStore } from '../utils/sessionStore.js';
 import { lookupIP } from '../utils/geoip.js';
@@ -238,7 +238,7 @@ router.get('/keep_alive', authenticate, (req, res) => {
   res.json({ success: true });
 });
 
-router.post('/forgot_password', async (req, res) => {
+router.post('/forgot_password', forgotPasswordLimiter, async (req, res) => {
   try {
     const { username } = req.body;
     if (!username) return res.status(400).json({ success: false, message: 'Username required' });
@@ -253,7 +253,7 @@ router.post('/forgot_password', async (req, res) => {
       data: { userId: user.id, token, expiresAt, createdAt: nowISO() },
     });
 
-    res.json({ success: true, message: 'If the account exists, a reset link has been sent', token });
+    res.json({ success: true, message: 'If the account exists, a reset link has been sent' });
   } catch (err) {
     logger.auth({ action: 'forgot_password', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });

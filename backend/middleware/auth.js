@@ -4,6 +4,9 @@ import { prisma } from '../server.js';
 import { nowISO } from '../utils/helpers.js';
 import { sessionStore } from '../utils/sessionStore.js';
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in production');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'clearorbit_jwt_secret_change_in_production';
 const SESSION_TIMEOUT_MINUTES = 30;
 

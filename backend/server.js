@@ -40,12 +40,15 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      cb(null, true);
+    } else if (!isProduction && allowedOrigins.length === 0) {
       cb(null, true);
     } else {
-      cb(null, true);
+      cb(null, false);
     }
   },
   credentials: true,
@@ -146,7 +149,7 @@ app.use('/api', (err, req, res, _next) => {
 
 const io = new SocketServer(httpServer, {
   cors: {
-    origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
+    origin: allowedOrigins.length > 0 ? allowedOrigins : (isProduction ? false : '*'),
     credentials: true,
   },
   path: '/socket.io',

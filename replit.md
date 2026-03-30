@@ -152,6 +152,12 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Public buy page** (`buy.html`): Dynamic plan loading from `get_public_pricing`. Plans rendered with badges, original price strikethrough, sorted by duration. Account type toggle (shared/private) updates prices. WhatsApp order uses per-platform WhatsApp config.
 - **Legacy**: `save_pricing` endpoint removed. Old `get_pricing` (flat map) replaced with full plan objects.
 
+### Security Hardening (Final)
+- **Production secret guards**: `JWT_SECRET` and `CSRF_SECRET` throw on startup if not set when `NODE_ENV=production` (in `auth.js` and `csrf.js`). Dev fallback strings remain for development only.
+- **CORS enforcement**: CORS middleware now rejects unrecognized origins with an error instead of silently allowing all. `ALLOWED_ORIGINS` env var for explicit domain whitelist; Replit dev domain auto-added.
+- **Rate limiting (expanded)**: `forgotPasswordLimiter` (5 req/15min) on `/forgot_password`, `signupLimiter` (5 req/15min) on `/reseller_signup`, `contactLimiter` (10 req/15min) on `/submit_contact`. Added to existing `loginLimiter`, `apiLimiter`, `importLimiter`, `recheckLimiter`, `intelligenceLimiter`, `deleteLimiter`, `adminActionLimiter`.
+- **Environment variables**: `NODE_ENV=production` and `LOG_LEVEL=warn` set for production deployment. `JWT_SECRET` and `CSRF_SECRET` must be configured as Replit secrets.
+
 ## External Dependencies
 - **Node.js Libraries**: `express`, `@prisma/client`, `jsonwebtoken`, `bcryptjs`, `cookie-parser`, `socket.io`, `multer`, `express-rate-limit`.
 - **Frontend Libraries**: Tailwind CSS v3 (CDN), intl-tel-input v18 (CDN).

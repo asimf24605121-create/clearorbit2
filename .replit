@@ -50,6 +50,13 @@ waitForPort = 5000
 [userenv.shared]
 PORT = "5000"
 
+[userenv.production]
+NODE_ENV = "production"
+LOG_LEVEL = "warn"
+
+[userenv.development]
+LOG_LEVEL = "info"
+
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 120000

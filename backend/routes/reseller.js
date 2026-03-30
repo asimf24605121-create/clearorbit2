@@ -4,6 +4,7 @@ import { prisma } from '../server.js';
 import { authenticate, requireRole, requireAdmin } from '../middleware/auth.js';
 import { nowISO, todayISO, futureDate, paginate } from '../utils/helpers.js';
 import { logger } from '../utils/logger.js';
+import { signupLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.get('/reseller_dashboard', authenticate, requireRole('reseller', 'admin')
   }
 });
 
-router.post('/reseller_signup', async (req, res) => {
+router.post('/reseller_signup', signupLimiter, async (req, res) => {
   try {
     const { username, password, name, email, phone } = req.body;
     if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });

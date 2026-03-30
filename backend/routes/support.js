@@ -3,6 +3,7 @@ import { prisma, emitAdminEvent, emitUserEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO, cutoffISO, paginate } from '../utils/helpers.js';
 import { logger } from '../utils/logger.js';
+import { contactLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -308,7 +309,7 @@ router.post('/create_ticket_reply', authenticate, async (req, res) => {
   }
 });
 
-router.post('/submit_contact', async (req, res) => {
+router.post('/submit_contact', contactLimiter, async (req, res) => {
   try {
     const { name, email, message } = req.body;
     if (!name || !email || !message) {
