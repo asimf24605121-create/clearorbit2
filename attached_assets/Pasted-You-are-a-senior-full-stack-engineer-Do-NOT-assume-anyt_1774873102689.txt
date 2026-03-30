@@ -1,0 +1,201 @@
+You are a senior full-stack engineer. Do NOT assume anything is complete. Perform a FINAL SYSTEM INTEGRATION + UX HARDENING PASS.
+
+GOAL:
+Make the entire platform (User Dashboard + Admin Panel + APIs + Socket + UI) behave like a production-grade SaaS (Stripe-level UX).
+
+----------------------------------------
+CRITICAL ISSUES TO FIX FIRST
+----------------------------------------
+
+1. NAVIGATION / SESSION BUG
+- Clicking "Premium Subscription" should NEVER logout user
+- Audit all click handlers → remove accidental logout triggers
+- Ensure:
+  - No redirect to /login unless token invalid
+  - Proper route handling (SPA or safe navigation)
+  - Token persistence (localStorage / cookies)
+
+----------------------------------------
+
+2. USER DASHBOARD ↔ ADMIN CONNECTION (REAL-TIME)
+- FULL 2-WAY SYNC via Socket.io
+
+IMPLEMENT:
+
+USER SIDE LISTEN:
+- subscription_updated
+- subscription_revoked
+- payment_approved
+- payment_rejected
+- ticket_reply
+- ticket_updated
+- announcement_published
+- whatsapp_order_updated
+
+ADMIN SIDE EMIT:
+- When:
+  - ticket replied
+  - payment approved/rejected
+  - subscription extended/revoked
+  - announcement published
+  - WhatsApp status updated
+
+UI ACTIONS:
+- Show toast
+- Update UI instantly (no refresh)
+- Trigger notification bell animation
+- Auto-refresh affected sections
+
+----------------------------------------
+
+3. EXTENSION DETECTION (PRO UX)
+- 3 STATES:
+  1. Connected (green)
+  2. Not active (yellow + retry)
+  3. Not installed (red + install)
+
+- Add:
+  - Retry button
+  - Auto retry every 5 seconds
+  - Clear UX messaging
+
+----------------------------------------
+
+4. BUTTON CONNECTION + SAFETY
+- ALL buttons must be connected and safe
+
+IMPLEMENT:
+- safeClick() debounce for EVERY action button:
+  - Access Now
+  - Report Issue
+  - Submit Ticket
+  - Payment Submit
+  - Logout
+  - Force Logout Others
+
+- Prevent:
+  - Double clicks
+  - Duplicate API calls
+  - UI freeze
+
+----------------------------------------
+
+5. SUPPORT SYSTEM (ULTRA LEVEL)
+USER:
+- Create ticket
+- See status (open / in-progress / resolved)
+- See admin replies (chat UI style)
+
+ADMIN:
+- Reply with message
+- Change status
+- Add internal notes
+
+WHEN ADMIN REPLIES:
+→ user instantly gets:
+  - toast notification
+  - bell notification
+  - real-time message update
+
+WHEN RESOLVED:
+→ user gets:
+  - "Your issue has been resolved" notification
+
+----------------------------------------
+
+6. CONTACT MESSAGES (UPGRADE)
+- Convert into mini-ticket system:
+  - status: new / read / replied
+  - reply option
+
+- Add:
+  - quick reply from admin
+  - email-style thread view
+
+----------------------------------------
+
+7. PAYMENTS SYSTEM (REAL UX)
+USER:
+- Submit payment
+- Upload screenshot
+- See status live
+
+ADMIN:
+- Approve / Reject
+- Add note
+
+REAL-TIME:
+- On approve → user subscription auto-activated
+- On reject → reason shown
+
+----------------------------------------
+
+8. ANNOUNCEMENTS SYSTEM (PRO LEVEL)
+- Types:
+  - Banner
+  - Popup
+  - Toast
+
+- Add:
+  - schedule (start/end)
+  - priority
+  - dismiss option
+
+REAL-TIME:
+- When published → all users instantly see
+
+----------------------------------------
+
+9. DASHBOARD UX POLISH
+IMPROVE:
+- Smooth animations (hover, click)
+- Skeleton loaders
+- Empty states (no data UI)
+- Progress bars animation
+- Card hover effects
+
+----------------------------------------
+
+10. ERROR HANDLING (CRITICAL)
+- No silent failures
+
+ADD:
+- try/catch everywhere
+- user-friendly error messages
+- fallback UI
+- retry buttons
+
+----------------------------------------
+
+11. PERFORMANCE (IMPORTANT)
+- Must support 1000+ users
+
+OPTIMIZE:
+- avoid unnecessary API calls
+- cache data
+- debounce search/filter
+- efficient socket usage
+
+----------------------------------------
+
+12. FINAL QA CHECKLIST
+VERIFY:
+
+- No button breaks
+- No logout bugs
+- No undefined errors
+- All APIs connected
+- Real-time working
+- UI smooth
+- Mobile responsive
+- Fast loading (<2s)
+
+----------------------------------------
+
+FINAL RESULT:
+This should feel like:
+- Stripe Dashboard
+- Notion UI
+- Modern SaaS product
+
+Do NOT stop until EVERYTHING is production-ready.

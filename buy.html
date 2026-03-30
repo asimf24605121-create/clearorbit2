@@ -542,13 +542,16 @@ function getDurationLabel(plan) {
     return formatDurationLabel(plan.duration_value, plan.duration_unit);
 }
 
+let _buyBusy = false;
 async function buyNow() {
-    if (!currentPlatform || !selectedPlan) return;
+    if (_buyBusy || !currentPlatform || !selectedPlan) return;
+    _buyBusy = true;
     const username = document.getElementById('buyUsername').value.trim();
     if (!username) {
         document.getElementById('buyUsername').focus();
         document.getElementById('buyUsername').style.borderColor = '#EF4444';
         setTimeout(() => document.getElementById('buyUsername').style.borderColor = '', 2000);
+        _buyBusy = false;
         return;
     }
 
@@ -573,16 +576,21 @@ async function buyNow() {
         }
     } catch(e) {
         showResultModal(false, 'Connection Error', 'Network error. Please check your connection and try again.');
+    } finally {
+        _buyBusy = false;
     }
 }
 
+let _whatsappBusy = false;
 async function orderViaWhatsApp() {
-    if (!currentPlatform || !selectedPlan) return;
+    if (_whatsappBusy || !currentPlatform || !selectedPlan) return;
+    _whatsappBusy = true;
     const username = document.getElementById('buyUsername').value.trim();
     if (!username) {
         document.getElementById('buyUsername').focus();
         document.getElementById('buyUsername').style.borderColor = '#EF4444';
         setTimeout(() => document.getElementById('buyUsername').style.borderColor = '', 2000);
+        _whatsappBusy = false;
         return;
     }
 
@@ -603,6 +611,7 @@ async function orderViaWhatsApp() {
         });
     } catch(e) {}
 
+    _whatsappBusy = false;
     const message = `Hello, I want to buy *${currentPlatform.name}*\nUsername: ${username}\nPlan: ${getDurationLabel(selectedPlan)}\nType: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}\nPrice: $${price}`;
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
 }

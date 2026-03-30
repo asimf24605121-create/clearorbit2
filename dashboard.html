@@ -875,14 +875,18 @@ setTimeout(() => {
     }
 }, 2500);
 
+let _openModalBusy = false;
 async function openModal(platformId, platformName, isExpired) {
-    if (isExpired) return;
+    if (isExpired || _openModalBusy) return;
+    _openModalBusy = true;
     try {
         const sessRes = await fetch('api/check_session', { credentials: 'include' });
-        if (!sessRes.ok) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
-    } catch(_) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
+        if (sessRes.status === 401 || sessRes.status === 403) { sessionStorage.clear(); window.location.href = 'index.html'; return; }
+        if (!sessRes.ok) { showToast('Connection error, please try again', 'error'); _openModalBusy = false; return; }
+    } catch(_) { showToast('Network error. Please check your connection.', 'error'); _openModalBusy = false; return; }
     if (!clearorbitExtensionReady) {
         showToast('Extension not detected. Please install the ClearOrbit extension first.', 'error');
+        _openModalBusy = false;
         return;
     }
     CURRENT_MODAL_PLATFORM = platformId;
@@ -913,6 +917,7 @@ async function openModal(platformId, platformName, isExpired) {
         const data = await res.json();
 
         if (!data.success) {
+            _openModalBusy = false;
             const isAllFull = data.all_full || false;
             const isAllExpired = data.all_expired || false;
             const iconBg = isAllExpired ? 'bg-red-50' : isAllFull ? 'bg-amber-50' : 'bg-red-50';
@@ -947,6 +952,7 @@ async function openModal(platformId, platformName, isExpired) {
             if (data.session_id) ACTIVE_SESSIONS[platformId] = data.session_id;
         }
 
+        _openModalBusy = false;
         window.postMessage({
             type: 'CLEARORBIT_LOGIN',
             platformId: data.platform_id || platformId,
@@ -958,12 +964,14 @@ async function openModal(platformId, platformName, isExpired) {
 
     } catch(e) {
         console.error(e);
+        _openModalBusy = false;
         slotsEl.innerHTML = `<div class="text-center py-6">
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-red-50 flex items-center justify-center">
                 <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
             <p class="text-sm font-medium text-gray-900 mb-1">Connection Error</p>
             <p class="text-xs text-gray-500">Network error. Please try again.</p>
+            <button onclick="openModal(${platformId}, '${escHtml(platformName)}', false)" class="btn btn-secondary btn-sm mt-3">Retry</button>
         </div>`;
         document.getElementById('modalSubtitle').textContent = 'Connection failed';
     }
@@ -972,6 +980,7 @@ async function openModal(platformId, platformName, isExpired) {
 function closeModal() {
     document.getElementById('loginModal').classList.remove('active');
     CURRENT_MODAL_PLATFORM = null;
+    _openModalBusy = false;
 }
 
 window.injectCookie = function(platformId) {
@@ -1666,7 +1675,10 @@ async function releaseAllPlatformSessions() {
     ACTIVE_SESSIONS = {};
 }
 
+let _logoutBusy = false;
 async function logout() {
+    if (_logoutBusy) return;
+    _logoutBusy = true;
     if (POLL_INTERVAL) clearInterval(POLL_INTERVAL);
     if (NOTIF_POLL) clearInterval(NOTIF_POLL);
     await releaseAllPlatformSessions();
