@@ -1,0 +1,222 @@
+You are a senior full-stack engineer. Before making changes, do a **deep technical audit** of these modules and tell me exactly what is working, what is broken, and why.
+
+Do not start fixing yet.
+First, inspect the current implementation and provide a clear developer report.
+
+I need a detailed audit for these issues:
+
+## 1) Alerts / Notifications
+
+Check:
+
+* why resolved items still remain in the admin alert dropdown
+* whether alerts are stored in DB or derived dynamically
+* whether "mark as read" works correctly
+* whether delete/remove logic exists
+* whether support/payment/platform alerts are all mixed together incorrectly
+* whether notification click actions route correctly
+* whether alert count badge is accurate
+
+Tell me:
+
+* what currently works
+* what is broken
+* root cause of stale alerts
+* what backend/frontend files control this
+
+---
+
+## 2) Pricing Edit UX
+
+Check:
+
+* why pricing plan editing opens as a floating modal instead of inline/page-embedded editing
+* whether the modal is technically correct but bad UX, or actually buggy
+* whether inline edit can replace modal safely
+* whether any route/state conflicts exist in current pricing edit flow
+
+Tell me:
+
+* current implementation
+* current UX limitation
+* best recommended architecture for editing pricing plans
+
+---
+
+## 3) WhatsApp Config
+
+Check:
+
+* why saving per-platform WhatsApp config does not show correctly in the listing/table
+* whether save API works
+* whether fetch/list API is returning data
+* whether frontend state refresh is missing
+* whether platform selection is correctly linked to saved config
+
+Tell me:
+
+* whether config is really saved in DB
+* why it does not appear on screen
+* exact root cause
+
+---
+
+## 4) New User Contactability / Onboarding Gap
+
+Check:
+
+* when a brand new user applies/buys, what user fields are actually captured
+* whether system stores only username or also email / WhatsApp / payment info
+* whether there is enough data for admin to contact a new buyer
+* whether payment flow requires proof upload
+* whether EasyPaisa / JazzCash / payment instruction UX exists at all
+
+Tell me:
+
+* current onboarding flow from buy page to payment
+* what contact fields are missing
+* what business-critical gaps exist
+
+---
+
+## 5) Support Tickets: Delete / Archive / Visibility
+
+Check:
+
+* whether tickets can be deleted
+* whether archive is soft-delete or just status change
+* where archived tickets are supposed to appear
+* whether reply history persists
+* whether admin can reopen archived/resolved tickets
+* whether UI exposes archive/deleted/resolved filters correctly
+
+Tell me:
+
+* what current support ticket lifecycle is
+* why archived items seem to disappear without visibility
+* what missing views/actions exist
+
+---
+
+## 6) Announcement Date/Time Defaults
+
+Check:
+
+* whether start/end datetime fields auto-fill with UTC or local values
+* whether defaults are missing
+* whether timezone formatting is inconsistent between admin and user side
+* whether backend expects UTC while frontend shows local time
+
+Tell me:
+
+* how announcement datetime is currently handled
+* what timezone bugs exist
+* what default behavior should be
+
+---
+
+## 7) Contact Messages Reply Delivery
+
+Check:
+
+* when a guest/non-logged-in user submits contact form, how admin reply is supposed to reach them
+* whether email sending exists
+* whether reply is only stored internally in admin panel
+* whether there is any outbound delivery channel implemented at all
+
+Tell me:
+
+* current contact-message reply architecture
+* whether replies actually go anywhere
+* what missing infrastructure is required
+
+---
+
+## 8) Report Issue Flow
+
+Check:
+
+* when user clicks "Report Issue" from dashboard, where the report actually goes
+* whether it creates a support ticket
+* whether it only creates a notification
+* whether admin sees it in Support Tickets properly
+* whether unread counts increment correctly
+
+Tell me:
+
+* expected flow vs actual implemented flow
+* exact routing/storage issue if any
+
+---
+
+## 9) Time / Timezone Bugs Everywhere
+
+Check:
+
+* timestamps in alerts
+* support replies
+* contact replies
+* announcements
+* login history
+* payment times
+* user dashboard times
+
+Tell me:
+
+* which pages use UTC raw
+* which pages convert to local
+* where formatting is inconsistent
+* what shared helper exists or is missing
+
+---
+
+## 10) Support Reply Notifications
+
+Check:
+
+* when admin replies to support ticket, does the user get:
+
+  * bell notification
+  * unread state
+  * clickable notification
+  * ticket thread update
+* whether reply timestamps are correct
+* whether reply delete/read/archive actions exist
+* whether notification click opens the correct ticket/thread
+
+Tell me:
+
+* what currently works
+* what is broken
+* exact cause of missing reply notification
+
+---
+
+# Required output format
+
+For each of the 10 sections above, give me:
+
+1. **Current implementation**
+2. **What works**
+3. **What is broken**
+4. **Root cause**
+5. **Files involved**
+6. **Recommended fix approach**
+
+At the end give me:
+
+## Final technical summary
+
+* Critical bugs
+* UX problems
+* Backend gaps
+* Missing business logic
+* Missing communication channels
+* Recommended implementation order (highest priority first)
+
+Important:
+
+* Do not give vague answers
+* Inspect frontend + backend + DB flow
+* Explain like a real developer audit
+* Do not start fixing yet — first give me the full diagnosis
