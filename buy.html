@@ -351,6 +351,19 @@ function closeSuccessModal() {
     setTimeout(() => { document.getElementById('successModal').style.display = 'none'; }, 200);
 }
 
+let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
+async function ensureCsrf() {
+    if (CSRF_TOKEN) return;
+    try {
+        const r = await fetch('api/csrf_token', { credentials: 'include' });
+        const d = await r.json();
+        if (d.csrf_token) { CSRF_TOKEN = d.csrf_token; sessionStorage.setItem('csrf_token', CSRF_TOKEN); }
+    } catch(e) {}
+}
+function csrfHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN };
+}
+
 let selectedPlan = null;
 let selectedType = 'private';
 let currentPlatform = null;
@@ -556,9 +569,10 @@ async function buyNow() {
     }
 
     try {
+        await ensureCsrf();
         const res = await fetch('api/create_payment', { credentials: 'include',
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: csrfHeaders(),
             body: JSON.stringify({
                 platform_id: currentPlatform.id,
                 plan_id: selectedPlan.id,
@@ -598,9 +612,10 @@ async function orderViaWhatsApp() {
     const whatsappNumber = (selectedType === 'shared' ? currentWhatsapp.shared_number : currentWhatsapp.private_number) || currentWhatsapp.shared_number || currentWhatsapp.private_number || currentPlatform.whatsapp_number || '1234567890';
 
     try {
+        await ensureCsrf();
         await fetch('api/create_payment', { credentials: 'include',
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: csrfHeaders(),
             body: JSON.stringify({
                 platform_id: currentPlatform.id,
                 plan_id: selectedPlan.id,
