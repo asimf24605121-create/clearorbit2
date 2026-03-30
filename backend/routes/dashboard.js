@@ -304,7 +304,15 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
     sessionStore.registerAccountSession(session);
     console.log(`[slot-alloc] ALLOCATED sessionId=${session.id} user=${userId} platform=${pid} account=${bestAccount.id} ip=${clientIp} lastActiveAt=${nowMs} retry=${isRetry}`);
 
-    return { account: bestAccount, session };
+    await tx.platformAccount.update({
+      where: { id: bestAccount.id },
+      data: {
+        successCount: { increment: 1 },
+        lastSuccessAt: now,
+      },
+    });
+
+    return { account: { ...bestAccount, successCount: (bestAccount.successCount || 0) + 1, lastSuccessAt: now }, session };
   });
 }
 
