@@ -72,6 +72,11 @@ I prefer detailed explanations. I want iterative development. Ask before making 
   - **admin.html**: Uses shared `smartTimeLabel`/`smartTimeLabelWithSuffix` + `parseEndDateFE`. `getExpiryDisplay` uses `smartTimeLabelWithSuffix` for all <24h and ≥24h remaining. Color coding: >30d ok, >7d ok, >3d warn, ≤3d danger.
   - **dashboard.html**: Status badges use `smartTimeLabelWithSuffix(remainMs)`. `parseEndDate` delegates to shared `parseEndDateFE`. Countdown timer (`timerHtml`) stays inline (seconds-level). End date shows time-of-day when <=24h.
   - **profile.html**: All subscription badges use `smartTimeLabelWithSuffix(totalMs)` with color tiers (red <1d, orange ≤3d, yellow <7d, green ≥7d).
+- **Production hardening**:
+  - **Edge-case logging**: `formatRemainingMs`, `smartTimeLabel`, `parseEndDateUTC`, `parseEndDateFE` all log warnings on NaN/Infinity/invalid inputs but never break UI (always fallback to "Expired" or epoch date).
+  - **Dev-mode regression guard**: `_tdDevGuard()` in `js/timeDisplay.js` runs only on localhost/replit.dev. Uses MutationObserver to scan inline `<script>` additions for: (a) `Math.ceil` with `/86400000` or `/86400` day division, (b) duplicate `smartTimeLabel`/`formatRemainingMs`/`smartTimeLabelWithSuffix` function definitions, (c) date-only `.toISOString().substring(0,10)` comparisons involving expiry. Fires `console.error` with clear regression message.
+  - **Timer safety**: dashboard.html `TIMERS` dict keyed by `platformId`; `clearInterval` always called before `setInterval`; `renderCards()` clears all timers before re-render; timer self-cleans when DOM element removed. Admin timers follow same pattern.
+  - **API freeze**: `_timeDisplayVersion = 1` sentinel; shared file header documents rules and test command. Backend `helpers.js` header documents identical rules.
 - **Server enforcement**: `autoRecheckJob` in server.js uses `isSubExpired()` to mark expired subs (fetches all active subs, filters with helper, updates in batch). User expiry sync uses `parseEndDateUTC` for accurate max-expiry calculation.
 
 ### Global Admin Dead-Platform Notification System

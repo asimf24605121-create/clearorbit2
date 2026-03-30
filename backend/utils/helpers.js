@@ -29,7 +29,11 @@ export function parseEndDateUTC(endDate) {
   } else {
     d = new Date(s + 'T23:59:59Z');
   }
-  return isNaN(d.getTime()) ? new Date(0) : d;
+  if (isNaN(d.getTime())) {
+    console.warn('[parseEndDateUTC] invalid date input:', endDate);
+    return new Date(0);
+  }
+  return d;
 }
 
 export function computeEndDate(value, unit) {
@@ -75,7 +79,12 @@ export function getRemainingMs(endDate) {
 //   ≥ 24h        → "{D}d {H}h left"        (omit hours if 0)
 //   All use Math.floor — never Math.ceil for remaining-time display.
 export function formatRemainingMs(ms) {
-  if (!ms || ms <= 0 || !isFinite(ms)) return 'Expired';
+  if (!ms || ms <= 0 || !isFinite(ms)) {
+    if (ms !== 0 && ms !== null && ms !== undefined && (typeof ms !== 'number' || isNaN(ms) || !isFinite(ms))) {
+      console.warn('[formatRemainingMs] edge-case input:', ms);
+    }
+    return 'Expired';
+  }
   if (ms < 60000) return 'Expiring now';
   const totalMins = Math.floor(ms / 60000);
   if (totalMins < 60) return `${totalMins}m left`;
