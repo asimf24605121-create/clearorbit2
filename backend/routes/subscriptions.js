@@ -758,29 +758,6 @@ router.delete('/delete_pricing_plan', authenticate, requireAdmin(), async (req, 
   }
 });
 
-router.post('/toggle_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
-  try {
-    const { id } = req.body;
-    if (!id) return res.status(400).json({ success: false, message: 'Plan ID required' });
-
-    const existing = await prisma.pricingPlan.findUnique({ where: { id: parseInt(id) } });
-    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found' });
-
-    const plan = await prisma.pricingPlan.update({
-      where: { id: parseInt(id) },
-      data: { isActive: existing.isActive === 1 ? 0 : 1 },
-    });
-
-    res.json({
-      success: true,
-      message: `Plan ${plan.isActive === 1 ? 'activated' : 'deactivated'}`,
-      is_active: plan.isActive,
-    });
-  } catch (err) {
-    logger.subscription({ action: 'toggle_pricing_plan', level: 'error', error: err.message });
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
 
 router.post('/save_pricing', authenticate, requireAdmin(), async (req, res) => {
   res.status(410).json({ success: false, message: 'This endpoint is deprecated. Use add_pricing_plan, update_pricing_plan, delete_pricing_plan instead.' });
@@ -834,7 +811,10 @@ router.post('/create_payment', authenticate, async (req, res) => {
         planDurationUnit: plan.durationUnit,
         planId: plan.id,
         status: 'pending', paymentMethod: payment_method || null,
-        screenshot: screenshot || null, createdAt: now, updatedAt: now,
+        screenshot: screenshot || null,
+        buyerEmail: req.body.buyer_email || null,
+        buyerPhone: req.body.buyer_phone || null,
+        createdAt: now, updatedAt: now,
       },
     });
 

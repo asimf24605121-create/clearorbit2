@@ -251,6 +251,8 @@ model Payment {
   createdAt         String  @default("") @map("created_at")
   updatedAt         String  @default("") @map("updated_at")
   screenshot        String?
+  buyerEmail        String? @map("buyer_email")
+  buyerPhone        String? @map("buyer_phone")
   paymentMethod     String? @map("payment_method")
   reviewedAt        String? @map("reviewed_at")
   reviewedBy        Int?    @map("reviewed_by")
@@ -283,6 +285,7 @@ model SupportTicket {
   resolvedAt     String? @map("resolved_at")
   resolvedBy     Int?    @map("resolved_by")
   resolutionNote String? @map("resolution_note")
+  archivedAt     String? @map("archived_at")
   createdAt      String  @default("") @map("created_at")
   updatedAt      String  @default("") @map("updated_at")
 

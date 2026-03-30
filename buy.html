@@ -295,6 +295,16 @@
                     <input id="buyUsername" class="input" placeholder="Enter your username"/>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Email Address</label>
+                    <input id="buyEmail" type="email" class="input" placeholder="your@email.com"/>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Phone / WhatsApp</label>
+                    <input id="buyPhone" type="tel" class="input" placeholder="+1 234 567 8900"/>
+                </div>
+
                 <div class="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 rounded-xl p-4 flex items-center justify-between border border-indigo-100/50">
                     <div>
                         <p class="text-xs text-gray-500 font-medium">Total Price</p>
@@ -560,6 +570,8 @@ async function buyNow() {
     if (_buyBusy || !currentPlatform || !selectedPlan) return;
     _buyBusy = true;
     const username = document.getElementById('buyUsername').value.trim();
+    const buyer_email = document.getElementById('buyEmail').value.trim();
+    const buyer_phone = document.getElementById('buyPhone').value.trim();
     if (!username) {
         document.getElementById('buyUsername').focus();
         document.getElementById('buyUsername').style.borderColor = '#EF4444';
@@ -577,6 +589,8 @@ async function buyNow() {
                 platform_id: currentPlatform.id,
                 plan_id: selectedPlan.id,
                 username,
+                buyer_email,
+                buyer_phone,
                 duration_key: selectedPlan.duration_key,
                 account_type: selectedType
             })
@@ -611,6 +625,8 @@ async function orderViaWhatsApp() {
     const price = (selectedType === 'shared' ? selectedPlan.shared_price : selectedPlan.private_price).toFixed(2);
     const whatsappNumber = (selectedType === 'shared' ? currentWhatsapp.shared_number : currentWhatsapp.private_number) || currentWhatsapp.shared_number || currentWhatsapp.private_number || currentPlatform.whatsapp_number || '1234567890';
 
+    const buyer_email = document.getElementById('buyEmail').value.trim();
+    const buyer_phone = document.getElementById('buyPhone').value.trim();
     try {
         await ensureCsrf();
         await fetch('api/create_payment', { credentials: 'include',
@@ -620,6 +636,8 @@ async function orderViaWhatsApp() {
                 platform_id: currentPlatform.id,
                 plan_id: selectedPlan.id,
                 username,
+                buyer_email,
+                buyer_phone,
                 duration_key: selectedPlan.duration_key,
                 account_type: selectedType
             })

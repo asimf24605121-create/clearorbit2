@@ -1822,12 +1822,15 @@ function renderNotifPanel(notifications) {
         const isUnread = !parseInt(n.is_read);
         const typeClass = 'notif-type-' + (n.type || 'info');
         const icon = NOTIF_TYPE_ICONS[n.type] || NOTIF_TYPE_ICONS.info;
+        const ticketMatch = (n.message || '').match(/#(\d+)/);
+        const ticketLink = ticketMatch ? `<a href="#" onclick="event.stopPropagation();viewTicketFromNotif(${ticketMatch[1]})" style="font-size:10px;font-weight:600;color:#6C5CE7;margin-top:2px;display:inline-block">View Ticket #${ticketMatch[1]} →</a>` : '';
         return `<div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markNotifRead(${n.id}, this)" data-id="${n.id}">
             <div class="notif-dot"></div>
             <div class="notif-type-icon ${typeClass}">${icon}</div>
             <div style="flex:1;min-width:0">
                 <div class="notif-item-title">${escHtml(n.title)}</div>
                 <div class="notif-item-msg">${escHtml(n.message)}</div>
+                ${ticketLink}
                 <div class="notif-item-time">${timeAgo(n.created_at)}</div>
             </div>
         </div>`;
@@ -1841,7 +1844,7 @@ async function markNotifRead(id, el) {
             method: 'POST',
             headers: csrfHeaders(),
             credentials: 'include',
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ notification_id: id })
         });
         if (el) {
             el.classList.remove('unread');
@@ -1859,7 +1862,7 @@ async function markAllNotificationsRead(e) {
             method: 'POST',
             headers: csrfHeaders(),
             credentials: 'include',
-            body: JSON.stringify({ action: 'mark_all' })
+            body: JSON.stringify({ notification_id: 'all' })
         });
         document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
         updateNotifBadge(0);
@@ -1867,6 +1870,46 @@ async function markAllNotificationsRead(e) {
         document.getElementById('markAllReadBtn').style.display = 'none';
         showToast('All notifications marked as read', 'success');
     } catch (e) { showToast('Failed to mark all as read', 'error'); }
+}
+
+async function viewTicketFromNotif(ticketId) {
+    try {
+        const res = await fetch(`api/get_ticket_replies?ticket_id=${ticketId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!data.success) { showToast(data.message || 'Could not load ticket', 'error'); return; }
+        const t = data.ticket;
+        const replies = data.replies || [];
+        const repliesHtml = replies.map(r => `
+            <div style="padding:10px 12px;border-radius:8px;border:1px solid ${r.is_admin ? '#C7D2FE' : '#E5E7EB'};background:${r.is_admin ? '#EEF2FF' : '#fff'};${r.is_admin ? 'margin-left:16px' : ''}">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                    <span style="font-size:11px;font-weight:600;color:${r.is_admin ? '#4F46E5' : '#374151'}">${r.is_admin ? 'Support' : 'You'}</span>
+                    <span style="font-size:10px;color:#9CA3AF">${new Date(r.created_at).toLocaleString()}</span>
+                </div>
+                <p style="font-size:12px;color:#374151;line-height:1.5;white-space:pre-wrap">${escHtml(r.message)}</p>
+            </div>
+        `).join('');
+        const modalHtml = `
+            <div class="modal-overlay active" id="ticketViewModal" onclick="if(event.target===this)this.remove()" style="z-index:80">
+                <div class="modal-content" style="max-width:560px">
+                    <div style="padding:16px 20px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <h3 style="font-size:15px;font-weight:700;color:#111827;margin:0">${t.subject || 'Ticket #' + t.id}</h3>
+                            <p style="font-size:11px;color:#6B7280;margin-top:2px">${escHtml(t.platform_name || '')} &bull; Status: ${escHtml(t.status)} &bull; ${new Date(t.created_at).toLocaleString()}</p>
+                        </div>
+                        <button onclick="document.getElementById('ticketViewModal').remove()" style="background:none;border:none;cursor:pointer;color:#9CA3AF;padding:4px"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                    </div>
+                    <div style="padding:16px 20px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
+                        <div style="padding:10px 12px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">
+                            <p style="font-size:12px;color:#374151;line-height:1.5;white-space:pre-wrap">${escHtml(t.message)}</p>
+                        </div>
+                        ${repliesHtml}
+                    </div>
+                </div>
+            </div>`;
+        const existing = document.getElementById('ticketViewModal');
+        if (existing) existing.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    } catch (e) { showToast('Failed to load ticket details', 'error'); }
 }
 
 async function pollNotifications() {
@@ -1995,8 +2038,8 @@ async function submitReport() {
         });
         const data = await res.json();
         if (data.success) {
-            showToast(data.message, 'success');
             closeReportModal();
+            showToast('Ticket #' + (data.ticket_id || '') + ' created! Check notifications for updates.', 'success');
         } else {
             showToast(data.message, 'error');
         }

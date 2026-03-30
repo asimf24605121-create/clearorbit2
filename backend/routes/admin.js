@@ -1410,6 +1410,17 @@ router.post('/admin/notifications/mark-read', authenticate, requireAdmin(), asyn
   }
 });
 
+router.post('/admin/notifications/delete', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Notification ID required' });
+    await prisma.adminNotification.delete({ where: { id: parseInt(id) } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 async function geoFetchWithTimeout(url, ms = 4000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);

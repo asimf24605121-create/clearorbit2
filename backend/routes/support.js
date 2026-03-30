@@ -13,6 +13,12 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
 
     const where = {};
+    const { archived } = req.query;
+    if (archived === 'true') {
+      where.archivedAt = { not: null };
+    } else if (archived !== 'all') {
+      where.archivedAt = null;
+    }
     if (status && status !== 'all') where.status = status;
     if (category && category !== 'all') where.category = category;
     if (priority && priority !== 'all') where.priority = priority;
@@ -50,6 +56,7 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
         resolved_at: t.resolvedAt,
         resolved_by: t.resolvedBy,
         resolution_note: t.resolutionNote,
+        archived_at: t.archivedAt,
         reply_count: t._count.replies,
         last_reply: t.replies[0] ? {
           message: t.replies[0].message,
@@ -136,6 +143,54 @@ router.post('/create_ticket', authenticate, async (req, res) => {
     res.json({ success: true, message: 'Ticket created', ticket_id: ticket.id });
   } catch (err) {
     logger.error('support', { action: 'create_ticket', error: err.message });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/delete_ticket', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { ticket_id } = req.body;
+    const tid = parseInt(ticket_id);
+    if (!tid || isNaN(tid)) return res.status(400).json({ success: false, message: 'Valid ticket ID required' });
+    await prisma.ticketReply.deleteMany({ where: { ticketId: tid } });
+    await prisma.supportTicket.delete({ where: { id: tid } });
+    logger.admin({ action: 'delete_ticket', ticket_id, admin: req.user.id });
+    res.json({ success: true, message: 'Ticket deleted' });
+  } catch (err) {
+    logger.error('support', { action: 'delete_ticket', error: err.message });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/archive_ticket', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { ticket_id } = req.body;
+    const tid = parseInt(ticket_id);
+    if (!tid || isNaN(tid)) return res.status(400).json({ success: false, message: 'Valid ticket ID required' });
+    const now = nowISO();
+    await prisma.supportTicket.update({
+      where: { id: tid },
+      data: { archivedAt: now, updatedAt: now },
+    });
+    logger.admin({ action: 'archive_ticket', ticket_id, admin: req.user.id });
+    res.json({ success: true, message: 'Ticket archived' });
+  } catch (err) {
+    logger.error('support', { action: 'archive_ticket', error: err.message });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/unarchive_ticket', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { ticket_id } = req.body;
+    const tid = parseInt(ticket_id);
+    if (!tid || isNaN(tid)) return res.status(400).json({ success: false, message: 'Valid ticket ID required' });
+    await prisma.supportTicket.update({
+      where: { id: tid },
+      data: { archivedAt: null, updatedAt: nowISO() },
+    });
+    res.json({ success: true, message: 'Ticket unarchived' });
+  } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -794,12 +849,14 @@ router.get('/get_notifications', authenticate, async (req, res) => {
       take: limit,
     });
 
+    const unreadCount = notifications.filter(n => n.isRead === 0).length;
     res.json({
       success: true,
       notifications: notifications.map(n => ({
         id: n.id, title: n.title, message: n.message,
         type: n.type, is_read: n.isRead, created_at: n.createdAt,
       })),
+      unread_count: unreadCount,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -815,8 +872,8 @@ router.post('/mark_notification_read', authenticate, async (req, res) => {
         data: { isRead: 1 },
       });
     } else if (notification_id) {
-      await prisma.userNotification.update({
-        where: { id: parseInt(notification_id) },
+      await prisma.userNotification.updateMany({
+        where: { id: parseInt(notification_id), userId: req.user.id },
         data: { isRead: 1 },
       });
     }
@@ -956,10 +1013,21 @@ router.get('/get_whatsapp', authenticate, async (req, res) => {
     const setting = await prisma.siteSetting.findUnique({ where: { settingKey: 'whatsapp_number' } });
     const msgSetting = await prisma.siteSetting.findUnique({ where: { settingKey: 'whatsapp_message' } });
 
+    const configs = await prisma.whatsappConfig.findMany({
+      include: { platform: { select: { name: true } } },
+    });
+
     res.json({
       success: true,
       whatsapp_number: setting?.settingValue || '',
       whatsapp_message: msgSetting?.settingValue || '',
+      whatsapp: configs.map(c => ({
+        platform_id: c.platformId,
+        platform_name: c.platform?.name || '',
+        number: c.sharedNumber || c.privateNumber || '',
+        shared_number: c.sharedNumber || '',
+        private_number: c.privateNumber || '',
+      })),
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -968,7 +1036,16 @@ router.get('/get_whatsapp', authenticate, async (req, res) => {
 
 router.post('/save_whatsapp', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { whatsapp_number, whatsapp_message } = req.body;
+    const { whatsapp_number, whatsapp_message, platform_id, number } = req.body;
+
+    if (platform_id && number !== undefined) {
+      await prisma.whatsappConfig.upsert({
+        where: { platformId: parseInt(platform_id) },
+        update: { sharedNumber: number, privateNumber: number },
+        create: { platformId: parseInt(platform_id), sharedNumber: number, privateNumber: number },
+      });
+      return res.json({ success: true, message: 'Platform WhatsApp config saved' });
+    }
 
     if (whatsapp_number !== undefined) {
       await prisma.siteSetting.upsert({

@@ -1,0 +1,180 @@
+Now implement ALL critical fixes from the audit with production-grade quality.
+
+⚠️ IMPORTANT:
+- Do NOT break existing working features
+- Keep system optimized for 1000+ concurrent users
+- Apply fixes cleanly with proper DB + frontend sync
+
+--------------------------------------------------
+
+1) NOTIFICATIONS SYSTEM FIX (CRITICAL)
+
+Fix all notification issues:
+
+- Add DELETE/DISMISS button per notification
+- Add API: DELETE /api/admin/notification/:id
+- After delete → instantly remove from UI (no refresh needed)
+
+- Fix click routing:
+  IF type = new_ticket → open Support Tickets page
+  IF type = new_contact → open Contact Messages page
+  IF type = platform_dead → open Platform Intelligence
+
+- After "Mark all read":
+  → reload notifications from API (no stale UI)
+
+--------------------------------------------------
+
+2) PRICING EDIT UX FIX
+
+REMOVE floating modal completely
+
+- When clicking "Edit":
+  → open inline edit section BELOW table
+  → OR open full page edit (preferred)
+
+- Keep table visible while editing
+- Smooth UX, no overlay
+
+--------------------------------------------------
+
+3) WHATSAPP CONFIG BUG FIX
+
+Fix mismatch:
+
+- Ensure backend fields:
+  sharedNumber
+  privateNumber
+
+- Match Prisma schema EXACTLY
+- After save:
+  → reload table from API
+  → show success toast
+
+- Fix dropdown loading timing:
+  → wait until platforms loaded before populate
+
+--------------------------------------------------
+
+4) BUY FLOW CRITICAL FIX (MOST IMPORTANT)
+
+Update buy.html:
+
+Add required fields:
+- Email (required)
+- WhatsApp / Phone (required)
+
+Save in DB:
+- buyerEmail
+- buyerPhone
+
+Add UI after order submit:
+- Show payment instructions (JazzCash / EasyPaisa)
+- Show WhatsApp number
+- Show QR / account details
+
+Add:
+- Upload payment proof (image)
+→ store in Payment.screenshot
+
+--------------------------------------------------
+
+5) SUPPORT TICKETS FIX
+
+Add:
+
+- DELETE ticket API
+- ARCHIVE ticket feature
+
+DB:
+- add archivedAt field
+
+UI:
+- Add "Archive" button
+- Add "Delete" button
+- Add "Archived" filter tab
+
+--------------------------------------------------
+
+6) ANNOUNCEMENT TIME FIX (CRITICAL)
+
+Fix timezone:
+
+- Convert frontend local time → UTC before saving
+
+OR
+
+- Add label: "All times in UTC"
+
+Also:
+
+- Auto-fill:
+  start = current time
+  end = +24 hours
+
+--------------------------------------------------
+
+7) CONTACT REPLY SYSTEM FIX (CRITICAL)
+
+Implement EMAIL sending:
+
+- Use SMTP (nodemailer)
+
+When admin replies:
+→ send email to user email
+
+UI:
+- Show: "Reply sent to email"
+
+--------------------------------------------------
+
+8) REPORT ISSUE IMPROVEMENT
+
+After user submits report:
+
+- Auto redirect to Support Tickets page
+- Highlight new ticket
+
+--------------------------------------------------
+
+9) TIME DISPLAY FIX
+
+- Ensure ALL timestamps:
+  → use toLocaleString()
+
+- Add label:
+  "Local Time"
+
+--------------------------------------------------
+
+10) SUPPORT REPLY NOTIFICATION FIX
+
+Fix:
+
+- Notification click → open exact ticket (deep link)
+
+Example:
+→ /dashboard?ticketId=123
+
+--------------------------------------------------
+
+FINAL REQUIREMENTS:
+
+- No console errors
+- No stale UI states
+- Real-time updates via Socket.IO
+- Clean UX
+- Fully production ready
+
+--------------------------------------------------
+
+After implementation:
+Run FULL QA with 30 test users:
+- Admin + Users both flows
+- Payments
+- Tickets
+- Notifications
+- WhatsApp
+- Announcements
+
+Report back ONLY after everything is 100% working.
