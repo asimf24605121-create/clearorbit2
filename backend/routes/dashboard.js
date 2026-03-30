@@ -166,11 +166,12 @@ router.post('/access_platform', authenticate, async (req, res) => {
     const now = nowISO();
     const nowMs = Date.now();
 
-    const sub = await prisma.userSubscription.findFirst({
+    const subs = await prisma.userSubscription.findMany({
       where: { userId, platformId: pid, isActive: 1 },
     });
+    const validSub = subs.find(s => !isSubExpired(s.endDate));
 
-    if (!sub || isSubExpired(sub.endDate)) {
+    if (!validSub) {
       return res.status(403).json({ success: false, message: 'No active subscription for this platform' });
     }
 
