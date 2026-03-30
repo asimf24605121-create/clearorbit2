@@ -1,0 +1,285 @@
+You are a senior full-stack QA engineer + developer. Perform a **complete end-to-end live QA** of the **entire website** using **at least 30 test users**.
+
+## Main goal
+
+I want you to test **all features**, not just expiry/access features.
+
+Do a full real usage test of the whole platform with proper test data and mixed scenarios.
+
+Do not only review code.
+Actually create users, assign access, use the flows, trigger actions, and verify results across admin side + user side + backend APIs.
+
+---
+
+# 1) Create a realistic QA dataset
+
+Create **minimum 30 test users** with mixed access states and account conditions.
+
+## Access duration mix
+
+* 5 users with 5 minutes
+* 5 users with 30 minutes
+* 5 users with 2 hours
+* 5 users with 23 hours
+* 3 users with 25 hours
+* 3 users with 2 days
+* 2 users with 7 days
+* 2 users with 30 days
+
+Also include:
+
+* some expired users
+* some active users
+* some users with multiple platform subscriptions
+* some users with no subscription
+* some users with short-access mode
+* some users with regular day-based access
+
+---
+
+# 2) Test ALL core features
+
+Audit and verify the full platform end to end.
+
+## Admin authentication and session flow
+
+* admin login
+* logout
+* session persistence
+* invalid login handling
+* CSRF behavior
+* rate limiting behavior
+* session cleanup logic if applicable
+
+## User creation and management
+
+* create user
+* assign access during creation
+* edit user
+* view user profile
+* manage user access
+* assign multiple platforms
+* revoke access
+* delete/disable behavior if available
+* active subscription visibility
+* profile/security modal behavior
+
+## Access duration system
+
+* minutes / hours / days
+* exact expiry timestamps
+* countdown behavior
+* short-access vs regular-access behavior
+* no forced profile completion
+* profile/edit page visibility rules
+* route protection
+* login redirect behavior
+
+## Expiry system
+
+* live countdown
+* under 24h formatting
+* Xd Yh formatting
+* exact 24h boundary
+* expired state transition
+* locked/unlocked state
+* status badge correctness
+* admin/user consistency
+* shared formatter consistency
+
+## Expiry awareness system
+
+* expired users highlighted
+* critical / high / warning tiers
+* alert banners
+* KPI counts
+* urgency sort
+* urgency row coloring
+* expiring-soon prioritization
+
+## Extend / revoke workflows
+
+* quick extend buttons
+* custom extend
+* revoke subscription
+* anti-spam protection
+* loading states
+* duplicate-click prevention
+* success toast
+* error recovery
+* cross-subscription independence
+
+## Platform intelligence / alerts
+
+* platform health check
+* refresh behavior
+* auto-resolve alerts
+* active vs resolved alert state
+* dead platform CTA visibility
+* no stale alerts
+* deduplication behavior
+
+## User dashboard
+
+* login as user
+* dashboard loading
+* platform cards
+* subscription cards
+* locked/unlocked access
+* expired state
+* short-access users
+* day-based users
+* profile page access
+* edit profile availability rules
+
+## Profile / account pages
+
+* profile display
+* edit profile
+* optional profile completion
+* hidden pages for short-access users
+* correct routing if user manually tries blocked page
+
+## Cookies / platform access flow
+
+* access platform
+* cookie/session allocation
+* usage/success tracking
+* failed access behavior
+* slot/session reuse behavior if applicable
+
+## Account intelligence / scoring
+
+* success rate calculation
+* no-usage-data handling
+* usage increment after actual access
+* account score consistency
+* score breakdown labels
+
+## Tables / filters / sorting
+
+* users table
+* search
+* filter
+* urgency sorting
+* pagination
+* expired-first ordering
+* no broken rows/cards after refresh
+
+## Notifications / toasts / feedback
+
+* success messages
+* error messages
+* loading indicators
+* no duplicate toasts
+* no misleading states
+
+---
+
+# 3) Test all important edge cases
+
+Check these carefully:
+
+* exact 59s
+* exact 1m
+* exact 59m
+* exact 1h
+* exact 23h 59m
+* exact 24h
+* exact 25h
+* exact 47h
+* exact 48h
+* exact 72h
+* expired subscriptions
+* invalid CSRF token
+* duplicate rapid clicks
+* invalid subscription ID
+* missing fields
+* no subscription user
+* multi-subscription user
+* expired + active mixed subscriptions
+
+---
+
+# 4) Test performance and UI stability
+
+With ~30 users and mixed data verify:
+
+* dashboard stays smooth
+* admin users page stays smooth
+* countdowns update correctly
+* no duplicate timers
+* no memory leaks
+* no layout breaking
+* no stale badges
+* no laggy sorting/filtering
+* no API spam issues
+
+This platform must stay optimized for **1000+ concurrent users**, so check for obvious inefficiencies while testing.
+
+---
+
+# 5) Test backend/API consistency
+
+Verify:
+
+* frontend state matches backend truth
+* expiry returned by APIs is correct
+* access permissions follow exact expiry
+* no sensitive fields leak in API responses
+* rate limiting works on protected admin actions
+* CSRF is enforced
+* no invalid/null expiry on active subscriptions
+
+---
+
+# 6) Verify production safety
+
+Check:
+
+* no temporary debug code left
+* no noisy logs
+* no insecure responses
+* no fake/stale UI state
+* no broken fallback behavior
+* backup/snapshot safety if needed before deployment
+
+---
+
+# 7) Fix issues you find
+
+If any bug is found during testing:
+
+* fix it properly
+* retest the affected flow
+* verify no regression is introduced
+* document what was broken and how it was fixed
+
+Do not stop at only reporting bugs if they are fixable.
+
+---
+
+# 8) Final QA report required
+
+At the end give me a full report with:
+
+1. how many test users were created
+2. duration/access mix used
+3. all features tested
+4. which features passed
+5. which features failed
+6. all bugs found
+7. all fixes applied
+8. edge cases verified
+9. screenshots or proof where possible
+10. final verdict:
+
+* not ready
+* mostly ready with minor issues
+* fully production-ready
+
+## Final instruction
+
+Do a **real full-platform live QA** with at least 30 users and verify **all features together**.
+
+I want complete confidence that the whole website works correctly, not just one module.
