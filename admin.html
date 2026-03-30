@@ -3472,7 +3472,8 @@ function smartTimeLabel(ms) {
     const mins = Math.floor((ms % 3600000) / 60000);
     if (hours < 24) return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
     const days = Math.floor(ms / 86400000);
-    return days + 'd';
+    const remH = Math.floor((ms % 86400000) / 3600000);
+    return remH > 0 ? days + 'd ' + remH + 'h' : days + 'd';
 }
 
 function parseEndDateFE(d) {
@@ -3504,10 +3505,12 @@ function getExpiryDisplay(u) {
     }
     else {
         const daysLeft = Math.floor(diffMs / 86400000);
+        const remH = Math.floor((diffMs % 86400000) / 3600000);
+        const dhLabel = remH > 0 ? daysLeft + 'd ' + remH + 'h left' : daysLeft + 'd left';
         if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
-        else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
-        else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
-        else { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
+        else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = dhLabel; }
+        else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = dhLabel; }
+        else { relClass = 'expiry-danger'; relText = dhLabel; }
     }
     let absText = formatDate(d);
     if (diffMs > 0 && diffMs < 86400000) {

@@ -77,7 +77,8 @@ export function formatRemainingLabel(endDate) {
   const mins = Math.floor((ms % 3600000) / 60000);
   if (hours < 24) return mins > 0 ? `${hours}h ${mins}m left` : `${hours}h left`;
   const totalDays = Math.floor(ms / 86400000);
-  return `${totalDays}d left`;
+  const remHours = Math.floor((ms % 86400000) / 3600000);
+  return remHours > 0 ? `${totalDays}d ${remHours}h left` : `${totalDays}d left`;
 }
 
 export function getSubStatus(endDate, isActive) {
