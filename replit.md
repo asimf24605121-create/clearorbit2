@@ -25,7 +25,8 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 
 ### Frontend
 - **Technology**: HTML5, Vanilla JavaScript, and Tailwind CSS v3.
-- **Design**: Clean white/light theme with mobile responsiveness.
+- **Design**: Premium glassmorphism UI with subtle gradient backgrounds, refined color palette (slate/indigo accents), and mobile responsiveness.
+- **Dashboard UX (T007 rebuild)**: Hero card with gradient top-accent and inline session status pills (duration/location/IP), stat cards with left accent bars on hover (indigo/green/amber/red), `.info-panel` component for device/session and login history sections, `.section-title` with accent bar, `.notice-box` for security warnings, `.hero-actions` for extension download and status. Body uses `#F8F9FC` base with 400px gradient mask overlay. All panels use consistent `rgba(255,255,255,.82)` glass background with `blur(12px)` and `border: rgba(226,232,240,.4)`. Mobile drawer with `.mobile-drawer` / `.mobile-drawer-overlay` CSS classes.
 
 ### Key Features
 - **User & Subscription Management (Single-Page Workflow)**: Users module provides a unified single-page experience with 3 distinct action workflows — no separate Subscriptions page.
@@ -41,7 +42,8 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Premium Pricing System**: Full CRUD management for flexible duration-based pricing plans per platform. `PricingPlan` schema supports `durationValue` (Int), `durationUnit` (minutes/hours/days), `isActive` (toggle), `badge` (Popular/Best Value/Limited Offer), `originalPrice` (for strikethrough). Unique constraint on `platformId + durationValue + durationUnit`. Admin API: `GET /api/get_pricing` (grouped by platform with all new fields), `POST /api/add_pricing_plan`, `PUT /api/update_pricing_plan`, `DELETE /api/delete_pricing_plan`, `POST /api/toggle_pricing_plan` (all admin-only with validation). Public API: `GET /api/get_public_pricing?platform_id=X` (returns only active plans for active platforms, sorted minutes→hours→days). Admin UI: platform selector → table of all plans with duration, shared/private/original prices, badge, status, edit/delete/toggle actions. Add/Edit Plan modal with full field support. Public buy page: dynamically loads plans from API per platform, renders selectable plan cards with human-friendly duration labels, badge display, original price strikethrough, loading spinner, empty state, error retry.
 - **Platform Management**: CRUD operations for platforms and account slots.
 - **Cookie Vault**: Secure storage for cookies with validation and auto-detection.
-- **Support System**: Ticketing, contact management, announcements, and notifications.
+- **Support System**: Ticketing (split-panel conversation desk with thread view, priority/status management, admin reply), Contact Messages (split-panel inbox with reply system, search/filter, archive), Announcements (publishing system with type/style/audience, tabs, duplicate/archive), and Notifications.
+- **Payment Operations**: KPI dashboard (pending/approved today/rejected today/total revenue/pending revenue), enhanced table with user avatars and review metadata, payment detail modal, reject with reason, URL sanitization for payment proof screenshots.
 - **Reseller System**: Wallet management for resellers.
 - **Chrome Extension Integration**: Secure cookie injection and real-time session heartbeat.
 - **Session Reconstruction**: Full session reconstruction including cookies, localStorage, sessionStorage, and API token verification.

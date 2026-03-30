@@ -1,0 +1,414 @@
+You are a senior frontend architect + full-stack SaaS engineer.
+
+Do a **full professional rebuild and interaction audit** of the **entire user dashboard** and related user-side screens.
+
+The current UI looks partially polished, but the behavior and wiring do not feel production-grade. I want the dashboard to feel like it was built by a **real senior product engineer**, not just styled visually.
+
+---
+
+# MAIN PROBLEM
+
+The user dashboard GUI looks decent at first glance, but multiple interactions feel broken, inconsistent, or low-quality.
+
+### Example critical bug
+
+* Clicking **Premium Subscription** causes the wrong behavior (it appears to log the user out or trigger the wrong navigation/action)
+
+This is unacceptable and means the dashboard interaction layer is not properly engineered.
+
+---
+
+# CORE GOAL
+
+Turn the entire user dashboard into a **premium, cohesive, reliable SaaS product UI** with:
+
+* correct button wiring
+* correct routing
+* consistent state handling
+* polished interaction design
+* strong visual hierarchy
+* premium responsiveness
+* reliable modals/dropdowns/toasts
+* zero broken click behavior
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+---
+
+# 1) FULL INTERACTION / BUTTON AUDIT (CRITICAL)
+
+Audit every clickable element on the user side.
+
+## Check and fix:
+
+* topbar buttons
+* Premium Subscription CTA
+* notification bell
+* Report Issue button
+* profile dropdown
+* logout action
+* access card buttons
+* install extension links
+* warning banners
+* modal open/close buttons
+* account type selectors
+* plan selectors
+* login page CTAs
+* support/report buttons
+* session/device actions
+* history refresh/delete buttons
+
+### Important
+
+Every button/link/icon must:
+
+* do the correct action
+* never trigger the wrong route
+* never trigger logout accidentally
+* never have broken event bubbling
+* never close/open the wrong modal
+* never conflict with parent click handlers
+
+### Specific instruction
+
+Find and fix exactly why **Premium Subscription** click is causing logout/wrong behavior.
+Check for:
+
+* nested anchor/button conflicts
+* incorrect onclick handler
+* event propagation issues
+* shared class selector bug
+* duplicate IDs
+* wrong route mapping
+* stale JS after merge
+* topbar component conflict
+
+---
+
+# 2) REBUILD USER DASHBOARD AS A COHESIVE PRODUCT
+
+Do not only patch bugs. Redesign the full user dashboard UX so it feels professionally engineered.
+
+## The user dashboard should include these polished sections:
+
+### A. Hero / Welcome Area
+
+* better structured headline
+* premium subtitle
+* clearer relationship between welcome text and subscription state
+* CTA placement should feel intentional, not floating randomly
+
+### B. Subscription Status Summary
+
+Current summary cards should be redesigned to feel more premium:
+
+* Total Platforms
+* Active
+* Expiring Soon
+* Expired
+
+Improve:
+
+* spacing
+* icon treatment
+* label hierarchy
+* stat emphasis
+* color discipline
+* hover states if interactive
+
+### C. Platform Access Grid
+
+Each platform card should feel like a premium product card.
+
+Improve:
+
+* logo positioning
+* subscription state badge
+* expiry line
+* progress/timer styling
+* days/hours/minutes blocks
+* CTA button
+* inactive card styling
+* locked state styling
+* active card styling
+* expired state styling
+
+Cards should feel consistent and high-end, not just “good enough”.
+
+### D. Device & Session Security Area
+
+This section should feel like a real security center.
+
+Improve:
+
+* active device count
+* current device clarity
+* session details
+* Force Logout Others CTA
+* card spacing
+* security emphasis
+* better distinction between “this device” and other devices
+
+### E. Login History
+
+Current list should be cleaner and more informative.
+
+Improve:
+
+* compact but readable list items
+* status icons/badges
+* timestamp clarity
+* action button styling
+* better grouping
+* less dead vertical space
+
+### F. Extension Guidance / State
+
+The extension warning banner is too intrusive and awkwardly placed.
+
+Redesign this experience:
+
+* do not show repeated sticky warnings in ugly positions
+* show a clean extension status card or compact dismissible banner
+* show:
+
+  * detected / not detected
+  * install button
+  * help/setup guide
+* make it useful, not annoying
+
+### G. Security Notice / Setup Guide
+
+This should feel more intentional:
+
+* turn into premium info cards / accordion / helper panel
+* not a long static block that clutters the page
+
+---
+
+# 3) TOPBAR / HEADER SYSTEM REBUILD
+
+The header is one of the most important broken-feeling areas.
+
+## Improve:
+
+* Premium Subscription CTA
+* notification bell
+* Report Issue button
+* user avatar/profile dropdown
+
+### Requirements
+
+* clean spacing
+* clear click targets
+* no accidental overlap
+* correct dropdown anchoring
+* correct z-index
+* no click conflicts
+* reliable open/close behavior
+* keyboard/accessibility friendly
+
+### Premium Subscription CTA
+
+This should behave like a real SaaS membership button:
+
+* open subscription/upgrade/manage plan modal/page
+* not trigger any unrelated behavior
+* show current plan state properly
+* visually feel premium, not decorative only
+
+---
+
+# 4) MODAL / DRAWER / OVERLAY QUALITY
+
+The plan selection modal shown in the screenshot is usable but not premium enough.
+
+## Improve:
+
+* spacing
+* scroll behavior
+* sticky header/footer if needed
+* selected plan clarity
+* account type selection
+* username input
+* CTA area
+* mobile responsiveness
+* background overlay quality
+
+### Modal rules
+
+* opening modal should never break page scroll unexpectedly
+* close icon must work reliably
+* clicking outside should behave intentionally
+* selections should persist properly while modal is open
+* no double scrollbars unless necessary
+
+---
+
+# 5) LOGIN PAGE + AUTH FLOW POLISH
+
+The login page is visually good, but the full auth experience should be premium.
+
+## Improve:
+
+* sign-in interaction polish
+* validation
+* loading state
+* remember me UX
+* forgot password positioning
+* support/contact CTA
+* post-login redirection correctness
+
+### Important
+
+No auth button or topbar action should accidentally share logic with logout or session clearing.
+
+---
+
+# 6) UNIFIED DESIGN SYSTEM FOR USER SIDE
+
+Create a single premium frontend language across user pages.
+
+## Standardize:
+
+* buttons
+* pills
+* badges
+* stat cards
+* modals
+* banners
+* alerts
+* cards
+* tables/lists
+* empty states
+* loading skeletons
+* dropdowns
+
+### Design direction
+
+Use:
+
+* premium spacing
+* subtle shadows
+* rounded but disciplined surfaces
+* clean typography hierarchy
+* confident primary accent
+* softer secondary text
+* excellent alignment
+
+Avoid:
+
+* random spacing
+* accidental overlaps
+* intrusive floating warnings
+* inconsistent component sizes
+* mixed visual quality
+
+---
+
+# 7) STATE / EVENT / ROUTING ENGINEERING
+
+This is critical.
+
+## Audit and fix:
+
+* all event listeners
+* route navigation
+* hash/page state
+* dropdown toggles
+* modal open states
+* banner dismiss states
+* CTA click handlers
+* logout flow isolation
+* session refresh logic
+* extension detection UI state
+
+### Requirements
+
+* no duplicated handlers
+* no conflicting delegated events
+* no shared selectors causing wrong clicks
+* no stale listeners after rerender
+* no accidental logout from unrelated buttons
+
+---
+
+# 8) USER-SIDE SUPPORT / REPORT ISSUE FLOW
+
+The Report Issue button should open a real polished support/report flow.
+
+## Improve:
+
+* report issue modal/page
+* category select
+* message box
+* screenshot/attachment readiness if possible
+* submit loading state
+* success state
+* ticket/reference number if supported
+
+This should feel integrated into the dashboard, not bolted on.
+
+---
+
+# 9) RESPONSIVENESS
+
+Make the entire user dashboard excellent on:
+
+* desktop
+* tablet
+* mobile
+
+### On smaller screens:
+
+* cards should stack properly
+* topbar should remain usable
+* modals should fit cleanly
+* no overflow
+* no clipped warnings
+* no broken sticky elements
+
+---
+
+# 10) PERFORMANCE + RELIABILITY
+
+This platform must not be slow and should be optimized for 1000+ concurrent users.
+
+So:
+
+* no unnecessary rerenders
+* no duplicate API calls
+* no duplicate countdown timers
+* no memory leaks from modals/dropdowns
+* no janky scroll performance
+* no unstable hydration/state after refresh
+
+---
+
+# 11) REQUIRED AUDIT OUTPUT
+
+Before/after fixing, provide:
+
+1. every broken interaction found
+2. root cause for each
+3. what was fixed
+4. which sections were redesigned
+5. confirmation that all user-side buttons/links now behave correctly
+6. confirmation that Premium Subscription no longer triggers wrong behavior
+7. confirmation that user dashboard now feels cohesive and production-grade
+
+---
+
+# 12) FINAL INSTRUCTION
+
+Do not just make it prettier.
+
+I want:
+
+* correct engineering
+* correct UX architecture
+* premium cohesive design
+* reliable interaction behavior
+
+The final result should make a user feel:
+**this was built by a real senior product engineer, not just styled by trial and error.**

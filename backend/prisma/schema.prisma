@@ -252,6 +252,10 @@ model Payment {
   updatedAt         String  @default("") @map("updated_at")
   screenshot        String?
   paymentMethod     String? @map("payment_method")
+  reviewedAt        String? @map("reviewed_at")
+  reviewedBy        Int?    @map("reviewed_by")
+  rejectionReason   String? @map("rejection_reason")
+  adminNote         String? @map("admin_note")
   resellerId        Int?    @map("reseller_id")
   planId            Int?    @map("plan_id")
   planDurationValue Int?    @map("plan_duration_value")
@@ -267,31 +271,38 @@ model Payment {
 }
 
 model SupportTicket {
-  id           Int    @id @default(autoincrement())
-  userId       Int    @map("user_id")
-  platformName String @map("platform_name")
-  subject      String @default("")
-  category     String @default("general")
-  message      String
-  status       String @default("open")
-  createdAt    String @default("") @map("created_at")
-  updatedAt    String @default("") @map("updated_at")
+  id             Int     @id @default(autoincrement())
+  userId         Int     @map("user_id")
+  platformName   String  @map("platform_name")
+  subject        String  @default("")
+  category       String  @default("general")
+  message        String
+  status         String  @default("open")
+  priority       String  @default("medium")
+  assignedTo     Int?    @map("assigned_to")
+  resolvedAt     String? @map("resolved_at")
+  resolvedBy     Int?    @map("resolved_by")
+  resolutionNote String? @map("resolution_note")
+  createdAt      String  @default("") @map("created_at")
+  updatedAt      String  @default("") @map("updated_at")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   replies      TicketReply[]
 
   @@index([status, createdAt])
   @@index([userId])
+  @@index([priority, status])
   @@map("support_tickets")
 }
 
 model TicketReply {
-  id        Int    @id @default(autoincrement())
-  ticketId  Int    @map("ticket_id")
-  userId    Int    @map("user_id")
-  isAdmin   Int    @default(0) @map("is_admin")
-  message   String
-  createdAt String @default("") @map("created_at")
+  id         Int    @id @default(autoincrement())
+  ticketId   Int    @map("ticket_id")
+  userId     Int    @map("user_id")
+  isAdmin    Int    @default(0) @map("is_admin")
+  isInternal Int    @default(0) @map("is_internal")
+  message    String
+  createdAt  String @default("") @map("created_at")
 
   ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
@@ -300,15 +311,22 @@ model TicketReply {
 }
 
 model Announcement {
-  id        Int     @id @default(autoincrement())
-  title     String
-  message   String
-  type      String  @default("popup")
-  status    String  @default("active")
-  startTime String? @map("start_time")
-  endTime   String? @map("end_time")
-  createdAt String  @default("") @map("created_at")
+  id             Int     @id @default(autoincrement())
+  title          String
+  message        String
+  type           String  @default("info")
+  displayStyle   String  @default("banner") @map("display_style")
+  status         String  @default("active")
+  priority       Int     @default(0)
+  isPinned       Int     @default(0) @map("is_pinned")
+  targetAudience String  @default("all") @map("target_audience")
+  startTime      String? @map("start_time")
+  endTime        String? @map("end_time")
+  viewCount      Int     @default(0) @map("view_count")
+  dismissCount   Int     @default(0) @map("dismiss_count")
+  createdAt      String  @default("") @map("created_at")
 
+  @@index([status, createdAt])
   @@map("announcements")
 }
 
@@ -426,14 +444,18 @@ model ContactMessage {
   id         Int     @id @default(autoincrement())
   name       String
   email      String
+  subject    String  @default("")
   message    String
+  status     String  @default("new")
   isRead     Int     @default(0) @map("is_read")
+  isSpam     Int     @default(0) @map("is_spam")
   adminReply String? @map("admin_reply")
   repliedAt  String? @map("replied_at")
   archivedAt String? @map("archived_at")
   createdAt  String  @default("") @map("created_at")
 
   @@index([isRead, createdAt])
+  @@index([status, createdAt])
   @@index([createdAt])
   @@map("contact_messages")
 }

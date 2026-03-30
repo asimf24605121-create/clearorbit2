@@ -794,33 +794,62 @@ router.post('/create_payment', authenticate, async (req, res) => {
 
 router.get('/get_payments', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page, status } = req.query;
+    const { page, per_page, status, search, platform_id, payment_method, date_from, date_to } = req.query;
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
 
     const where = {};
-    if (status) where.status = status;
+    if (status && status !== 'all') where.status = status;
+    if (platform_id) where.platformId = parseInt(platform_id);
+    if (payment_method) where.paymentMethod = payment_method;
+    if (search) {
+      where.OR = [
+        { username: { contains: search } },
+      ];
+    }
+    if (date_from) where.createdAt = { ...(where.createdAt || {}), gte: date_from };
+    if (date_to) where.createdAt = { ...(where.createdAt || {}), lte: date_to };
 
-    const [payments, total] = await Promise.all([
+    const [payments, total, pendingCount, approvedToday, rejectedToday, totalRevenue] = await Promise.all([
       prisma.payment.findMany({
         where,
         include: {
           platform: { select: { name: true } },
+          user: { select: { username: true, name: true, email: true, profileImage: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip, take,
       }),
       prisma.payment.count({ where }),
+      prisma.payment.count({ where: { status: 'pending' } }),
+      prisma.payment.count({ where: { status: 'approved', reviewedAt: { gte: todayISO() } } }),
+      prisma.payment.count({ where: { status: 'rejected', reviewedAt: { gte: todayISO() } } }),
+      prisma.payment.aggregate({ where: { status: 'approved' }, _sum: { price: true } }),
     ]);
+
+    const pendingRevenue = await prisma.payment.aggregate({ where: { status: 'pending' }, _sum: { price: true } });
 
     res.json({
       success: true,
       payments: payments.map(p => ({
         id: p.id, user_id: p.userId, username: p.username,
+        user_name: p.user?.name, user_email: p.user?.email,
+        user_avatar: p.user?.profileImage,
         platform_id: p.platformId, platform_name: p.platform?.name,
         duration_key: p.durationKey, account_type: p.accountType,
         price: p.price, status: p.status, payment_method: p.paymentMethod,
-        screenshot: p.screenshot, created_at: p.createdAt,
+        screenshot: p.screenshot,
+        plan_duration_value: p.planDurationValue, plan_duration_unit: p.planDurationUnit,
+        reviewed_at: p.reviewedAt, reviewed_by: p.reviewedBy,
+        rejection_reason: p.rejectionReason, admin_note: p.adminNote,
+        created_at: p.createdAt, updated_at: p.updatedAt,
       })),
+      stats: {
+        pending: pendingCount,
+        approved_today: approvedToday,
+        rejected_today: rejectedToday,
+        total_revenue: totalRevenue._sum.price || 0,
+        pending_revenue: pendingRevenue._sum.price || 0,
+      },
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
@@ -843,9 +872,11 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
 
     const newStatus = payAction === 'reject' ? 'rejected' : 'approved';
     const now = nowISO();
+    const updateData = { status: newStatus, updatedAt: now, reviewedAt: now, reviewedBy: req.user.id };
+    if (payAction === 'reject' && reject_reason) updateData.rejectionReason = reject_reason;
     await prisma.payment.update({
       where: { id: payment.id },
-      data: { status: newStatus, updatedAt: now },
+      data: updateData,
     });
 
     if (newStatus === 'approved' && payment.userId) {

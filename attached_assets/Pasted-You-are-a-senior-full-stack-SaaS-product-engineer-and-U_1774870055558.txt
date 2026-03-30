@@ -1,0 +1,567 @@
+You are a senior full-stack SaaS product engineer and UX architect.
+
+Analyze and upgrade these admin modules into **enterprise-grade operational systems**:
+
+1. WhatsApp
+2. Payments
+3. Support Tickets
+4. Announcements
+5. Contact Messages
+
+Do a full frontend and workflow upgrade.
+This must feel like a polished premium SaaS admin platform, not a basic CRUD dashboard.
+
+---
+
+# GLOBAL GOAL
+
+Make all these modules:
+
+* visually premium
+* highly usable
+* workflow-complete
+* scalable
+* notification-aware
+* responsive
+* operationally useful for real admins
+
+The main focus is:
+
+* **frontend UX**
+* **reply systems**
+* **status workflows**
+* **user notifications**
+* **thread/timeline views**
+* **fast admin actions**
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+---
+
+# 1) WHATSAPP MODULE — FULL UPGRADE
+
+## Current issue
+
+The page is too basic. It only looks like a simple config form.
+
+## Upgrade it into:
+
+### A. Global WhatsApp Settings Panel
+
+* global number
+* default message
+* enable/disable floating button
+* preview of floating WhatsApp widget
+* test message button
+* country code validation
+* fallback logic explanation
+
+### B. Per-Platform WhatsApp Configuration
+
+* platform selector
+* WhatsApp number per platform
+* custom order template per platform
+* default inquiry template per platform
+* preview generated message
+
+### C. WhatsApp Lead / Order Tracking
+
+Create a professional admin view showing:
+
+* recent WhatsApp leads/orders
+* source platform
+* selected plan
+* timestamp
+* status:
+
+  * new
+  * contacted
+  * paid
+  * completed
+  * closed
+* admin notes
+* quick actions
+
+### D. Frontend/UX improvements
+
+* card-based layout
+* live preview panel
+* validation states
+* save success/error states
+* better hierarchy
+* responsive layout
+* no dead blank areas
+
+---
+
+# 2) PAYMENTS MODULE — FULL OPERATIONS DASHBOARD
+
+## Current issue
+
+The page is too empty/basic and lacks real payment operations workflow.
+
+## Upgrade it into:
+
+### A. Payment Summary Cards
+
+Add KPI cards:
+
+* pending payments
+* approved today
+* rejected today
+* total revenue
+* pending revenue
+* recent payment activity
+
+### B. Payments Table Improvements
+
+Add columns/visibility for:
+
+* payment ID
+* user
+* platform
+* plan snapshot
+* duration
+* duration unit
+* amount
+* payment method
+* screenshot/proof
+* submitted at
+* reviewed at
+* reviewed by
+* status
+
+### C. Payment Detail Drawer / Modal
+
+When admin clicks a payment:
+show:
+
+* full user info
+* platform
+* selected plan
+* duration snapshot
+* price snapshot
+* payment proof image preview (zoomable)
+* notes
+* timeline of actions
+
+### D. Payment Actions
+
+Admin should be able to:
+
+* approve
+* reject
+* add note
+* mark under review
+* flag suspicious
+* view full screenshot
+* open related user profile
+
+### E. Important Workflow
+
+When admin approves payment:
+
+* subscription must be created correctly using actual plan snapshot
+* user must be notified
+* payment should lock against duplicate approval
+* action should appear in activity timeline
+
+When admin rejects payment:
+
+* save rejection reason
+* notify user
+* show status clearly
+
+### F. UI/UX
+
+* polished empty states
+* image preview modal
+* filters:
+
+  * pending / approved / rejected / under review
+  * platform
+  * date
+  * method
+* search by username/email
+* responsive table/cards
+
+---
+
+# 3) SUPPORT TICKETS MODULE — CONVERSATION DESK
+
+## This is the most important module
+
+I want a real support system, not just a list.
+
+## Upgrade it into:
+
+### A. Ticket Inbox Layout
+
+Split layout:
+
+* left side = ticket list
+* right side = selected ticket conversation thread
+
+### B. Ticket List
+
+Each ticket should show:
+
+* ticket ID
+* user
+* subject
+* platform
+* priority
+* status
+* last updated
+* unread/admin-reply-needed indicator
+
+### C. Ticket Detail / Conversation Thread
+
+Open a ticket and show:
+
+* original issue
+* full message history
+* admin replies
+* user replies
+* attachments if supported
+* status timeline
+* who resolved it
+
+### D. Admin Reply System
+
+Admin can:
+
+* reply inline
+* save internal note (not visible to user)
+* change status:
+
+  * open
+  * in progress
+  * waiting for user
+  * resolved
+  * closed
+* set priority:
+
+  * low
+  * medium
+  * high
+  * urgent
+* assign to admin/agent
+
+### E. Resolution Workflow
+
+When ticket is resolved:
+
+* require optional resolution summary
+* mark resolved timestamp
+* notify user immediately
+* show “resolved by admin” in timeline
+* allow reopen if user replies again
+
+### F. User Notification Requirement (Critical)
+
+When:
+
+* admin replies
+* status changes
+* ticket is resolved
+* ticket is closed
+
+the user must be informed.
+
+Add user-facing notification support such as:
+
+* in-app notification
+* dashboard alert
+* optional email/WhatsApp-ready notification hook if architecture supports it
+
+### G. Frontend/UX
+
+* modern conversation UI
+* sticky reply box
+* badges for status/priority
+* empty state when no tickets
+* keyboard-friendly quick actions
+* responsive support desk layout
+
+---
+
+# 4) ANNOUNCEMENTS MODULE — PUBLISHING SYSTEM
+
+## Current issue
+
+The form exists but the workflow is not premium enough.
+
+## Upgrade it into:
+
+### A. Tabs / States
+
+Separate announcements into:
+
+* draft
+* scheduled
+* active
+* expired
+* archived
+
+### B. Announcement Builder
+
+Fields:
+
+* title
+* message
+* type:
+
+  * info
+  * success
+  * warning
+  * critical
+* display style:
+
+  * banner
+  * popup
+  * dashboard card
+  * toast
+* target audience:
+
+  * all users
+  * active users
+  * expired users
+  * platform-specific users
+* priority
+* pin to top
+* start/end schedule
+
+### C. Live Preview
+
+Admin should preview:
+
+* popup appearance
+* banner appearance
+* dashboard card appearance
+
+### D. Announcement Management Table
+
+Each row should show:
+
+* title
+* type
+* audience
+* schedule
+* status
+* priority
+* actions
+
+### E. Actions
+
+Admin can:
+
+* publish
+* unpublish
+* duplicate
+* edit
+* archive
+* delete
+
+### F. Analytics (if possible)
+
+Show:
+
+* views
+* dismiss count
+* click count
+* active users reached
+
+### G. Frontend UX
+
+* builder feels premium
+* no giant plain form look
+* use cards, preview panes, tabs, smart spacing
+
+---
+
+# 5) CONTACT MESSAGES MODULE — ADMIN INBOX / MINI CRM
+
+## Current issue
+
+It only shows basic messages with mark read and delete.
+
+## Upgrade it into:
+
+### A. Inbox View
+
+Show list of messages with:
+
+* sender name
+* email
+* subject if available
+* preview snippet
+* status:
+
+  * new
+  * read
+  * replied
+  * archived
+  * spam
+* received time
+
+### B. Message Detail Panel
+
+When admin opens a message:
+show:
+
+* full message
+* sender info
+* history/actions
+* notes
+* reply area
+
+### C. Reply System
+
+Admin can:
+
+* send reply
+* save draft note
+* mark replied
+* archive
+* delete
+* mark spam
+* convert message to support ticket
+
+### D. Important user communication
+
+If replying channel is available:
+
+* user should receive the reply
+* reply should be logged
+* status should update to replied
+
+If direct sending is not yet supported:
+
+* build the reply UI + store reply history + prepare architecture for outbound sending
+
+### E. UX
+
+* inbox + detail split view
+* unread highlighting
+* search/filter
+* cleaner actions
+* not just raw table rows
+
+---
+
+# 6) SHARED FEATURES ACROSS ALL MODULES
+
+Implement these across WhatsApp, Payments, Support, Announcements, Contact:
+
+### A. Better frontend polish
+
+* premium card design
+* clean headers
+* section summaries
+* smooth hover/focus states
+* proper empty states
+* loading skeletons
+* error/retry states
+* responsive design
+
+### B. Search / filters / sorting
+
+Where relevant, add:
+
+* search
+* status filter
+* date filter
+* platform filter
+* priority filter
+* newest/oldest sorting
+
+### C. Detail drawers / modals
+
+Do not force everything into a raw table.
+Use:
+
+* side drawers
+* detail modals
+* split panel layouts
+
+### D. Activity timeline
+
+For key modules, add action history/timeline where useful:
+
+* payment reviewed
+* ticket replied/resolved
+* announcement published
+* contact message replied
+* WhatsApp lead updated
+
+### E. Notifications
+
+Add admin notifications for:
+
+* new payment
+* new support ticket
+* new contact message
+* new WhatsApp lead
+
+Add user notifications for:
+
+* ticket replied
+* ticket resolved
+* payment approved/rejected
+* important announcement
+
+---
+
+# 7) TECHNICAL / ENGINEERING REQUIREMENTS
+
+### Do a full analysis first
+
+Check existing backend APIs and database before changing UI.
+
+### Keep code clean
+
+* reusable components/patterns
+* no duplicated messy UI logic
+* proper validation
+* proper loading/error handling
+* production-grade naming
+
+### Preserve working backend flows
+
+Do not break:
+
+* pricing system
+* payment approval logic
+* WhatsApp order flow
+* existing admin auth
+* CSRF/rate limit protections
+
+### Performance
+
+* avoid excessive rerenders
+* avoid duplicate polling
+* efficient queries
+* good UX with larger datasets
+
+---
+
+# 8) FINAL DELIVERABLES
+
+Implement and provide:
+
+1. upgraded WhatsApp module
+2. upgraded Payments operations dashboard
+3. upgraded Support ticket conversation desk
+4. upgraded Announcements publishing system
+5. upgraded Contact Messages inbox/reply system
+6. user notification workflow for support resolution and replies
+7. all frontend polish and responsive improvements
+8. explanation of key workflow improvements
+9. confirmation of any backend/database additions needed
+
+## Final instruction
+
+Do not do superficial cosmetic changes.
+
+Turn these modules into **real operational tools** that feel like a premium admin SaaS platform with proper reply workflows, notifications, timeline logic, and strong frontend UX.

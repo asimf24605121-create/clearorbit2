@@ -7,12 +7,13 @@ const router = Router();
 
 router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page, status, category, search } = req.query;
+    const { page, per_page, status, category, priority, search } = req.query;
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
 
     const where = {};
     if (status && status !== 'all') where.status = status;
     if (category && category !== 'all') where.category = category;
+    if (priority && priority !== 'all') where.priority = priority;
     if (search) {
       where.OR = [
         { subject: { contains: search } },
@@ -42,12 +43,18 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
         user_name: t.user?.name, platform_name: t.platformName,
         subject: t.subject, category: t.category,
         message: t.message, status: t.status,
+        priority: t.priority || 'medium',
+        assigned_to: t.assignedTo,
+        resolved_at: t.resolvedAt,
+        resolved_by: t.resolvedBy,
+        resolution_note: t.resolutionNote,
         reply_count: t._count.replies,
         last_reply: t.replies[0] ? {
           message: t.replies[0].message,
           is_admin: t.replies[0].isAdmin,
           created_at: t.replies[0].createdAt,
         } : null,
+        needs_admin_reply: t.replies[0] ? t.replies[0].isAdmin === 0 : true,
         created_at: t.createdAt, updated_at: t.updatedAt,
       })),
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
@@ -133,23 +140,57 @@ router.post('/create_ticket', authenticate, async (req, res) => {
 
 router.post('/update_ticket', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { ticket_id, status } = req.body;
+    const { ticket_id, status, priority, assigned_to, resolution_note } = req.body;
     if (!ticket_id) return res.status(400).json({ success: false, message: 'Ticket ID required' });
 
-    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+    const validStatuses = ['open', 'in_progress', 'waiting_for_user', 'resolved', 'closed'];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
 
+    const validPriorities = ['low', 'medium', 'high', 'urgent'];
+    if (priority && !validPriorities.includes(priority)) {
+      return res.status(400).json({ success: false, message: 'Invalid priority' });
+    }
+
+    const now = nowISO();
+    const data = { updatedAt: now };
+    if (status) data.status = status;
+    if (priority) data.priority = priority;
+    if (assigned_to !== undefined) data.assignedTo = assigned_to ? parseInt(assigned_to) : null;
+    if (resolution_note !== undefined) data.resolutionNote = resolution_note;
+
+    if (status === 'resolved') {
+      data.resolvedAt = now;
+      data.resolvedBy = req.user.id;
+    }
+
     const ticket = await prisma.supportTicket.update({
       where: { id: parseInt(ticket_id) },
-      data: { status: status || 'resolved', updatedAt: nowISO() },
+      data,
     });
 
     if (ticket.userId) {
-      emitUserEvent(ticket.userId, 'ticket_updated', {
-        ticket_id: ticket.id, status: ticket.status,
-      });
+      const statusLabels = { open: 'Open', in_progress: 'In Progress', waiting_for_user: 'Waiting for Your Response', resolved: 'Resolved', closed: 'Closed' };
+      const statusMsg = status ? `Status changed to: ${statusLabels[status] || status}` : '';
+      const priorityMsg = priority ? `Priority set to: ${priority}` : '';
+      const msg = [statusMsg, priorityMsg].filter(Boolean).join('. ');
+
+      if (msg) {
+        await prisma.userNotification.create({
+          data: {
+            userId: ticket.userId,
+            title: 'Ticket Updated',
+            message: `Your ticket #${ticket.id} has been updated. ${msg}`,
+            type: status === 'resolved' ? 'success' : 'info',
+            isRead: 0,
+            createdAt: now,
+          },
+        });
+        emitUserEvent(ticket.userId, 'ticket_updated', {
+          ticket_id: ticket.id, status: ticket.status, priority: ticket.priority,
+        });
+      }
     }
 
     res.json({ success: true, message: 'Ticket updated' });
@@ -311,6 +352,7 @@ router.get('/get_contacts', authenticate, requireAdmin(), async (req, res) => {
     else if (filter === 'read') where.isRead = 1;
     else if (filter === 'replied') where.adminReply = { not: null };
     else if (filter === 'archived') where.archivedAt = { not: null };
+    else if (filter === 'spam') where.isSpam = 1;
 
     if (filter !== 'archived') {
       where.archivedAt = null;
@@ -415,12 +457,20 @@ router.get('/get_active_announcement', async (req, res) => {
 
 router.get('/manage_announcement', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const announcements = await prisma.announcement.findMany({ orderBy: { createdAt: 'desc' } });
+    const { status: filterStatus } = req.query;
+    const where = {};
+    if (filterStatus && filterStatus !== 'all') where.status = filterStatus;
+
+    const announcements = await prisma.announcement.findMany({ where, orderBy: { createdAt: 'desc' } });
     res.json({
       success: true,
       announcements: announcements.map(a => ({
         id: a.id, title: a.title, message: a.message, type: a.type,
-        status: a.status, start_time: a.startTime, end_time: a.endTime,
+        display_style: a.displayStyle || 'banner',
+        status: a.status, priority: a.priority || 0,
+        is_pinned: a.isPinned || 0, target_audience: a.targetAudience || 'all',
+        start_time: a.startTime, end_time: a.endTime,
+        view_count: a.viewCount || 0, dismiss_count: a.dismissCount || 0,
         created_at: a.createdAt,
       })),
     });
@@ -432,16 +482,24 @@ router.get('/manage_announcement', authenticate, requireAdmin(), async (req, res
 
 router.post('/manage_announcement', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { action, id, announcement_id, title, message, type, status, start_time, end_time } = req.body;
+    const { action, id, announcement_id, title, message, type, status, start_time, end_time,
+            display_style, priority, is_pinned, target_audience } = req.body;
     const annId = id || announcement_id;
 
     if (action === 'create') {
       if (!title || !message) return res.status(400).json({ success: false, message: 'Title and message required' });
 
-      const validTypes = ['info', 'update', 'warning', 'popup'];
+      const validTypes = ['info', 'success', 'warning', 'critical'];
       const annType = validTypes.includes(type) ? type : 'info';
+      const validStyles = ['banner', 'popup', 'dashboard_card', 'toast'];
+      const annStyle = validStyles.includes(display_style) ? display_style : 'banner';
 
-      const data = { title, message, type: annType, status: 'active', createdAt: nowISO() };
+      const data = {
+        title, message, type: annType, displayStyle: annStyle,
+        status: status || 'active', createdAt: nowISO(),
+        priority: priority || 0, isPinned: is_pinned ? 1 : 0,
+        targetAudience: target_audience || 'all',
+      };
       if (start_time) data.startTime = start_time;
       if (end_time) data.endTime = end_time;
       const ann = await prisma.announcement.create({ data });
@@ -456,6 +514,10 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
       if (status !== undefined) data.status = status;
       if (start_time !== undefined) data.startTime = start_time;
       if (end_time !== undefined) data.endTime = end_time;
+      if (display_style !== undefined) data.displayStyle = display_style;
+      if (priority !== undefined) data.priority = priority;
+      if (is_pinned !== undefined) data.isPinned = is_pinned ? 1 : 0;
+      if (target_audience !== undefined) data.targetAudience = target_audience;
 
       await prisma.announcement.update({ where: { id: parseInt(annId) }, data });
       return res.json({ success: true, message: 'Announcement updated' });
@@ -466,6 +528,24 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
       if (!ann) return res.status(404).json({ success: false, message: 'Announcement not found' });
       await prisma.announcement.update({ where: { id: parseInt(annId) }, data: { status: ann.status === 'active' ? 'inactive' : 'active' } });
       return res.json({ success: true, message: 'Announcement toggled' });
+    }
+
+    if (action === 'duplicate' && annId) {
+      const ann = await prisma.announcement.findUnique({ where: { id: parseInt(annId) } });
+      if (!ann) return res.status(404).json({ success: false, message: 'Announcement not found' });
+      const dup = await prisma.announcement.create({
+        data: {
+          title: `${ann.title} (Copy)`, message: ann.message, type: ann.type,
+          displayStyle: ann.displayStyle, status: 'draft', priority: ann.priority,
+          isPinned: 0, targetAudience: ann.targetAudience, createdAt: nowISO(),
+        },
+      });
+      return res.json({ success: true, message: 'Announcement duplicated', id: dup.id });
+    }
+
+    if (action === 'archive' && annId) {
+      await prisma.announcement.update({ where: { id: parseInt(annId) }, data: { status: 'archived' } });
+      return res.json({ success: true, message: 'Announcement archived' });
     }
 
     if (action === 'delete' && annId) {

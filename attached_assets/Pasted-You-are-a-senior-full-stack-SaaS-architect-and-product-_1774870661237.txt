@@ -1,0 +1,298 @@
+You are a senior full-stack SaaS architect and product engineer.
+
+Your task is to **analyze, fix, connect, and upgrade the entire system** — including:
+
+* User Dashboard
+* Admin Panel
+* All Pages (WhatsApp, Payments, Support, Announcements, Contact Messages)
+* All APIs
+* All interactions
+* All UI/UX flows
+
+This system must behave like a **real production-grade SaaS product**, not a demo.
+
+---
+
+# 🔴 CORE PROBLEM (CRITICAL)
+
+There is a **disconnect between frontend and backend systems**:
+
+* User dashboard actions are not properly synced with backend
+* Admin actions do not fully reflect on user side
+* Some buttons trigger wrong actions (e.g. Premium Subscription → logout)
+* UI looks decent but behavior is not reliable
+* Pages exist but are not deeply connected (support, contact, payments, etc.)
+
+---
+
+# 🎯 MAIN GOAL
+
+Transform the entire platform into a **fully connected, real-time, production-grade SaaS system** where:
+
+* Every action is reliable
+* Every page is connected
+* Admin → User flow is real-time
+* No broken buttons
+* No fake/static UI
+* Everything is dynamic and consistent
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+---
+
+# 🧠 1) FULL SYSTEM CONNECTION (MOST IMPORTANT)
+
+You must ensure **perfect synchronization** between:
+
+## Admin Panel → Database → APIs → User Dashboard
+
+### Example flows (must work 100%):
+
+* Admin creates/edits pricing → instantly visible on user side
+* Admin replies to support → user sees reply instantly
+* Admin sends announcement → all users receive it
+* Admin updates subscription → user dashboard updates immediately
+* Payment success → user access activates instantly
+* Session revoke → user instantly logged out
+
+---
+
+# ⚙️ 2) USER DASHBOARD (REBUILD AS PREMIUM PRODUCT)
+
+Fix + upgrade:
+
+### Problems to fix:
+
+* Wrong button behavior (especially Premium Subscription)
+* Broken event handling
+* Weak UX hierarchy
+* Extension warning spam
+* Inconsistent UI components
+
+### Improve:
+
+* Topbar (notifications, profile, subscription)
+* Platform cards (clean, premium, interactive)
+* Access buttons (correct behavior)
+* Extension detection UX
+* Device/session security section
+* Login history UI
+* Warning/info cards
+* Modal quality (plans selection)
+
+### Requirement:
+
+Dashboard must feel like:
+👉 Stripe / Notion / Clerk level SaaS UI
+
+---
+
+# 🛠️ 3) ADMIN PANEL (MAKE IT POWERFUL + CONNECTED)
+
+Admin panel should not be just UI — it must control the system.
+
+### Improve all admin pages:
+
+## A. Pricing
+
+* Create/edit/delete plans
+* Set duration, price, badges
+* Instant sync to user dashboard
+
+## B. Users
+
+* View user data
+* Edit subscriptions
+* Force logout
+* View sessions & activity
+
+## C. Payments
+
+* Track transactions
+* Payment status
+* Refund handling
+* Connect with subscriptions
+
+## D. Support Tickets
+
+* Admin can reply
+* Thread system (chat-style)
+* Status (open/resolved)
+* User gets real-time reply
+
+## E. Contact Messages
+
+* Inbox system
+* Admin reply option
+* Mark as read/resolved
+
+## F. Announcements
+
+* Create announcement
+* Push to all users
+* User sees in dashboard (notification/banner)
+
+## G. WhatsApp Page
+
+* Show WhatsApp contact/support
+* Possibly auto-message link
+* Connected to support system
+
+---
+
+# 💬 4) SUPPORT + CONTACT SYSTEM (FULL CHAT FLOW)
+
+Build proper system:
+
+## User side:
+
+* Submit ticket/message
+* See status
+* View replies
+* Continue conversation
+
+## Admin side:
+
+* View all tickets
+* Reply in thread format
+* Close/reopen
+* Tag priority
+
+## Requirements:
+
+* Real-time updates (Socket.IO or polling)
+* Notification on reply
+* Clean UI (chat-like)
+
+---
+
+# 💳 5) PAYMENT SYSTEM (REAL FLOW)
+
+Make it production-level:
+
+* User selects plan
+* Payment processed
+* Subscription activated instantly
+* Expiry calculated correctly
+* Failed payment handled
+* Payment history saved
+
+---
+
+# 🔔 6) NOTIFICATIONS SYSTEM
+
+Global notification system:
+
+* New announcement
+* Support reply
+* Payment success
+* Subscription expiring
+
+### UI:
+
+* Notification bell
+* Dropdown panel
+* Mark as read
+* Real-time updates
+
+---
+
+# 🧩 7) EVENT HANDLING + ROUTING (CRITICAL FIX)
+
+Fix ALL interaction logic:
+
+* No wrong clicks
+* No logout from wrong buttons
+* No event bubbling issues
+* No duplicate handlers
+* No broken routes
+
+Specifically fix:
+👉 Premium Subscription button behavior
+
+---
+
+# 🎨 8) UNIFIED DESIGN SYSTEM
+
+Make entire UI consistent:
+
+* Buttons
+* Cards
+* Modals
+* Alerts
+* Badges
+* Inputs
+* Tables
+* Dropdowns
+
+### Design feel:
+
+👉 Premium SaaS (Stripe / Linear / Notion)
+
+---
+
+# 📱 9) RESPONSIVENESS
+
+Perfect on:
+
+* Desktop
+* Tablet
+* Mobile
+
+No broken layouts.
+
+---
+
+# ⚡ 10) PERFORMANCE
+
+* Fast loading
+* No duplicate API calls
+* Optimized queries
+* Smooth UI
+* No lag
+
+---
+
+# 🧪 11) FULL TESTING REQUIRED
+
+Test with:
+
+* 30 users
+* All features:
+
+  * login
+  * subscription
+  * payment
+  * support
+  * announcements
+  * sessions
+  * admin actions
+
+---
+
+# 📊 12) FINAL REPORT REQUIRED
+
+Provide:
+
+1. All issues found
+2. All fixes applied
+3. Connection improvements
+4. UI improvements
+5. Performance improvements
+6. Confirmation all systems are connected
+7. Confirmation no broken buttons
+8. Confirmation real-time sync working
+
+---
+
+# 🚀 FINAL GOAL
+
+This system must feel like:
+
+👉 A real startup SaaS product
+👉 Built by senior engineers
+👉 Fully connected backend + frontend
+👉 No fake UI
+👉 No broken interactions
+
+Everything must be **clean, fast, reliable, and premium**.
