@@ -92,6 +92,16 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Quick extend**: "Extend" button appears on critical, high, and expired user rows. Opens user workflow modal directly to Manage Access tab (`openUserWorkflow(id, 'access')`).
 - **Performance**: Reuses existing `allActiveSubs` query (already fetched for KPI); no polling; tiered counts computed in-memory from single query; alert banners render from already-fetched user list; urgency sort is server-side with single fetch + in-memory sort + paginate.
 
+### Admin Action Anti-Spam Protection
+- **Scope**: `amExtendSub()` and `amRevokeSub()` in `admin.html` — all subscription extend and revoke actions from the Access Management modal.
+- **In-flight guard**: `_amExtendInFlight` (Set) and `_amRevokeInFlight` (Set) track which subscription IDs have a pending request. If a call arrives for a subId already in-flight, it returns immediately — no fetch is fired. The `finally` block always clears the flag, preventing permanent lock-out.
+- **Button disable/restore**: On click, all extend buttons for the same subscription (matched via `data-extend-sub` attribute + `querySelectorAll`) are disabled together (disabled=true, opacity=0.6, pointerEvents=none). The clicked button shows a spinning SVG. On success, `amRefresh()` rebuilds the modal from fresh data. On error, `savedContents` array restores each button's original innerHTML, and disabled/opacity/pointerEvents are reset.
+- **Cross-subscription independence**: Guards are keyed by `subId`, so extending sub A never blocks sub B. Selectors are scoped per subId via `data-extend-sub="${subId}"`.
+- **Revoke specifics**: `confirm()` dialog fires before the in-flight guard. If user cancels, no flag is set. `data-revoke-sub` attribute used for button targeting.
+- **Custom extend**: The inline custom-extend form's "Extend" button passes `this` as `btnEl` and carries `data-extend-sub`, so it participates in the same guard and disable logic as the quick buttons.
+- **Toast feedback**: Success → green toast ("Access extended successfully" / "Access revoked successfully"). Error → red toast with server message or "Network error — please try again".
+- **CSRF protection**: All POST requests include `x-csrf-token` header via `csrfHeaders()`. Missing/invalid token returns 403.
+
 ### Global Admin Dead-Platform Notification System
 - **AdminNotification model** (`admin_notifications` table): Stores platform-dead alerts with `type`, `title`, `message`, `platformId`, `platformName`, `severity`, `isRead`, `dedupeKey` (e.g. `platform_dead_{id}_{date}`), `createdAt`. Indexed on `(isRead, createdAt)` and `dedupeKey`.
 - **Transition detection**: `autoRecheckJob` in `server.js` detects when a `PlatformAccount` transitions from any non-DEAD `stabilityStatus` to `DEAD`. Deduped per platform per day. Creates an `AdminNotification` row and emits a `platform_dead_alert` Socket.io event to `admin_room`.
