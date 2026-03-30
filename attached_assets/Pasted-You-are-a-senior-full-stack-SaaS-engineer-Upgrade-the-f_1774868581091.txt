@@ -1,0 +1,195 @@
+You are a senior full-stack SaaS engineer.
+
+Upgrade the following modules to **enterprise-level systems**:
+
+* WhatsApp Order Flow
+* Payment System
+* Support System (Tickets)
+* Announcement System
+* Contact Message System
+
+This must be a **complete, scalable, professional communication + transaction system**.
+
+---
+
+# 1) WHATSAPP ORDER SYSTEM (Upgrade)
+
+## User Flow
+
+* user selects plan
+* clicks "Order via WhatsApp"
+* auto-generated message:
+
+  * platform name
+  * duration (minutes/hours/days)
+  * price
+  * user email/id
+
+## Admin Side
+
+* show all WhatsApp orders in dashboard
+* status system:
+
+  * pending
+  * contacted
+  * paid
+  * completed
+* allow admin notes per order
+* track timestamp of order
+
+---
+
+# 2) PAYMENT SYSTEM (Upgrade)
+
+## User Flow
+
+* user selects plan
+* clicks "Pay Now"
+* sees payment instructions (JazzCash/EasyPaisa/Stripe)
+* uploads payment proof (screenshot)
+
+## Admin Side
+
+* payment approval panel
+* approve / reject buttons
+* auto-create subscription after approval
+* store payment record permanently
+* prevent duplicate approvals
+
+## Important
+
+* payment must link to:
+
+  * plan_id
+  * duration_value
+  * duration_unit
+
+---
+
+# 3) SUPPORT SYSTEM (Tickets)
+
+## User Side
+
+* create support ticket
+* fields:
+
+  * subject
+  * message
+  * category
+* see ticket history
+* see replies from admin
+
+## Admin Side
+
+* ticket dashboard
+* reply to tickets
+* change status:
+
+  * open
+  * in progress
+  * resolved
+* conversation-style UI (chat-like)
+
+---
+
+# 4) CONTACT MESSAGE SYSTEM
+
+## User Side
+
+* simple contact form:
+
+  * name
+  * email
+  * message
+
+## Admin Side
+
+* inbox view
+* reply system
+* mark as read/unread
+* delete/archive messages
+
+---
+
+# 5) ANNOUNCEMENT SYSTEM
+
+## Admin Side
+
+* create announcements:
+
+  * title
+  * description
+  * type (info, update, warning)
+* schedule announcements (optional)
+* enable/disable announcements
+
+## User Side
+
+* show announcements on dashboard
+* highlight important announcements
+* show latest updates first
+
+---
+
+# 6) UI/UX REQUIREMENTS (IMPORTANT)
+
+Make all modules:
+
+* modern SaaS design
+* clean layout
+* responsive
+* smooth transitions
+* no clutter
+
+Use:
+
+* cards
+* badges
+* status colors
+* clean tables
+* modal forms
+
+---
+
+# 7) PERFORMANCE (CRITICAL)
+
+System must:
+
+* handle 1000+ concurrent users
+* no slow loading
+* optimized API calls
+* no duplicate requests
+
+---
+
+# 8) SECURITY
+
+* validate all inputs
+* prevent spam submissions
+* protect admin routes
+* secure payment data
+* no sensitive data leaks
+
+---
+
+# 9) NOTIFICATIONS (ADD THIS)
+
+Add system notifications:
+
+* new support ticket alert
+* new payment alert
+* new contact message alert
+* new WhatsApp order alert
+
+---
+
+# 10) FINAL RESULT
+
+After implementation:
+
+* user can interact smoothly
+* admin can manage everything easily
+* communication system fully integrated
+* payment flow secure and reliable
+
+This must feel like a real SaaS product, not a basic website.
