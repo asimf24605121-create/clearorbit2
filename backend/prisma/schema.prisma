@@ -270,15 +270,33 @@ model SupportTicket {
   id           Int    @id @default(autoincrement())
   userId       Int    @map("user_id")
   platformName String @map("platform_name")
+  subject      String @default("")
+  category     String @default("general")
   message      String
-  status       String @default("pending")
+  status       String @default("open")
   createdAt    String @default("") @map("created_at")
+  updatedAt    String @default("") @map("updated_at")
 
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies      TicketReply[]
 
   @@index([status, createdAt])
   @@index([userId])
   @@map("support_tickets")
+}
+
+model TicketReply {
+  id        Int    @id @default(autoincrement())
+  ticketId  Int    @map("ticket_id")
+  userId    Int    @map("user_id")
+  isAdmin   Int    @default(0) @map("is_admin")
+  message   String
+  createdAt String @default("") @map("created_at")
+
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_replies")
 }
 
 model Announcement {
@@ -405,16 +423,38 @@ model AccountSession {
 }
 
 model ContactMessage {
-  id        Int    @id @default(autoincrement())
-  name      String
-  email     String
-  message   String
-  isRead    Int    @default(0) @map("is_read")
-  createdAt String @default("") @map("created_at")
+  id         Int     @id @default(autoincrement())
+  name       String
+  email      String
+  message    String
+  isRead     Int     @default(0) @map("is_read")
+  adminReply String? @map("admin_reply")
+  repliedAt  String? @map("replied_at")
+  archivedAt String? @map("archived_at")
+  createdAt  String  @default("") @map("created_at")
 
   @@index([isRead, createdAt])
   @@index([createdAt])
   @@map("contact_messages")
+}
+
+model WhatsAppOrder {
+  id         Int     @id @default(autoincrement())
+  userId     Int     @map("user_id")
+  platformId Int     @map("platform_id")
+  planId     Int?    @map("plan_id")
+  accountType String @default("shared") @map("account_type")
+  price      Float   @default(0)
+  message    String  @default("")
+  status     String  @default("pending")
+  adminNotes String? @map("admin_notes")
+  createdAt  String  @default("") @map("created_at")
+  updatedAt  String  @default("") @map("updated_at")
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([platformId])
+  @@map("whatsapp_orders")
 }
 
 model SiteSetting {

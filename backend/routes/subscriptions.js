@@ -1,8 +1,32 @@
 import { Router } from 'express';
-import { prisma } from '../server.js';
+import { prisma, emitAdminEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, getRemainingObj, getSubStatus, paginate } from '../utils/helpers.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const screenshotStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '.jpg';
+    cb(null, `payment_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
+  },
+});
+const screenshotUpload = multer({
+  storage: screenshotStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp|gif/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+    cb(null, ext && mime);
+  },
+});
 
 const router = Router();
 
@@ -690,6 +714,17 @@ router.post('/save_pricing', authenticate, requireAdmin(), async (req, res) => {
   res.status(410).json({ success: false, message: 'This endpoint is deprecated. Use add_pricing_plan, update_pricing_plan, delete_pricing_plan instead.' });
 });
 
+router.post('/upload_payment_screenshot', authenticate, (req, res) => {
+  screenshotUpload.single('screenshot')(req, res, async (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ success: false, message: 'File too large. Max 5MB.' });
+      return res.status(400).json({ success: false, message: 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    res.json({ success: true, screenshot_url: `/uploads/${req.file.filename}` });
+  });
+});
+
 router.post('/create_payment', authenticate, async (req, res) => {
   try {
     const { platform_id, account_type, payment_method, screenshot, plan_id, duration_key } = req.body;
@@ -714,6 +749,9 @@ router.post('/create_payment', authenticate, async (req, res) => {
 
     const acctType = account_type || 'shared';
     const price = acctType === 'private' ? plan.privatePrice : plan.sharedPrice;
+    const now = nowISO();
+
+    const platform = await prisma.platform.findUnique({ where: { id: parseInt(platform_id) }, select: { name: true } });
 
     const payment = await prisma.payment.create({
       data: {
@@ -724,9 +762,28 @@ router.post('/create_payment', authenticate, async (req, res) => {
         planDurationUnit: plan.durationUnit,
         planId: plan.id,
         status: 'pending', paymentMethod: payment_method || null,
-        screenshot: screenshot || null, createdAt: nowISO(), updatedAt: nowISO(),
+        screenshot: screenshot || null, createdAt: now, updatedAt: now,
       },
     });
+
+    try {
+      await prisma.adminNotification.create({
+        data: {
+          type: 'new_payment',
+          title: 'New Payment Request',
+          message: `${req.user.username} submitted payment for ${platform?.name || 'Unknown'} (Rs. ${price})`,
+          severity: 'info',
+          isRead: 0,
+          createdAt: now,
+        },
+      });
+      emitAdminEvent('new_payment', {
+        payment_id: payment.id,
+        username: req.user.username,
+        platform_name: platform?.name,
+        price,
+      });
+    } catch (e) { console.error('Payment notification error:', e.message); }
 
     res.json({ success: true, message: 'Payment request created', payment_id: payment.id });
   } catch (err) {
@@ -774,16 +831,21 @@ router.get('/get_payments', authenticate, requireAdmin(), async (req, res) => {
 
 router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async (req, res) => {
   try {
-    const { payment_id, action: payAction } = req.body;
+    const { payment_id, action: payAction, reject_reason } = req.body;
     if (!payment_id) return res.status(400).json({ success: false, message: 'Payment ID required' });
 
     const payment = await prisma.payment.findUnique({ where: { id: parseInt(payment_id) } });
     if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
 
+    if (payment.status !== 'pending') {
+      return res.status(409).json({ success: false, message: `Payment already ${payment.status}. Cannot process again.` });
+    }
+
     const newStatus = payAction === 'reject' ? 'rejected' : 'approved';
+    const now = nowISO();
     await prisma.payment.update({
       where: { id: payment.id },
-      data: { status: newStatus, updatedAt: nowISO() },
+      data: { status: newStatus, updatedAt: now },
     });
 
     if (newStatus === 'approved' && payment.userId) {
@@ -809,10 +871,42 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
       await prisma.userSubscription.create({
         data: {
           userId: payment.userId, platformId: payment.platformId,
-          startDate: nowISO(), endDate: computeEndDate(durValue, durUnit), isActive: 1,
+          startDate: now, endDate: computeEndDate(durValue, durUnit), isActive: 1,
           durationValue: durValue, durationUnit: durUnit,
         },
       });
+
+      try {
+        const { emitUserEvent } = await import('../server.js');
+        await prisma.userNotification.create({
+          data: {
+            userId: payment.userId,
+            title: 'Payment Approved',
+            message: `Your payment for ${payment.durationKey} has been approved. Subscription is now active!`,
+            type: 'success',
+            isRead: 0,
+            createdAt: now,
+          },
+        });
+        emitUserEvent(payment.userId, 'payment_approved', { payment_id: payment.id });
+      } catch (e) { console.error('Payment approval notification error:', e.message); }
+    }
+
+    if (newStatus === 'rejected' && payment.userId) {
+      try {
+        const { emitUserEvent } = await import('../server.js');
+        await prisma.userNotification.create({
+          data: {
+            userId: payment.userId,
+            title: 'Payment Rejected',
+            message: reject_reason || 'Your payment was rejected. Please contact support.',
+            type: 'warning',
+            isRead: 0,
+            createdAt: now,
+          },
+        });
+        emitUserEvent(payment.userId, 'payment_rejected', { payment_id: payment.id, reason: reject_reason });
+      } catch (e) { console.error('Payment rejection notification error:', e.message); }
     }
 
     res.json({ success: true, message: `Payment ${newStatus}` });

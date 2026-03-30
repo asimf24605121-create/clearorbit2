@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma } from '../server.js';
+import { prisma, emitAdminEvent, emitUserEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO, cutoffISO, paginate } from '../utils/helpers.js';
 
@@ -7,16 +7,28 @@ const router = Router();
 
 router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page, status } = req.query;
+    const { page, per_page, status, category, search } = req.query;
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
 
     const where = {};
-    if (status) where.status = status;
+    if (status && status !== 'all') where.status = status;
+    if (category && category !== 'all') where.category = category;
+    if (search) {
+      where.OR = [
+        { subject: { contains: search } },
+        { message: { contains: search } },
+        { user: { username: { contains: search } } },
+      ];
+    }
 
     const [tickets, total] = await Promise.all([
       prisma.supportTicket.findMany({
         where,
-        include: { user: { select: { username: true, name: true } } },
+        include: {
+          user: { select: { username: true, name: true } },
+          replies: { orderBy: { createdAt: 'desc' }, take: 1 },
+          _count: { select: { replies: true } },
+        },
         orderBy: { createdAt: 'desc' },
         skip, take,
       }),
@@ -28,9 +40,45 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
       tickets: tickets.map(t => ({
         id: t.id, user_id: t.userId, username: t.user?.username,
         user_name: t.user?.name, platform_name: t.platformName,
-        message: t.message, status: t.status, created_at: t.createdAt,
+        subject: t.subject, category: t.category,
+        message: t.message, status: t.status,
+        reply_count: t._count.replies,
+        last_reply: t.replies[0] ? {
+          message: t.replies[0].message,
+          is_admin: t.replies[0].isAdmin,
+          created_at: t.replies[0].createdAt,
+        } : null,
+        created_at: t.createdAt, updated_at: t.updatedAt,
       })),
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
+    });
+  } catch (err) {
+    console.error('get_tickets error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/get_user_tickets', authenticate, async (req, res) => {
+  try {
+    const tickets = await prisma.supportTicket.findMany({
+      where: { userId: req.user.id },
+      include: {
+        _count: { select: { replies: true } },
+        replies: { orderBy: { createdAt: 'desc' }, take: 1 },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({
+      success: true,
+      tickets: tickets.map(t => ({
+        id: t.id, platform_name: t.platformName,
+        subject: t.subject, category: t.category,
+        message: t.message, status: t.status,
+        reply_count: t._count.replies,
+        has_admin_reply: t.replies[0]?.isAdmin === 1,
+        created_at: t.createdAt, updated_at: t.updatedAt,
+      })),
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -39,17 +87,46 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
 
 router.post('/create_ticket', authenticate, async (req, res) => {
   try {
-    const { platform_name, message } = req.body;
-    if (!platform_name || !message) {
-      return res.status(400).json({ success: false, message: 'Platform name and message required' });
+    const { platform_name, message, subject, category } = req.body;
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
     }
 
+    const now = nowISO();
     const ticket = await prisma.supportTicket.create({
-      data: { userId: req.user.id, platformName: platform_name, message, createdAt: nowISO() },
+      data: {
+        userId: req.user.id,
+        platformName: platform_name || 'General',
+        subject: subject || '',
+        category: category || 'general',
+        message,
+        status: 'open',
+        createdAt: now,
+        updatedAt: now,
+      },
     });
+
+    try {
+      await prisma.adminNotification.create({
+        data: {
+          type: 'new_ticket',
+          title: 'New Support Ticket',
+          message: `${req.user.username} submitted ticket: ${subject || message.substring(0, 60)}`,
+          severity: 'info',
+          isRead: 0,
+          createdAt: now,
+        },
+      });
+      emitAdminEvent('new_ticket', {
+        ticket_id: ticket.id,
+        username: req.user.username,
+        subject: subject || message.substring(0, 60),
+      });
+    } catch (e) { console.error('Ticket notification error:', e.message); }
 
     res.json({ success: true, message: 'Ticket created', ticket_id: ticket.id });
   } catch (err) {
+    console.error('create_ticket error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -59,13 +136,132 @@ router.post('/update_ticket', authenticate, requireAdmin(), async (req, res) => 
     const { ticket_id, status } = req.body;
     if (!ticket_id) return res.status(400).json({ success: false, message: 'Ticket ID required' });
 
-    await prisma.supportTicket.update({
+    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const ticket = await prisma.supportTicket.update({
       where: { id: parseInt(ticket_id) },
-      data: { status: status || 'resolved' },
+      data: { status: status || 'resolved', updatedAt: nowISO() },
     });
+
+    if (ticket.userId) {
+      emitUserEvent(ticket.userId, 'ticket_updated', {
+        ticket_id: ticket.id, status: ticket.status,
+      });
+    }
 
     res.json({ success: true, message: 'Ticket updated' });
   } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/get_ticket_replies', authenticate, async (req, res) => {
+  try {
+    const { ticket_id } = req.query;
+    if (!ticket_id) return res.status(400).json({ success: false, message: 'Ticket ID required' });
+
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: parseInt(ticket_id) },
+      include: { user: { select: { username: true, name: true } } },
+    });
+
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    if (!isAdmin && ticket.userId !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const replies = await prisma.ticketReply.findMany({
+      where: { ticketId: parseInt(ticket_id) },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    res.json({
+      success: true,
+      ticket: {
+        id: ticket.id, subject: ticket.subject, category: ticket.category,
+        message: ticket.message, status: ticket.status,
+        platform_name: ticket.platformName,
+        username: ticket.user?.username, user_name: ticket.user?.name,
+        created_at: ticket.createdAt,
+      },
+      replies: replies.map(r => ({
+        id: r.id, message: r.message, is_admin: r.isAdmin,
+        created_at: r.createdAt,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/create_ticket_reply', authenticate, async (req, res) => {
+  try {
+    const { ticket_id, message } = req.body;
+    if (!ticket_id || !message) {
+      return res.status(400).json({ success: false, message: 'Ticket ID and message required' });
+    }
+
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: parseInt(ticket_id) } });
+    if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    if (!isAdmin && ticket.userId !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const now = nowISO();
+    const reply = await prisma.ticketReply.create({
+      data: {
+        ticketId: parseInt(ticket_id),
+        userId: req.user.id,
+        isAdmin: isAdmin ? 1 : 0,
+        message,
+        createdAt: now,
+      },
+    });
+
+    const newStatus = isAdmin ? 'in_progress' : ticket.status;
+    await prisma.supportTicket.update({
+      where: { id: parseInt(ticket_id) },
+      data: { status: newStatus, updatedAt: now },
+    });
+
+    if (isAdmin && ticket.userId) {
+      try {
+        await prisma.userNotification.create({
+          data: {
+            userId: ticket.userId,
+            title: 'Ticket Reply',
+            message: `Admin replied to your ticket: ${ticket.subject || 'Support Ticket #' + ticket.id}`,
+            type: 'info',
+            isRead: 0,
+            createdAt: now,
+          },
+        });
+        emitUserEvent(ticket.userId, 'ticket_reply', {
+          ticket_id: ticket.id, message: message.substring(0, 100),
+        });
+      } catch (e) { console.error('Reply notification error:', e.message); }
+    }
+
+    if (!isAdmin) {
+      try {
+        emitAdminEvent('ticket_reply', {
+          ticket_id: ticket.id,
+          username: req.user.username,
+          message: message.substring(0, 100),
+        });
+      } catch (e) { console.error('Admin notify error:', e.message); }
+    }
+
+    res.json({ success: true, message: 'Reply added', reply_id: reply.id });
+  } catch (err) {
+    console.error('create_ticket_reply error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -77,9 +273,27 @@ router.post('/submit_contact', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name, email, and message required' });
     }
 
-    await prisma.contactMessage.create({
-      data: { name, email, message, createdAt: nowISO() },
+    const now = nowISO();
+    const contact = await prisma.contactMessage.create({
+      data: { name, email, message, createdAt: now },
     });
+
+    try {
+      await prisma.adminNotification.create({
+        data: {
+          type: 'new_contact',
+          title: 'New Contact Message',
+          message: `${name} (${email}): ${message.substring(0, 80)}`,
+          severity: 'info',
+          isRead: 0,
+          createdAt: now,
+        },
+      });
+      emitAdminEvent('new_contact', {
+        contact_id: contact.id, name, email,
+        preview: message.substring(0, 80),
+      });
+    } catch (e) { console.error('Contact notification error:', e.message); }
 
     res.json({ success: true, message: 'Message sent' });
   } catch (err) {
@@ -89,19 +303,38 @@ router.post('/submit_contact', async (req, res) => {
 
 router.get('/get_contacts', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { page, per_page } = req.query;
+    const { page, per_page, filter, search } = req.query;
     const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
 
+    const where = {};
+    if (filter === 'unread') where.isRead = 0;
+    else if (filter === 'read') where.isRead = 1;
+    else if (filter === 'replied') where.adminReply = { not: null };
+    else if (filter === 'archived') where.archivedAt = { not: null };
+
+    if (filter !== 'archived') {
+      where.archivedAt = null;
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { email: { contains: search } },
+        { message: { contains: search } },
+      ];
+    }
+
     const [contacts, total] = await Promise.all([
-      prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' }, skip, take }),
-      prisma.contactMessage.count(),
+      prisma.contactMessage.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
+      prisma.contactMessage.count({ where }),
     ]);
 
     res.json({
       success: true,
       contacts: contacts.map(c => ({
         id: c.id, name: c.name, email: c.email, message: c.message,
-        is_read: c.isRead, created_at: c.createdAt,
+        is_read: c.isRead, admin_reply: c.adminReply, replied_at: c.repliedAt,
+        archived_at: c.archivedAt, created_at: c.createdAt,
       })),
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
@@ -112,12 +345,43 @@ router.get('/get_contacts', authenticate, requireAdmin(), async (req, res) => {
 
 router.post('/update_contact', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { contact_id, is_read } = req.body;
+    const { contact_id, is_read, admin_reply, action } = req.body;
     if (!contact_id) return res.status(400).json({ success: false, message: 'Contact ID required' });
+
+    const now = nowISO();
+
+    if (action === 'archive') {
+      await prisma.contactMessage.update({
+        where: { id: parseInt(contact_id) },
+        data: { archivedAt: now, isRead: 1 },
+      });
+      return res.json({ success: true, message: 'Message archived' });
+    }
+
+    if (action === 'unarchive') {
+      await prisma.contactMessage.update({
+        where: { id: parseInt(contact_id) },
+        data: { archivedAt: null },
+      });
+      return res.json({ success: true, message: 'Message unarchived' });
+    }
+
+    if (action === 'delete') {
+      await prisma.contactMessage.delete({ where: { id: parseInt(contact_id) } });
+      return res.json({ success: true, message: 'Message deleted' });
+    }
+
+    const data = {};
+    if (is_read !== undefined) data.isRead = parseInt(is_read);
+    if (admin_reply !== undefined) {
+      data.adminReply = admin_reply;
+      data.repliedAt = now;
+      data.isRead = 1;
+    }
 
     await prisma.contactMessage.update({
       where: { id: parseInt(contact_id) },
-      data: { isRead: is_read !== undefined ? parseInt(is_read) : 1 },
+      data,
     });
 
     res.json({ success: true, message: 'Contact updated' });
@@ -128,16 +392,20 @@ router.post('/update_contact', authenticate, requireAdmin(), async (req, res) =>
 
 router.get('/get_active_announcement', async (req, res) => {
   try {
-    const announcement = await prisma.announcement.findFirst({
+    const announcements = await prisma.announcement.findMany({
       where: { status: 'active' },
       orderBy: { createdAt: 'desc' },
     });
 
     res.json({
       success: true,
-      announcement: announcement ? {
-        id: announcement.id, title: announcement.title, message: announcement.message,
-        type: announcement.type,
+      announcements: announcements.map(a => ({
+        id: a.id, title: a.title, message: a.message,
+        type: a.type, created_at: a.createdAt,
+      })),
+      announcement: announcements[0] ? {
+        id: announcements[0].id, title: announcements[0].title,
+        message: announcements[0].message, type: announcements[0].type,
       } : null,
     });
   } catch (err) {
@@ -170,7 +438,10 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
     if (action === 'create') {
       if (!title || !message) return res.status(400).json({ success: false, message: 'Title and message required' });
 
-      const data = { title, message, type: type || 'popup', status: 'active', createdAt: nowISO() };
+      const validTypes = ['info', 'update', 'warning', 'popup'];
+      const annType = validTypes.includes(type) ? type : 'info';
+
+      const data = { title, message, type: annType, status: 'active', createdAt: nowISO() };
       if (start_time) data.startTime = start_time;
       if (end_time) data.endTime = end_time;
       const ann = await prisma.announcement.create({ data });
@@ -203,6 +474,211 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
     }
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/create_whatsapp_order', authenticate, async (req, res) => {
+  try {
+    const { platform_id, plan_id, account_type } = req.body;
+    if (!platform_id) {
+      return res.status(400).json({ success: false, message: 'Platform ID required' });
+    }
+
+    const platform = await prisma.platform.findUnique({ where: { id: parseInt(platform_id) } });
+    if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
+
+    let plan = null;
+    let price = 0;
+    const acctType = account_type || 'shared';
+
+    if (plan_id) {
+      plan = await prisma.pricingPlan.findFirst({
+        where: { id: parseInt(plan_id), platformId: parseInt(platform_id), isActive: 1 },
+      });
+      if (plan) {
+        price = acctType === 'private' ? plan.privatePrice : plan.sharedPrice;
+      }
+    }
+
+    const msgParts = [
+      `Platform: ${platform.name}`,
+      plan ? `Plan: ${plan.durationValue} ${plan.durationUnit}` : '',
+      `Type: ${acctType}`,
+      price ? `Price: Rs. ${price}` : '',
+      `Username: ${req.user.username}`,
+    ].filter(Boolean);
+
+    const now = nowISO();
+    const order = await prisma.whatsAppOrder.create({
+      data: {
+        userId: req.user.id,
+        platformId: parseInt(platform_id),
+        planId: plan ? plan.id : null,
+        accountType: acctType,
+        price,
+        message: msgParts.join('\n'),
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+
+    try {
+      await prisma.adminNotification.create({
+        data: {
+          type: 'new_whatsapp_order',
+          title: 'New WhatsApp Order',
+          message: `${req.user.username} placed WhatsApp order for ${platform.name}`,
+          severity: 'info',
+          isRead: 0,
+          createdAt: now,
+        },
+      });
+      emitAdminEvent('new_whatsapp_order', {
+        order_id: order.id,
+        username: req.user.username,
+        platform_name: platform.name,
+        price,
+      });
+    } catch (e) { console.error('WA order notification error:', e.message); }
+
+    res.json({
+      success: true,
+      message: 'WhatsApp order created',
+      order_id: order.id,
+      whatsapp_message: msgParts.join(' | '),
+    });
+  } catch (err) {
+    console.error('create_whatsapp_order error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/get_whatsapp_orders', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { page, per_page, status, search } = req.query;
+    const { skip, take, page: p, perPage: pp } = paginate(page, per_page);
+
+    const where = {};
+    if (status && status !== 'all') where.status = status;
+    if (search) {
+      const searchInt = parseInt(search);
+      where.OR = [
+        { message: { contains: search } },
+        ...(searchInt ? [{ userId: searchInt }] : []),
+      ];
+    }
+
+    const [orders, total] = await Promise.all([
+      prisma.whatsAppOrder.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip, take,
+      }),
+      prisma.whatsAppOrder.count({ where }),
+    ]);
+
+    const userIds = [...new Set(orders.map(o => o.userId))];
+    const platformIds = [...new Set(orders.map(o => o.platformId))];
+    const [users, platforms] = await Promise.all([
+      prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, username: true, name: true } }),
+      prisma.platform.findMany({ where: { id: { in: platformIds } }, select: { id: true, name: true } }),
+    ]);
+    const userMap = Object.fromEntries(users.map(u => [u.id, u]));
+    const platMap = Object.fromEntries(platforms.map(p => [p.id, p]));
+
+    res.json({
+      success: true,
+      orders: orders.map(o => ({
+        id: o.id, user_id: o.userId,
+        username: userMap[o.userId]?.username || '',
+        user_name: userMap[o.userId]?.name || '',
+        platform_id: o.platformId,
+        platform_name: platMap[o.platformId]?.name || '',
+        plan_id: o.planId, account_type: o.accountType,
+        price: o.price, message: o.message,
+        status: o.status, admin_notes: o.adminNotes,
+        created_at: o.createdAt, updated_at: o.updatedAt,
+      })),
+      pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
+    });
+  } catch (err) {
+    console.error('get_whatsapp_orders error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/update_whatsapp_order', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { order_id, status, admin_notes } = req.body;
+    if (!order_id) return res.status(400).json({ success: false, message: 'Order ID required' });
+
+    const validStatuses = ['pending', 'contacted', 'paid', 'completed', 'cancelled'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const data = { updatedAt: nowISO() };
+    if (status) data.status = status;
+    if (admin_notes !== undefined) data.adminNotes = admin_notes;
+
+    const order = await prisma.whatsAppOrder.update({
+      where: { id: parseInt(order_id) },
+      data,
+    });
+
+    if (order.userId) {
+      emitUserEvent(order.userId, 'whatsapp_order_updated', {
+        order_id: order.id, status: order.status,
+      });
+    }
+
+    res.json({ success: true, message: 'Order updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.get('/get_admin_notifications', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 30;
+    const notifications = await prisma.adminNotification.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    const unreadCount = await prisma.adminNotification.count({ where: { isRead: 0 } });
+
+    res.json({
+      success: true,
+      notifications: notifications.map(n => ({
+        id: n.id, type: n.type, title: n.title, message: n.message,
+        platform_id: n.platformId, platform_name: n.platformName,
+        severity: n.severity, is_read: n.isRead, created_at: n.createdAt,
+      })),
+      unread_count: unreadCount,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/mark_admin_notification_read', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { notification_id } = req.body;
+    if (notification_id === 'all') {
+      await prisma.adminNotification.updateMany({
+        data: { isRead: 1 },
+      });
+    } else if (notification_id) {
+      await prisma.adminNotification.update({
+        where: { id: parseInt(notification_id) },
+        data: { isRead: 1 },
+      });
+    }
+    res.json({ success: true, message: 'Notification marked as read' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
