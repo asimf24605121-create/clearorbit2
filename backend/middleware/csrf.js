@@ -41,6 +41,7 @@ const CSRF_EXEMPT = new Set([
   '/login', '/csrf_token', '/submit_contact', '/forgot_password',
   '/reset_password', '/get_settings', '/get_public_platforms',
   '/get_active_announcement', '/reseller_signup', '/release_session',
+  '/get_public_pricing',
 ]);
 
 export function csrfMiddleware(req, res, next) {

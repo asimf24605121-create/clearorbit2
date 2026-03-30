@@ -106,7 +106,7 @@ router.get('/get_public_platforms', async (req, res) => {
   try {
     const platforms = await prisma.platform.findMany({
       where: { isActive: 1 },
-      select: { id: true, name: true, logoUrl: true, bgColorHex: true },
+      select: { id: true, name: true, logoUrl: true, bgColorHex: true, whatsappConfig: { select: { sharedNumber: true, privateNumber: true } } },
       orderBy: { name: 'asc' },
     });
 
@@ -114,6 +114,7 @@ router.get('/get_public_platforms', async (req, res) => {
       success: true,
       platforms: platforms.map(p => ({
         id: p.id, name: p.name, logo_url: p.logoUrl, bg_color_hex: p.bgColorHex, is_active: true,
+        whatsapp_number: p.whatsappConfig?.privateNumber || p.whatsappConfig?.sharedNumber || null,
       })),
     });
   } catch (err) {

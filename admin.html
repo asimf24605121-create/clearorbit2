@@ -1592,54 +1592,98 @@
 
             <div id="sec-pricing" class="section">
                 <div class="card mb-6">
-                    <div class="px-5 py-4 border-b border-gray-100">
-                        <h3 class="font-semibold text-gray-900 text-sm">Platform Pricing</h3>
+                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-900 text-sm">Platform Pricing Management</h3>
                     </div>
                     <div class="p-5">
-                        <div class="mb-4">
-                            <label class="label">Select Platform</label>
-                            <select id="pricingPlatform" class="input" style="max-width:300px" onchange="loadPricingForPlatform()"></select>
-                        </div>
-                        <div id="pricingForm" class="hidden">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                                <div>
-                                    <label class="label">1 Week — Shared ($)</label>
-                                    <input id="price_1_week_shared" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">1 Week — Private ($)</label>
-                                    <input id="price_1_week_private" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">1 Month — Shared ($)</label>
-                                    <input id="price_1_month_shared" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">1 Month — Private ($)</label>
-                                    <input id="price_1_month_private" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">6 Months — Shared ($)</label>
-                                    <input id="price_6_months_shared" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">6 Months — Private ($)</label>
-                                    <input id="price_6_months_private" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">1 Year — Shared ($)</label>
-                                    <input id="price_1_year_shared" type="number" step="0.01" min="0" class="input"/>
-                                </div>
-                                <div>
-                                    <label class="label">1 Year — Private ($)</label>
-                                    <input id="price_1_year_private" type="number" step="0.01" min="0" class="input"/>
-                                </div>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-5">
+                            <div class="flex-1" style="max-width:300px">
+                                <label class="label">Select Platform</label>
+                                <select id="pricingPlatform" class="input" onchange="loadPricingPlans()">
+                                    <option value="">Choose platform...</option>
+                                </select>
                             </div>
-                            <button onclick="savePricing()" class="btn btn-primary">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Save Pricing
+                            <button id="addPlanBtn" onclick="openPlanModal()" class="btn btn-primary hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Add Plan
                             </button>
                         </div>
+                        <div id="pricingLoading" class="hidden py-8 text-center text-gray-400 text-sm">Loading plans...</div>
+                        <div id="pricingEmpty" class="hidden py-8 text-center">
+                            <p class="text-gray-400 text-sm mb-3">No pricing plans for this platform yet.</p>
+                            <button onclick="openPlanModal()" class="btn btn-primary btn-sm">Add First Plan</button>
+                        </div>
+                        <div id="pricingTableWrap" class="hidden overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100">
+                                        <th class="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Duration</th>
+                                        <th class="text-right py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Shared $</th>
+                                        <th class="text-right py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Private $</th>
+                                        <th class="text-right py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Original $</th>
+                                        <th class="text-center py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Badge</th>
+                                        <th class="text-center py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                                        <th class="text-center py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pricingTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pricingPlanModal" class="modal-overlay" onclick="if(event.target===this)closePlanModalAdmin()">
+                <div class="modal-content" style="max-width:480px">
+                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 id="planModalTitle" class="font-semibold text-gray-900 text-sm">Add Pricing Plan</h3>
+                        <button onclick="closePlanModalAdmin()" class="text-gray-400 hover:text-gray-600 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="label">Duration Value</label>
+                                <input id="pmDurationValue" type="number" min="1" step="1" class="input" placeholder="e.g. 30"/>
+                            </div>
+                            <div>
+                                <label class="label">Duration Unit</label>
+                                <select id="pmDurationUnit" class="input">
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours">Hours</option>
+                                    <option value="days" selected>Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="label">Shared Price ($)</label>
+                                <input id="pmSharedPrice" type="number" min="0" step="0.01" class="input" placeholder="0.00"/>
+                            </div>
+                            <div>
+                                <label class="label">Private Price ($)</label>
+                                <input id="pmPrivatePrice" type="number" min="0" step="0.01" class="input" placeholder="0.00"/>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="label">Original Price ($) <span class="text-gray-400 font-normal">optional</span></label>
+                                <input id="pmOriginalPrice" type="number" min="0" step="0.01" class="input" placeholder="For strikethrough"/>
+                            </div>
+                            <div>
+                                <label class="label">Badge <span class="text-gray-400 font-normal">optional</span></label>
+                                <select id="pmBadge" class="input">
+                                    <option value="">None</option>
+                                    <option value="Popular">Popular</option>
+                                    <option value="Best Value">Best Value</option>
+                                    <option value="Limited Offer">Limited Offer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="pmError" class="text-red-500 text-xs hidden"></div>
+                        <button id="pmSubmitBtn" onclick="submitPlanModal()" class="btn btn-primary w-full justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span id="pmSubmitText">Add Plan</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -5974,46 +6018,189 @@ function resetAdminInactivityTimer() {
 ['mousemove','keydown','click','scroll','touchstart'].forEach(ev => document.addEventListener(ev, resetAdminInactivityTimer, { passive: true }));
 resetAdminInactivityTimer();
 
-let PRICING_DATA = {};
+let PRICING_PLANS = [];
 let WHATSAPP_DATA = {};
+let _editingPlanId = null;
+
+function formatDurationLabel(value, unit) {
+    if (value === 1) return '1 ' + unit.charAt(0).toUpperCase() + unit.slice(1, -1);
+    return value + ' ' + unit.charAt(0).toUpperCase() + unit.slice(1);
+}
 
 function populatePricingDropdown() {
     const sel = document.getElementById('pricingPlatform');
-    sel.innerHTML = '<option value="">Select platform...</option>' + ALL_PLATFORMS.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
+    sel.innerHTML = '<option value="">Choose platform...</option>' + ALL_PLATFORMS.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
 }
 
-async function loadPricingForPlatform() {
+async function loadPricingPlans() {
     const pid = parseInt(document.getElementById('pricingPlatform').value);
-    const form = document.getElementById('pricingForm');
-    if (!pid) { form.classList.add('hidden'); return; }
-    form.classList.remove('hidden');
+    const loading = document.getElementById('pricingLoading');
+    const empty = document.getElementById('pricingEmpty');
+    const tableWrap = document.getElementById('pricingTableWrap');
+    const addBtn = document.getElementById('addPlanBtn');
+
+    loading.classList.add('hidden');
+    empty.classList.add('hidden');
+    tableWrap.classList.add('hidden');
+    addBtn.classList.add('hidden');
+
+    if (!pid) return;
+
+    loading.classList.remove('hidden');
+    addBtn.classList.remove('hidden');
+
     try {
-        const res = await fetch('api/get_pricing', { credentials: 'include' });
+        const res = await fetch(`api/get_pricing?platform_id=${pid}`, { credentials: 'include' });
         const data = await res.json();
-        const platPricing = (data.pricing || []).find(p => p.platform_id === pid);
-        ['1_week','1_month','6_months','1_year'].forEach(key => {
-            const plans = platPricing?.plans?.[key] || {};
-            document.getElementById(`price_${key}_shared`).value = plans.shared || 0;
-            document.getElementById(`price_${key}_private`).value = plans.private || 0;
-        });
-    } catch(e) { console.error(e); }
+        PRICING_PLANS = data.plans || [];
+        loading.classList.add('hidden');
+
+        if (PRICING_PLANS.length === 0) {
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        renderPricingTable();
+        tableWrap.classList.remove('hidden');
+    } catch(e) {
+        loading.classList.add('hidden');
+        showAlert('Failed to load pricing plans.', true);
+    }
 }
 
-async function savePricing() {
+function renderPricingTable() {
+    const tbody = document.getElementById('pricingTableBody');
+    tbody.innerHTML = PRICING_PLANS.map(p => {
+        const dur = formatDurationLabel(p.duration_value, p.duration_unit);
+        const badgeHtml = p.badge ? `<span class="badge ${p.badge==='Popular'?'badge-yellow':p.badge==='Best Value'?'badge-purple':'badge-blue'}" style="font-size:.65rem">${escHtml(p.badge)}</span>` : '<span class="text-gray-300">—</span>';
+        const statusHtml = p.is_active
+            ? '<span class="badge badge-green">Active</span>'
+            : '<span class="badge badge-gray">Inactive</span>';
+        const origHtml = p.original_price != null ? `$${p.original_price.toFixed(2)}` : '<span class="text-gray-300">—</span>';
+        return `<tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${!p.is_active ? 'opacity-50' : ''}">
+            <td class="py-2.5 px-3 font-medium text-gray-900">${escHtml(dur)}</td>
+            <td class="py-2.5 px-3 text-right text-gray-700">$${p.shared_price.toFixed(2)}</td>
+            <td class="py-2.5 px-3 text-right text-gray-700">$${p.private_price.toFixed(2)}</td>
+            <td class="py-2.5 px-3 text-right text-gray-500">${origHtml}</td>
+            <td class="py-2.5 px-3 text-center">${badgeHtml}</td>
+            <td class="py-2.5 px-3 text-center">${statusHtml}</td>
+            <td class="py-2.5 px-3 text-center">
+                <div class="flex items-center justify-center gap-1">
+                    <button onclick="editPlan(${p.id})" class="btn btn-secondary btn-sm" title="Edit"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                    <button onclick="togglePlan(${p.id})" class="btn btn-secondary btn-sm" title="${p.is_active?'Deactivate':'Activate'}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${p.is_active?'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636':'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'}"/></svg></button>
+                    <button onclick="deletePlan(${p.id})" class="btn btn-sm" style="color:#EF4444;border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)" title="Delete"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function openPlanModal(editId) {
+    _editingPlanId = editId || null;
+    const modal = document.getElementById('pricingPlanModal');
+    const title = document.getElementById('planModalTitle');
+    const submitText = document.getElementById('pmSubmitText');
+    const errEl = document.getElementById('pmError');
+    errEl.classList.add('hidden');
+
+    if (_editingPlanId) {
+        const p = PRICING_PLANS.find(x => x.id === _editingPlanId);
+        if (!p) return;
+        title.textContent = 'Edit Pricing Plan';
+        submitText.textContent = 'Update Plan';
+        document.getElementById('pmDurationValue').value = p.duration_value;
+        document.getElementById('pmDurationUnit').value = p.duration_unit;
+        document.getElementById('pmSharedPrice').value = p.shared_price;
+        document.getElementById('pmPrivatePrice').value = p.private_price;
+        document.getElementById('pmOriginalPrice').value = p.original_price ?? '';
+        document.getElementById('pmBadge').value = p.badge || '';
+    } else {
+        title.textContent = 'Add Pricing Plan';
+        submitText.textContent = 'Add Plan';
+        document.getElementById('pmDurationValue').value = '';
+        document.getElementById('pmDurationUnit').value = 'days';
+        document.getElementById('pmSharedPrice').value = '';
+        document.getElementById('pmPrivatePrice').value = '';
+        document.getElementById('pmOriginalPrice').value = '';
+        document.getElementById('pmBadge').value = '';
+    }
+    modal.classList.add('active');
+}
+
+function closePlanModalAdmin() {
+    document.getElementById('pricingPlanModal').classList.remove('active');
+    _editingPlanId = null;
+}
+
+function editPlan(id) { openPlanModal(id); }
+
+async function submitPlanModal() {
     const pid = parseInt(document.getElementById('pricingPlatform').value);
-    if (!pid) { showAlert('Select a platform first.', true); return; }
-    const plans = {};
-    ['1_week','1_month','6_months','1_year'].forEach(key => {
-        plans[key] = {
-            shared: parseFloat(document.getElementById(`price_${key}_shared`).value) || 0,
-            private: parseFloat(document.getElementById(`price_${key}_private`).value) || 0,
-        };
-    });
+    const errEl = document.getElementById('pmError');
+    errEl.classList.add('hidden');
+
+    const durVal = parseInt(document.getElementById('pmDurationValue').value);
+    const durUnit = document.getElementById('pmDurationUnit').value;
+    const sp = parseFloat(document.getElementById('pmSharedPrice').value);
+    const pp = parseFloat(document.getElementById('pmPrivatePrice').value);
+    const op = document.getElementById('pmOriginalPrice').value;
+    const badge = document.getElementById('pmBadge').value;
+
+    if (!durVal || durVal <= 0) { errEl.textContent = 'Duration value must be > 0'; errEl.classList.remove('hidden'); return; }
+    if (isNaN(sp) || sp < 0 || isNaN(pp) || pp < 0) { errEl.textContent = 'Prices must be valid numbers >= 0'; errEl.classList.remove('hidden'); return; }
+    if (sp === 0 && pp === 0) { errEl.textContent = 'At least one price must be > 0'; errEl.classList.remove('hidden'); return; }
+
+    const btn = document.getElementById('pmSubmitBtn');
+    btn.disabled = true;
+
     try {
-        const res = await fetch('api/save_pricing', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: pid, plans }) });
+        let url, body;
+        if (_editingPlanId) {
+            url = 'api/update_pricing_plan';
+            body = { plan_id: _editingPlanId, duration_value: durVal, duration_unit: durUnit, shared_price: sp, private_price: pp, badge: badge || null };
+            if (op !== '') body.original_price = parseFloat(op);
+            else body.original_price = null;
+        } else {
+            url = 'api/add_pricing_plan';
+            body = { platform_id: pid, duration_value: durVal, duration_unit: durUnit, shared_price: sp, private_price: pp, badge: badge || null };
+            if (op !== '') body.original_price = parseFloat(op);
+        }
+
+        const res = await fetch(url, { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) {
+            closePlanModalAdmin();
+            showAlert(data.message);
+            loadPricingPlans();
+        } else {
+            errEl.textContent = data.message;
+            errEl.classList.remove('hidden');
+        }
+    } catch(e) {
+        errEl.textContent = 'Network error';
+        errEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function togglePlan(id) {
+    try {
+        const res = await fetch('api/toggle_pricing_plan', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ plan_id: id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
-    } catch(e) { showAlert('Network error.', true); }
+        if (data.success) loadPricingPlans();
+    } catch(e) { showAlert('Network error', true); }
+}
+
+async function deletePlan(id) {
+    if (!confirm('Delete this pricing plan?')) return;
+    try {
+        const res = await fetch('api/delete_pricing_plan', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ plan_id: id }) });
+        const data = await res.json();
+        showAlert(data.message, !data.success);
+        if (data.success) loadPricingPlans();
+    } catch(e) { showAlert('Network error', true); }
 }
 
 function populateWhatsAppDropdown() {

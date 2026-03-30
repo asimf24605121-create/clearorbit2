@@ -122,6 +122,21 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Profile UI**: Access & Security section in profile View tab with separate IP Location and Device Location cards. Confidence badges (high/medium/low/none), refresh buttons, skeleton loaders, tooltips.
 - **Utility**: `backend/utils/geoip.js` — `lookupIP()`, `reverseGeocode()`, cache management with Date-based TTL comparison.
 
+### Pricing System (Upgraded)
+- **PricingPlan model**: Extended with `durationValue` (Int), `durationUnit` (minutes/hours/days), `isActive` (Int, default 1), `badge` (String, nullable: Popular/Best Value/Limited Offer), `originalPrice` (Float, nullable), `sortOrder` (Int, computed as minutes equivalent).
+- **Duration key**: `makeDurationKey(value, unit)` = `"${value}_${unit}"` (e.g. "30_minutes", "7_days").
+- **Backend CRUD API** (`backend/routes/subscriptions.js`):
+  - `GET /api/get_pricing` — Admin-only, returns full plan objects with all fields for a given `platform_id`.
+  - `GET /api/get_public_pricing` — CSRF-exempt, public, returns only active plans sorted by `sortOrder`.
+  - `POST /api/add_pricing_plan` — Admin, creates new plan with duplicate prevention (unique platform + duration combo).
+  - `POST /api/update_pricing_plan` — Admin, updates plan fields with validation (prices >= 0, at least one > 0, original_price validation).
+  - `POST /api/toggle_pricing_plan` — Admin, toggles `isActive` between 1/0.
+  - `POST /api/delete_pricing_plan` — Admin, hard deletes a plan.
+- **Payment integrity**: `create_payment` requires a valid active `plan_id` (or `duration_key` lookup), stores immutable plan snapshot (`planId`, `planDurationValue`, `planDurationUnit`) on Payment record. `approve_payment` uses the snapshot first, falls back to plan lookup, then legacy map.
+- **Admin UI** (`admin.html`): Full table view with CRUD modal. Table shows duration, shared/private/original prices, badge, status with edit/toggle/delete actions. Modal supports minutes/hours/days, badge selector, original price for strikethrough.
+- **Public buy page** (`buy.html`): Dynamic plan loading from `get_public_pricing`. Plans rendered with badges, original price strikethrough, sorted by duration. Account type toggle (shared/private) updates prices. WhatsApp order uses per-platform WhatsApp config.
+- **Legacy**: `save_pricing` endpoint removed. Old `get_pricing` (flat map) replaced with full plan objects.
+
 ## External Dependencies
 - **Node.js Libraries**: `express`, `@prisma/client`, `jsonwebtoken`, `bcryptjs`, `cookie-parser`, `socket.io`, `multer`, `express-rate-limit`.
 - **Frontend Libraries**: Tailwind CSS v3 (CDN), intl-tel-input v18 (CDN).

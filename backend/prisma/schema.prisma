@@ -209,13 +209,19 @@ model LoginHistory {
 }
 
 model PricingPlan {
-  id           Int    @id @default(autoincrement())
-  platformId   Int    @map("platform_id")
-  durationKey  String @map("duration_key")
-  sharedPrice  Float  @default(0) @map("shared_price")
-  privatePrice Float  @default(0) @map("private_price")
+  id            Int     @id @default(autoincrement())
+  platformId    Int     @map("platform_id")
+  durationKey   String  @map("duration_key")
+  durationValue Int     @default(0) @map("duration_value")
+  durationUnit  String  @default("days") @map("duration_unit")
+  sharedPrice   Float   @default(0) @map("shared_price")
+  privatePrice  Float   @default(0) @map("private_price")
+  originalPrice Float?  @map("original_price")
+  isActive      Int     @default(1) @map("is_active")
+  badge         String? @map("badge")
+  sortOrder     Int     @default(0) @map("sort_order")
 
-  platform     Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  platform      Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
 
   @@unique([platformId, durationKey])
   @@map("pricing_plans")
@@ -233,20 +239,23 @@ model WhatsappConfig {
 }
 
 model Payment {
-  id            Int     @id @default(autoincrement())
-  userId        Int?    @map("user_id")
-  platformId    Int     @map("platform_id")
-  username      String  @default("")
-  durationKey   String  @map("duration_key")
-  accountType   String  @default("shared") @map("account_type")
-  price         Float   @default(0)
-  status        String  @default("pending")
-  whatsappMsg   String? @map("whatsapp_msg")
-  createdAt     String  @default("") @map("created_at")
-  updatedAt     String  @default("") @map("updated_at")
-  screenshot    String?
-  paymentMethod String? @map("payment_method")
-  resellerId    Int?    @map("reseller_id")
+  id                Int     @id @default(autoincrement())
+  userId            Int?    @map("user_id")
+  platformId        Int     @map("platform_id")
+  username          String  @default("")
+  durationKey       String  @map("duration_key")
+  accountType       String  @default("shared") @map("account_type")
+  price             Float   @default(0)
+  status            String  @default("pending")
+  whatsappMsg       String? @map("whatsapp_msg")
+  createdAt         String  @default("") @map("created_at")
+  updatedAt         String  @default("") @map("updated_at")
+  screenshot        String?
+  paymentMethod     String? @map("payment_method")
+  resellerId        Int?    @map("reseller_id")
+  planId            Int?    @map("plan_id")
+  planDurationValue Int?    @map("plan_duration_value")
+  planDurationUnit  String? @map("plan_duration_unit")
 
   user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   platform      Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)

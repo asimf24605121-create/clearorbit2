@@ -1,0 +1,138 @@
+Good progress. The pricing system upgrade is mostly implemented.
+
+Now do the final professional closeout for the pricing module.
+
+## Final closeout tasks
+
+### 1) Full end-to-end pricing QA
+
+Verify all of these flows live:
+
+#### Admin side
+
+* Pricing page loads correctly
+* platform selector populates
+* pricing plans load per platform
+* add pricing plan works
+* edit pricing plan works
+* toggle active/inactive works
+* delete pricing plan works
+* validation messages show correctly
+* duplicate plan prevention works
+* inactive plans stay hidden from public page
+
+#### Public side
+
+* active platforms load correctly
+* View Plans opens correctly
+* all active plans load dynamically
+* plans show correct duration formatting:
+
+  * 30 Minutes
+  * 2 Hours
+  * 7 Days
+* shared/private prices show correctly
+* original price + discount display works
+* badge display works
+* empty state works if no plans exist
+* error/retry state works if API fails
+* WhatsApp order flow still works correctly
+
+---
+
+### 2) Fix ordering and display polish
+
+Ensure plan ordering is intuitive everywhere:
+
+* minutes first
+* then hours
+* then days
+* ascending within each unit
+
+Also make sure admin and public page use the same duration label formatting consistently.
+
+---
+
+### 3) Validation hardening
+
+Confirm:
+
+* duration_value > 0
+* duration_unit is only minutes/hours/days
+* shared/private price > 0 when required
+* original_price cannot be lower than current price unless intentionally supported
+* duplicate platform + duration_value + duration_unit + account_type conflicts are blocked cleanly
+
+---
+
+### 4) API consistency audit
+
+Verify all pricing endpoints use consistent field names:
+
+* duration_value
+* duration_unit
+* is_active
+* badge
+* original_price
+* shared_price
+* private_price
+
+No mixed old/new field naming should remain in frontend or backend.
+
+---
+
+### 5) Legacy cleanup
+
+Search entire codebase for old pricing logic and remove/replace any leftover code related to:
+
+* fixed hardcoded duration inputs
+* old durationKey-only assumptions
+* hardcoded 4-plan modal logic
+* deprecated save_pricing logic if no longer needed
+
+Do not leave dead or conflicting code behind.
+
+---
+
+### 6) Payment flow verification
+
+This is very important.
+
+Test that:
+
+* selecting a plan on public pricing page creates payment with correct price
+* selected duration maps to correct duration_value + duration_unit
+* approve_payment uses actual plan data from DB
+* resulting subscription gets correct expiry duration
+* minutes/hours/days pricing all create correct access duration after approval
+
+---
+
+### 7) UI/UX polish
+
+Make pricing module feel premium:
+
+* clean loading skeletons
+* polished empty states
+* better spacing in pricing cards/modal
+* strong CTA buttons
+* clear discount styling
+* responsive layout on mobile/tablet/desktop
+
+---
+
+### 8) Final report required
+
+After final verification, give me:
+
+1. all files changed
+2. all pricing flows tested
+3. bugs found and fixed
+4. whether old pricing logic was fully removed
+5. whether payment/subscription flow works with new pricing schema
+6. final verdict: pricing module production-ready or not
+
+## Final instruction
+
+Do not stop at implementation.
+Do a final audit, polish, and proof-based verification so this pricing module is fully production-ready.
