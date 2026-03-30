@@ -251,6 +251,7 @@ model Payment {
   createdAt         String  @default("") @map("created_at")
   updatedAt         String  @default("") @map("updated_at")
   screenshot        String?
+  transactionId     String? @map("transaction_id")
   buyerEmail        String? @map("buyer_email")
   buyerPhone        String? @map("buyer_phone")
   paymentMethod     String? @map("payment_method")

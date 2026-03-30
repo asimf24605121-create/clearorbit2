@@ -8,7 +8,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+const UPLOADS_DIR = path.join(process.cwd(), '..', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const screenshotStorage = multer.diskStorage({
@@ -890,9 +890,24 @@ router.get('/get_public_payment_methods', async (req, res) => {
 
 router.post('/create_payment', authenticate, async (req, res) => {
   try {
-    const { platform_id, account_type, payment_method, screenshot, plan_id, duration_key } = req.body;
+    const { platform_id, account_type, payment_method, screenshot, transaction_id, plan_id, duration_key, buyer_email, buyer_phone } = req.body;
     if (!platform_id) {
       return res.status(400).json({ success: false, message: 'Platform ID required' });
+    }
+    if (!payment_method) {
+      return res.status(400).json({ success: false, message: 'Payment method is required' });
+    }
+    if (!screenshot) {
+      return res.status(400).json({ success: false, message: 'Payment proof screenshot is required' });
+    }
+    if (!buyer_email && !buyer_phone) {
+      return res.status(400).json({ success: false, message: 'Email or phone number is required' });
+    }
+
+    const activeMethods = await prisma.paymentMethod.findMany({ where: { isActive: 1 } });
+    const validMethod = activeMethods.find(m => m.name === payment_method);
+    if (!validMethod) {
+      return res.status(400).json({ success: false, message: 'Selected payment method is not available' });
     }
 
     let plan;
@@ -924,10 +939,11 @@ router.post('/create_payment', authenticate, async (req, res) => {
         planDurationValue: plan.durationValue,
         planDurationUnit: plan.durationUnit,
         planId: plan.id,
-        status: 'pending', paymentMethod: payment_method || null,
-        screenshot: screenshot || null,
-        buyerEmail: req.body.buyer_email || null,
-        buyerPhone: req.body.buyer_phone || null,
+        status: 'pending', paymentMethod: payment_method,
+        screenshot: screenshot,
+        transactionId: transaction_id || null,
+        buyerEmail: buyer_email || null,
+        buyerPhone: buyer_phone || null,
         createdAt: now, updatedAt: now,
       },
     });
@@ -1003,7 +1019,8 @@ router.get('/get_payments', authenticate, requireAdmin(), async (req, res) => {
         platform_id: p.platformId, platform_name: p.platform?.name,
         duration_key: p.durationKey, account_type: p.accountType,
         price: p.price, status: p.status, payment_method: p.paymentMethod,
-        screenshot: p.screenshot,
+        screenshot: p.screenshot, transaction_id: p.transactionId,
+        buyer_email: p.buyerEmail, buyer_phone: p.buyerPhone,
         plan_duration_value: p.planDurationValue, plan_duration_unit: p.planDurationUnit,
         reviewed_at: p.reviewedAt, reviewed_by: p.reviewedBy,
         rejection_reason: p.rejectionReason, admin_note: p.adminNote,
@@ -1026,7 +1043,7 @@ router.get('/get_payments', authenticate, requireAdmin(), async (req, res) => {
 
 router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async (req, res) => {
   try {
-    const { payment_id, action: payAction, reject_reason } = req.body;
+    const { payment_id, action: payAction, reject_reason, admin_note } = req.body;
     if (!payment_id) return res.status(400).json({ success: false, message: 'Payment ID required' });
 
     const parsedPaymentId = parseInt(payment_id);
@@ -1044,6 +1061,7 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
 
       const updateData = { status: newStatus, updatedAt: now, reviewedAt: now, reviewedBy: req.user.id };
       if (payAction === 'reject' && reject_reason) updateData.rejectionReason = reject_reason;
+      if (admin_note) updateData.adminNote = admin_note;
       await tx.payment.update({ where: { id: payment.id }, data: updateData });
 
       let subscriptionId = null;
