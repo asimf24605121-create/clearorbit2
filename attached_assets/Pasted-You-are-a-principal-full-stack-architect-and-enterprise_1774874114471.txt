@@ -1,0 +1,592 @@
+You are a principal full-stack architect and enterprise SaaS engineer.
+
+Your task is to perform a **full enterprise-grade system upgrade** of this platform.
+
+This is **not** a cosmetic redesign.
+This is a complete product hardening, workflow unification, and frontend-backend synchronization upgrade across the entire platform.
+
+The platform includes:
+
+* User Dashboard
+* Admin Panel
+* Pricing & Subscription System
+* Payments
+* Support Tickets
+* Contact Messages
+* Announcements
+* WhatsApp Order Flow
+* Session / Extension / Security flows
+
+Your goal is to make the system feel like a **real enterprise SaaS product** built by a senior engineering team.
+
+---
+
+# 1) ENTERPRISE OBJECTIVE
+
+Rebuild the platform so that it is:
+
+* fully connected
+* operationally reliable
+* visually premium
+* workflow-complete
+* secure
+* scalable
+* real-time aware
+* production-grade
+
+The final result should feel comparable in quality to:
+
+* Stripe Dashboard
+* Linear
+* Notion
+* Clerk
+* modern enterprise SaaS admin systems
+
+This platform must not be slow and must be optimized for **1000+ concurrent users**.
+
+---
+
+# 2) CRITICAL SYSTEM PROBLEM TO SOLVE
+
+Right now, the platform has a disconnect between:
+
+* frontend actions
+* backend state
+* admin workflows
+* user dashboard behavior
+
+Examples of problems that must be fully eliminated:
+
+* buttons doing the wrong thing
+* navigation causing unexpected session issues
+* admin actions not reflecting correctly on user side
+* modules existing visually but not operationally complete
+* pages feeling like separate tools instead of one connected product
+* support, payments, announcements, WhatsApp, contact, and subscriptions not behaving as one unified system
+
+You must solve this at the **system architecture level**, not just by patching isolated bugs.
+
+---
+
+# 3) PLATFORM-WIDE ENTERPRISE STANDARDS
+
+Apply these standards across the whole product:
+
+## A. Reliability
+
+* no broken buttons
+* no wrong routing
+* no accidental logout
+* no inconsistent state after actions
+* no stale UI after admin updates
+* no duplicate requests
+* no partial update states
+
+## B. Real-time consistency
+
+Admin-side changes must reflect on user side in real time where appropriate:
+
+* subscription updated
+* subscription revoked
+* payment approved/rejected
+* support reply
+* announcement published
+* WhatsApp order status change
+* security/session events
+
+Use Socket.IO where already available, with graceful fallback behavior.
+
+## C. UI consistency
+
+All pages must follow a unified design system:
+
+* buttons
+* pills
+* badges
+* cards
+* tables
+* dropdowns
+* modals
+* drawers
+* empty states
+* loading skeletons
+* toasts
+* status indicators
+
+## D. Security
+
+* no sensitive leaks in frontend/API responses
+* CSRF-safe admin actions
+* protected admin routes
+* safe session validation
+* strict status transitions on payments/tickets
+* input validation everywhere
+* anti-spam / anti-double-click protections
+
+## E. Performance
+
+* efficient API usage
+* no duplicate polling
+* no duplicate timers
+* debounced actions
+* minimal rerenders
+* scalable UI patterns
+* fast page response under heavy data volume
+
+---
+
+# 4) USER DASHBOARD — ENTERPRISE REBUILD
+
+Rebuild the user dashboard so it feels like a complete premium product, not a collection of sections.
+
+## Must fix
+
+* any wrong button behavior, especially Premium Subscription / upgrade flow
+* any accidental logout or route conflict
+* any event bubbling / wrong parent click behavior
+* any inconsistent modal/dropdown state
+* any duplicate action trigger
+
+## Rebuild these areas:
+
+### A. Header / Topbar
+
+Make it enterprise-grade:
+
+* clear subscription CTA
+* notifications bell with unread count
+* report issue entrypoint
+* user profile menu
+* consistent click behavior
+* zero overlap / z-index bugs
+* proper open/close behavior
+* keyboard/accessibility friendly
+
+### B. Hero / Welcome / Subscription area
+
+* clearer hierarchy
+* premium subscription state card
+* clean CTA placement
+* better relationship between user identity and plan/access state
+
+### C. Platform access cards
+
+Each platform card must support:
+
+* correct active/expired/locked state
+* countdown/remaining time
+* access CTA
+* progress indicator
+* visual status clarity
+* hover/micro interactions
+* reliable click behavior
+* no false state display
+
+### D. Extension connection experience
+
+Replace weak/intrusive UX with an enterprise-grade status module:
+
+* Connected
+* Not Active
+* Not Installed
+
+Include:
+
+* retry action
+* install CTA
+* clear explanation
+* non-annoying placement
+* 5-second retry checks if needed
+* no ugly repeated warnings
+
+### E. Device / session security
+
+Turn this into a real security center:
+
+* current device clearly marked
+* session count
+* force logout others
+* location / IP / recent login logic
+* better security language and layout
+
+### F. Login history
+
+* compact but premium
+* clear timestamps
+* strong hierarchy
+* better use of vertical space
+* better status labeling
+
+### G. Report issue / support entrypoint
+
+* open a polished support flow
+* category, message, optional screenshot-ready architecture
+* success confirmation
+* thread linkage if supported
+
+---
+
+# 5) ADMIN PANEL — ENTERPRISE OPERATIONS CONSOLE
+
+The admin panel must behave like a real operations console, not a collection of static CRUD pages.
+
+Upgrade all major admin modules into production-grade operational tools.
+
+## A. Users / subscriptions / security
+
+Admin must be able to:
+
+* view users
+* inspect access state
+* extend/revoke subscriptions
+* force logout sessions
+* inspect session/device history
+* see urgency / expiring users
+* track active/expired state
+* take fast operational actions
+
+## B. Pricing
+
+Upgrade pricing into a true management system:
+
+* plan CRUD
+* mixed durations (minutes/hours/days)
+* status toggle
+* badges
+* original price / discount
+* validation
+* duplicate prevention
+* public-preview quality
+* intuitive ordering
+* plan analytics-ready structure
+
+## C. Payments
+
+Make payments a true review and approval desk:
+
+* pending / approved / rejected / under review
+* payment detail drawer
+* proof image preview
+* plan snapshot
+* user info
+* notes
+* timeline
+* approve/reject actions
+* prevent duplicate approval
+* notify user on final action
+
+## D. Support tickets
+
+Make support a conversation desk:
+
+* list panel + conversation panel
+* status changes
+* priority
+* internal notes
+* assignment-ready structure
+* admin replies in thread format
+* resolution summary
+* user notified on reply / resolve / close
+
+## E. Contact messages
+
+Turn this into an inbox / lightweight CRM:
+
+* message list
+* detail pane
+* mark read / replied / archived / spam
+* admin reply workflow
+* convert to ticket flow if needed
+* reply history
+
+## F. Announcements
+
+Make this a publishing system:
+
+* draft / scheduled / active / expired / archived
+* title / body / type / display style
+* target audience
+* publish/unpublish
+* preview mode
+* delivery/display clarity
+* user-facing live behavior
+
+## G. WhatsApp
+
+Make this more than a simple config form:
+
+* global number
+* per-platform number/template
+* generated order message preview
+* optional lead/order tracking
+* operational clarity in admin
+
+---
+
+# 6) FULL ENTERPRISE WORKFLOW CONNECTIONS
+
+This is the heart of the project.
+
+You must ensure the following end-to-end flows work correctly:
+
+## Pricing → Payment → Subscription → Dashboard
+
+* user selects plan
+* payment record created using correct plan snapshot
+* admin approves payment
+* subscription activates with exact duration
+* user dashboard updates immediately
+* user notification appears
+
+## Support → Admin Reply → User Notification
+
+* user creates ticket
+* admin replies
+* user receives live reply notification
+* ticket thread updates in real time
+* resolution state appears correctly
+
+## Announcement Publish → User Delivery
+
+* admin creates/publishes announcement
+* eligible users receive it without refresh where possible
+* proper banner/popup/notification rendering
+* dismiss/read behavior handled correctly
+
+## Admin Access Change → User State Change
+
+* extend/revoke/approve/reject actions
+* user dashboard updates immediately
+* no stale cached view
+* correct countdown/status
+
+## WhatsApp / Contact / Support operational flow
+
+* contact messages can be managed properly
+* support and communication systems feel unified
+* no dead-end workflow
+
+---
+
+# 7) ENTERPRISE REAL-TIME EVENTS
+
+Audit and standardize the real-time event layer.
+
+Ensure naming, emitting, and listening are consistent for:
+
+* subscription_updated
+* subscription_revoked
+* payment_approved
+* payment_rejected
+* ticket_reply
+* ticket_updated
+* announcement_published
+* whatsapp_order_updated
+* security/session events if needed
+
+For each event:
+
+* user-facing reaction must be intentional
+* toast + UI refresh + notification state must be coherent
+* no duplicate events
+* no event mismatches
+* no silent socket failures
+
+---
+
+# 8) ACTION SAFETY / DEBOUNCE / REQUEST HYGIENE
+
+All critical action buttons must be enterprise-safe.
+
+Apply a safe action pattern to:
+
+* Access Now
+* Buy Now
+* WhatsApp Order
+* Premium Subscription CTA
+* Logout
+* Force Logout Others
+* Support Submit
+* Payment Submit
+* Admin approve/reject
+* Admin extend/revoke
+* Contact reply
+* Ticket reply
+
+Requirements:
+
+* disable while running
+* spinner/loading state
+* duplicate click blocked
+* failure restores state
+* success gives feedback
+* no permanent busy flags
+* no hidden deadlocks
+
+---
+
+# 9) ERROR HANDLING / EMPTY STATES / RECOVERY
+
+No silent failures anywhere.
+
+For all modules:
+
+* user-friendly errors
+* retry buttons where useful
+* clear empty states
+* graceful fallback UI
+* no raw server text dumps
+* no dead blank screens
+
+Specific examples:
+
+* no platforms
+* no tickets
+* no contact messages
+* no payments
+* no pricing plans
+* extension not installed
+* network temporarily failed
+* modal action failed
+
+---
+
+# 10) ROUTING / SESSION / AUTH HARDENING
+
+Audit and harden:
+
+* public pages vs protected pages
+* logout isolation
+* token/session checks
+* redirect logic
+* session expiration handling
+* network error vs unauthorized handling
+
+Rules:
+
+* never log out on generic network error
+* only redirect to login on confirmed auth failure
+* ensure public pages like pricing/buy flow stay public
+* ensure user-side navigation never triggers accidental session clearing
+
+---
+
+# 11) FRONTEND DESIGN SYSTEM — ENTERPRISE QUALITY
+
+Upgrade the full frontend visual language.
+
+Use a coherent premium system with:
+
+* disciplined spacing
+* refined typography
+* softer shadows
+* premium hover states
+* subtle gradients only where appropriate
+* status color consistency
+* polished modals/drawers
+* clean charts/cards/rows
+* proper responsive behavior
+
+Avoid:
+
+* random spacing
+* inconsistent button sizes
+* awkward warning placement
+* old/basic CRUD styling
+* jarring color clashes
+* cluttered layouts
+
+The product should feel:
+
+* premium
+* calm
+* structured
+* confident
+* operationally serious
+
+---
+
+# 12) RESPONSIVE + ACCESSIBLE + SCALABLE UI
+
+Ensure all upgraded modules work well on:
+
+* desktop
+* tablet
+* mobile
+
+Also improve:
+
+* keyboard navigation
+* focus states
+* modal accessibility
+* clickable target sizes
+* contrast/readability
+* overflow handling
+
+No broken mobile layout.
+No clipped modals.
+No unusable drawers.
+
+---
+
+# 13) ENTERPRISE TESTING REQUIREMENT
+
+Do a final full QA pass after implementation.
+
+Test:
+
+* user dashboard actions
+* admin module actions
+* payments
+* support
+* contact
+* announcements
+* pricing
+* subscriptions
+* real-time socket flows
+* extension status
+* session/auth behavior
+* mobile responsiveness
+* duplicate click safety
+* unauthorized vs network-failure handling
+
+Use realistic mixed data and verify both:
+
+* frontend behavior
+* backend state truth
+
+---
+
+# 14) REQUIRED FINAL DELIVERABLES
+
+Provide:
+
+1. full list of issues found
+2. full list of system-level fixes applied
+3. which modules were rebuilt or significantly upgraded
+4. all real-time connections added/fixed
+5. all action-safety protections added
+6. all session/routing fixes applied
+7. confirmation that admin ↔ user sync is correct
+8. confirmation that buttons/links are reliable
+9. confirmation that support resolution notifies user
+10. confirmation that payment approval updates user live
+11. confirmation that the entire platform now feels enterprise-grade
+
+---
+
+# 15) FINAL INSTRUCTION
+
+Do not do superficial styling.
+
+Do not only patch one bug.
+
+I want a **real enterprise-grade system upgrade**:
+
+* deeply connected
+* operationally complete
+* premium UX
+* reliable engineering
+* production-safe behavior
+
+The final result should make it obvious that this platform was built by serious senior engineers.

@@ -2463,6 +2463,9 @@
 <script src="js/timeDisplay.js"></script>
 <script>
 let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
+const _actionBusy = new Set();
+function _guardAction(key) { if (_actionBusy.has(key)) return false; _actionBusy.add(key); return true; }
+function _releaseAction(key) { _actionBusy.delete(key); }
 let ALL_USERS = [];
 let ALL_PLATFORMS = [];
 let ALL_COOKIES = [];
@@ -3487,6 +3490,8 @@ function renderGeoDistribution(users) {
 
 async function forceLogoutUser(userId, username) {
     if (!confirm('Force logout ' + username + '? This will terminate all their active sessions.')) return;
+    const k = 'forceLogout_' + userId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/user_intelligence?action=force_logout', {
             method: 'POST',
@@ -3501,7 +3506,7 @@ async function forceLogoutUser(userId, username) {
         } else {
             showToast(d.message || 'Failed to logout user', 'error');
         }
-    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    } catch(e) { showToast('Error: ' + e.message, 'error'); } finally { _releaseAction(k); }
 }
 
 async function viewUserHistory(userId, username) {
@@ -4508,12 +4513,14 @@ async function togglePlatformIntel(platformId, name, currentlyActive) {
     if (currentlyActive) {
         if (!confirm(`Disable platform "${name}"?\n\nThis will terminate all active sessions for this platform. Users currently using it will be disconnected.`)) return;
     }
+    const k = 'togglePlat_' + platformId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/toggle_platform', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: platformId }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadPlatformIntelligence();
-    } catch(e) { showAlert('Toggle failed.', true); }
+    } catch(e) { showAlert('Toggle failed.', true); } finally { _releaseAction(k); }
 }
 
 async function deleteSinglePlatform(id, name) {
@@ -5561,22 +5568,26 @@ function cuResetForm() {
 }
 
 async function toggleUser(userId, action) {
+    const k = 'toggleUser_' + userId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/toggle_user', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId, action }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) refreshUsersTable();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function deleteUser(userId, username) {
+    const k = 'deleteUser_' + userId;
+    if (!_guardAction(k)) return;
     try {
         const previewRes = await fetch('api/delete_user_preview', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ user_id: userId }) });
         const previewData = await previewRes.json();
         if (!previewData.success) { showAlert(previewData.message, true); return; }
         const p = previewData.preview;
         showDeleteConfirmModal(p);
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 function showDeleteConfirmModal(preview) {
@@ -5960,8 +5971,9 @@ async function togglePlatform(platformId) {
 }
 
 async function deletePlatform(platformId, name) {
-    await deleteSinglePlatform(platformId, name);
-    loadStats();
+    const k = 'deletePlat_' + platformId;
+    if (!_guardAction(k)) return;
+    try { await deleteSinglePlatform(platformId, name); loadStats(); } finally { _releaseAction(k); }
 }
 
 function syncColor(hex) {
@@ -6042,6 +6054,8 @@ function filterLogs() {
 
 async function deleteLog(logId) {
     if (!confirm('Delete this log entry?')) return;
+    const k = 'delLog_' + logId;
+    if (!_guardAction(k)) return;
     const row = document.querySelector(`tr[data-log-id="${logId}"]`);
     if (row) { row.style.opacity = '0'; row.style.transform = 'translateX(20px)'; }
     try {
@@ -6052,7 +6066,7 @@ async function deleteLog(logId) {
             ALL_LOGS = ALL_LOGS.filter(l => l.id !== logId);
             setTimeout(() => filterLogs(), 300);
         } else if (row) { row.style.opacity = '1'; row.style.transform = ''; }
-    } catch (e) { showAlert('Network error.', true); if (row) { row.style.opacity = '1'; row.style.transform = ''; } }
+    } catch (e) { showAlert('Network error.', true); if (row) { row.style.opacity = '1'; row.style.transform = ''; } } finally { _releaseAction(k); }
 }
 
 async function bulkDeleteLogs() {
@@ -6060,6 +6074,7 @@ async function bulkDeleteLogs() {
     const ids = Array.from(cbs).map(cb => parseInt(cb.value));
     if (!ids.length) return;
     if (!confirm(`Delete ${ids.length} selected log(s)? This cannot be undone.`)) return;
+    if (!_guardAction('bulkDelLogs')) return;
     ids.forEach(id => { const row = document.querySelector(`tr[data-log-id="${id}"]`); if (row) row.style.opacity = '0.3'; });
     try {
         const res = await fetch('api/delete_log', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ log_ids: ids }) });
@@ -6069,17 +6084,18 @@ async function bulkDeleteLogs() {
             ALL_LOGS = ALL_LOGS.filter(l => !ids.includes(l.id));
             filterLogs();
         } else { ids.forEach(id => { const row = document.querySelector(`tr[data-log-id="${id}"]`); if (row) row.style.opacity = '1'; }); }
-    } catch (e) { showAlert('Bulk delete failed.', true); }
+    } catch (e) { showAlert('Bulk delete failed.', true); } finally { _releaseAction('bulkDelLogs'); }
 }
 
 async function deleteAllLogs() {
     if (!confirm('Delete ALL activity logs? This cannot be undone.')) return;
+    if (!_guardAction('deleteAllLogs')) return;
     try {
         const res = await fetch('api/delete_log', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ delete_all: true }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) { ALL_LOGS = []; renderLogs([]); }
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction('deleteAllLogs'); }
 }
 
 async function logout() {
@@ -6280,22 +6296,26 @@ async function submitPlanModal() {
 }
 
 async function togglePlan(id) {
+    const k = 'togglePlan_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/toggle_pricing_plan', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ plan_id: id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadPricingPlans();
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
 }
 
 async function deletePlan(id) {
     if (!confirm('Delete this pricing plan?')) return;
+    const k = 'delPlan_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/delete_pricing_plan', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ plan_id: id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadPricingPlans();
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
 }
 
 function populateWhatsAppDropdown() {
@@ -6335,13 +6355,14 @@ async function loadWhatsAppTable() {
 async function saveWhatsApp() {
     const pid = parseInt(document.getElementById('whatsappPlatform').value);
     if (!pid) { showAlert('Select a platform first.', true); return; }
+    if (!_guardAction('saveWA')) return;
     const number = document.getElementById('wa_number').value.trim();
     try {
         const res = await fetch('api/save_whatsapp', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ platform_id: pid, number }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadWhatsAppTable();
-    } catch(e) { showAlert('Network error.', true); }
+    } catch(e) { showAlert('Network error.', true); } finally { _releaseAction('saveWA'); }
 }
 
 async function loadPayments(page = 1) {
@@ -6457,24 +6478,29 @@ function closePaymentDetail() {
 async function processPayment(paymentId, action) {
     const verb = action === 'approve' ? 'approve' : 'reject';
     if (!confirm(`Are you sure you want to ${verb} payment #${paymentId}?`)) return;
+    const k = 'processPay_' + paymentId + '_' + action;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/approve_payment', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ payment_id: paymentId, action }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) { loadPayments(); try { loadStats(); } catch(e) {} }
-    } catch(e) { showAlert('Network error.', true); }
+    } catch(e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 function promptRejectPayment(paymentId) {
     const reason = prompt('Rejection reason (optional):');
     if (reason === null) return;
+    const k = 'rejectPay_' + paymentId;
+    if (!_guardAction(k)) return;
     fetch('api/approve_payment', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ payment_id: paymentId, action: 'reject', reject_reason: reason }) })
         .then(r => r.json())
         .then(data => {
             showAlert(data.message, !data.success);
             if (data.success) { closePaymentDetail(); loadPayments(); try { loadStats(); } catch(e) {} }
         })
-        .catch(() => showAlert('Network error.', true));
+        .catch(() => showAlert('Network error.', true))
+        .finally(() => _releaseAction(k));
 }
 
 let ALL_ADMINS = [];
@@ -6555,12 +6581,14 @@ async function createAdmin() {
 }
 
 async function toggleAdmin(adminId, action) {
+    const k = 'toggleAdmin_' + adminId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/toggle_admin', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ admin_id: adminId, action }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAdmins();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function changeAdminRole(adminId, newRole) {
@@ -6576,12 +6604,14 @@ async function changeAdminRole(adminId, newRole) {
 
 async function deleteAdmin(adminId, username) {
     if (!confirm(`Permanently delete admin "${username}"? This cannot be undone.`)) return;
+    const k = 'deleteAdmin_' + adminId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/delete_admin', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ admin_id: adminId }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAdmins();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 // ========== SUPPORT TICKETS ==========
@@ -6868,6 +6898,7 @@ function editAnnouncement(id) {
 }
 
 async function saveAnnouncement() {
+    if (!_guardAction('saveAnn')) return;
     const editId = document.getElementById('annEditIdField').value;
     const title = document.getElementById('annTitle').value.trim();
     const message = document.getElementById('annMessage').value.trim();
@@ -6877,7 +6908,7 @@ async function saveAnnouncement() {
     const start_time = document.getElementById('annStartTime').value;
     const end_time = document.getElementById('annEndTime').value;
     const is_pinned = document.getElementById('annPinned').checked;
-    if (!title || !message) { showAlert('Title and message are required.', true); return; }
+    if (!title || !message) { showAlert('Title and message are required.', true); _releaseAction('saveAnn'); return; }
     const body = { title, message, type, display_style, target_audience, start_time, end_time, is_pinned };
     if (editId) { body.action = 'update'; body.id = parseInt(editId); }
     else { body.action = 'create'; }
@@ -6886,45 +6917,53 @@ async function saveAnnouncement() {
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) { closeAnnBuilder(); loadAnnouncements(); }
-    } catch(e) { showAlert('Network error.', true); }
+    } catch(e) { showAlert('Network error.', true); } finally { _releaseAction('saveAnn'); }
 }
 
 async function toggleAnnouncement(id) {
+    const k = 'toggleAnn_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/manage_announcement', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'toggle', id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAnnouncements();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function duplicateAnnouncement(id) {
+    const k = 'dupAnn_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/manage_announcement', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'duplicate', id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAnnouncements();
-    } catch(e) { showAlert('Network error.', true); }
+    } catch(e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function archiveAnnouncement(id) {
     if (!confirm('Archive this announcement?')) return;
+    const k = 'archiveAnn_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/manage_announcement', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'archive', id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAnnouncements();
-    } catch(e) { showAlert('Network error.', true); }
+    } catch(e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function deleteAnnouncement(id) {
     if (!confirm('Delete this announcement permanently?')) return;
+    const k = 'delAnn_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/manage_announcement', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'delete', id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadAnnouncements();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 function closeAnnEditModal() {
@@ -7143,12 +7182,14 @@ function renderSessionsTable(sessions) {
 
 async function killSession(sessionId) {
     if (!confirm('Terminate this session? The user will be logged out.')) return;
+    const k = 'killSess_' + sessionId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/kill_session', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ session_id: sessionId }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadActiveSessions();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 
 async function loadLoginAttempts(page = 1) {
@@ -7215,62 +7256,70 @@ function updateLogsSelectedBtn() {
 
 async function deleteSingleSession(id) {
     if (!confirm('Delete this session record?')) return;
+    const k = 'delSess_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/delete_session', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ session_id: id }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadActiveSessions();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 async function deleteSelectedSessions() {
     const ids = [...document.querySelectorAll('.sess-cb:checked')].map(cb => parseInt(cb.value));
     if (ids.length === 0) return;
     if (!confirm(`Delete ${ids.length} selected session record(s)?`)) return;
+    if (!_guardAction('delSelSess')) return;
     try {
         const res = await fetch('api/delete_session', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ session_ids: ids }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadActiveSessions();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction('delSelSess'); }
 }
 async function deleteAllSessions() {
     if (!confirm('Delete ALL session records? This cannot be undone.')) return;
+    if (!_guardAction('delAllSess')) return;
     try {
         const res = await fetch('api/delete_session', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ session_ids: 'all' }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadActiveSessions();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction('delAllSess'); }
 }
 
 async function deleteSingleLoginLog(id) {
     if (!confirm('Delete this login attempt record?')) return;
+    const k = 'delLoginLog_' + id;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/admin_delete_login_logs', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'single', ids: [id] }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadLoginAttempts();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction(k); }
 }
 async function deleteSelectedLoginLogs() {
     const ids = [...document.querySelectorAll('.log-cb:checked')].map(cb => parseInt(cb.value));
     if (ids.length === 0) return;
     if (!confirm(`Delete ${ids.length} selected login log(s)?`)) return;
+    if (!_guardAction('delSelLoginLogs')) return;
     try {
         const res = await fetch('api/admin_delete_login_logs', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'bulk', ids }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadLoginAttempts();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction('delSelLoginLogs'); }
 }
 async function deleteAllLoginLogs() {
     if (!confirm('Delete ALL login attempt logs? This cannot be undone.')) return;
+    if (!_guardAction('delAllLoginLogs')) return;
     try {
         const res = await fetch('api/admin_delete_login_logs', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ action: 'all' }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadLoginAttempts();
-    } catch (e) { showAlert('Network error.', true); }
+    } catch (e) { showAlert('Network error.', true); } finally { _releaseAction('delAllLoginLogs'); }
 }
 
 function populateAccountSlotDropdowns() {
@@ -9592,6 +9641,7 @@ async function loadGlobalWhatsApp() {
 }
 
 async function saveGlobalWhatsApp() {
+    if (!_guardAction('saveGlobalWA')) return;
     const number = document.getElementById('globalWaNumber').value.trim();
     const message = document.getElementById('globalWaMessage').value.trim();
     try {
@@ -9602,7 +9652,7 @@ async function saveGlobalWhatsApp() {
         });
         const data = await res.json();
         showAlert(data.success ? 'Global WhatsApp settings saved.' : (data.message || 'Failed'), !data.success);
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction('saveGlobalWA'); }
 }
 
 function openAccessModal(userId) {
@@ -9973,6 +10023,8 @@ async function loadRechargeRequests() {
 
 async function approveRecharge(requestId) {
     if (!confirm('Approve this recharge request?')) return;
+    const k = 'approveRech_' + requestId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/reseller_wallet', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN },
@@ -9982,11 +10034,13 @@ async function approveRecharge(requestId) {
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) { loadRechargeRequests(); loadResellers(); }
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
 }
 
 async function rejectRecharge(requestId) {
     const note = prompt('Rejection note (optional):') || 'Rejected by admin';
+    const k = 'rejectRech_' + requestId;
+    if (!_guardAction(k)) return;
     try {
         const res = await fetch('api/reseller_wallet', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN },
@@ -9996,7 +10050,7 @@ async function rejectRecharge(requestId) {
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) loadRechargeRequests();
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction(k); }
 }
 
 async function loadResellerSettings() {
@@ -10013,6 +10067,7 @@ async function loadResellerSettings() {
 }
 
 async function saveResellerSettings() {
+    if (!_guardAction('saveReseller')) return;
     const cost = document.getElementById('resellerCostPerUser').value;
     const auto = document.getElementById('resellerAutoApprove').value;
     try {
@@ -10023,7 +10078,7 @@ async function saveResellerSettings() {
         });
         const data = await res.json();
         showAlert(data.success ? 'Reseller settings saved.' : (data.message || 'Failed'), !data.success);
-    } catch(e) { showAlert('Network error', true); }
+    } catch(e) { showAlert('Network error', true); } finally { _releaseAction('saveReseller'); }
 }
 
 fetch('api/admin_init', { credentials: 'include' }).then(res => {

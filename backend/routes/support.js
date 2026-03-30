@@ -525,7 +525,13 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
       if (is_pinned !== undefined) data.isPinned = is_pinned ? 1 : 0;
       if (target_audience !== undefined) data.targetAudience = target_audience;
 
-      await prisma.announcement.update({ where: { id: parseInt(annId) }, data });
+      const updated = await prisma.announcement.update({ where: { id: parseInt(annId) }, data });
+      if (updated.status === 'active') {
+        try {
+          const { io } = await import('../server.js');
+          io.emit('announcement_published', { id: updated.id, title: updated.title, type: updated.type });
+        } catch (_) {}
+      }
       return res.json({ success: true, message: 'Announcement updated' });
     }
 
