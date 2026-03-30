@@ -1,0 +1,269 @@
+You are a senior QA engineer and full-stack tester.
+
+Your task is to perform a **complete enterprise-level QA audit** of the entire platform using **20+ simulated users**.
+
+DO NOT assume anything works. Test EVERYTHING.
+
+---
+
+# 🎯 TESTING OBJECTIVE
+
+Verify that:
+
+* Every page works
+* Every button works correctly
+* No unexpected logout happens
+* Admin and user flows are fully connected
+* No UI or backend inconsistency exists
+* All features behave like a real SaaS product
+
+---
+
+# 👥 TEST SETUP
+
+Create:
+
+* 20–30 test users
+* Mix:
+
+  * active subscriptions
+  * expired users
+  * new users
+  * users with no subscriptions
+
+Also create:
+
+* multiple payments
+* multiple support tickets
+* multiple contact messages
+
+---
+
+# 🧭 1) USER SIDE TESTING (FULL)
+
+## A. Authentication
+
+* login
+* logout
+* session persistence
+* wrong password
+* refresh page after login
+
+## B. Dashboard
+
+Test ALL buttons:
+
+* Premium Subscription
+* Access Now
+* Report Issue
+* Notification bell
+* Profile dropdown
+* Logout
+* Force logout others
+
+Verify:
+
+* correct action
+* no wrong redirects
+* no logout bug
+
+## C. Platform Cards
+
+* active platform → access works
+* expired → blocked
+* countdown correct
+* UI updates correctly
+
+## D. Extension Status
+
+* simulate:
+
+  * connected
+  * not installed
+  * not active
+* retry works
+* UI updates
+
+## E. Support Tickets
+
+* create ticket
+* reply flow
+* status update
+* user receives reply
+* notification appears
+
+## F. Contact Messages
+
+* submit message
+* admin reply
+* user sees update (if applicable)
+
+## G. Payments
+
+* submit payment
+* upload proof
+* admin approval
+* subscription activation
+
+## H. Announcements
+
+* user receives announcement
+* banner/popup shows
+* dismiss works
+
+---
+
+# 🧑‍💼 2) ADMIN PANEL TESTING (FULL)
+
+## A. Pricing
+
+* create plan
+* edit plan
+* delete plan
+* toggle active/inactive
+* check user side sync
+
+## B. Users
+
+* view user
+* extend subscription
+* revoke subscription
+* force logout
+* verify user dashboard updates
+
+## C. Payments
+
+* approve payment
+* reject payment
+* add note
+* verify user updated
+
+## D. Support Tickets
+
+* reply to ticket
+* change status
+* resolve ticket
+* user gets notified
+
+## E. Contact Messages
+
+* view message
+* reply
+* mark read
+* archive/delete
+
+## F. Announcements
+
+* create announcement
+* publish
+* verify users receive it
+
+## G. WhatsApp
+
+* test WhatsApp link
+* message format correct
+
+---
+
+# 🔁 3) REAL-TIME TESTING
+
+Verify:
+
+* admin action → user updates instantly
+
+Test:
+
+* subscription change
+* support reply
+* payment approval
+* announcement publish
+
+NO PAGE REFRESH ALLOWED.
+
+---
+
+# 🧠 4) UI/UX TESTING
+
+Check:
+
+* broken layout
+* overlapping elements
+* scroll issues
+* modal bugs
+* button states
+* loading states
+* empty states
+
+---
+
+# ⚠️ 5) ERROR HANDLING
+
+Test:
+
+* API failure
+* slow network
+* invalid inputs
+
+Verify:
+
+* no crash
+* user-friendly error
+* retry option
+
+---
+
+# ⚡ 6) PERFORMANCE TEST
+
+Simulate:
+
+* 20+ active users
+
+Check:
+
+* no lag
+* no duplicate API calls
+* fast response (<300ms)
+* stable UI
+
+---
+
+# 🚨 7) CRITICAL BUG DETECTION
+
+Find:
+
+* any button doing wrong action
+* logout bugs
+* duplicate requests
+* UI mismatch with backend
+* stale data
+* race conditions
+
+---
+
+# 📊 8) FINAL REPORT REQUIRED
+
+Provide:
+
+1. List of ALL bugs found
+2. Critical issues (high priority)
+3. Medium issues
+4. UI issues
+5. Backend issues
+6. Sync issues
+7. Performance issues
+8. Suggested fixes
+
+---
+
+# 🚀 FINAL RESULT
+
+The system must:
+
+* work perfectly
+* feel fast
+* have zero broken buttons
+* have real-time sync
+* feel like a production SaaS
+
+Do not skip anything.
+Test like this system is going live to real customers.
