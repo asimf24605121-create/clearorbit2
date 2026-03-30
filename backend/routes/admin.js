@@ -5,6 +5,7 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
 import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, formatRemainingMs, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -704,49 +705,55 @@ router.post('/delete_user', authenticate, requireAdmin('super_admin'), async (re
 
 router.post('/revoke_subscription', authenticate, requireAdmin(), adminActionLimiter, async (req, res) => {
   try {
-    const { subscription_id, user_id } = req.body;
+    const { subscription_id } = req.body;
     if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });
 
-    const sub = await prisma.userSubscription.findUnique({
-      where: { id: parseInt(subscription_id) },
+    const parsedId = parseInt(subscription_id);
+    if (isNaN(parsedId)) return res.status(400).json({ success: false, message: 'Invalid subscription ID' });
+
+    const subInfo = await prisma.userSubscription.findUnique({
+      where: { id: parsedId },
       include: { platform: { select: { name: true } }, user: { select: { id: true, username: true } } },
     });
-    if (!sub) return res.status(404).json({ success: false, message: 'Subscription not found' });
+    if (!subInfo) return res.status(404).json({ success: false, message: 'Subscription not found' });
 
-    await prisma.userSubscription.update({
-      where: { id: sub.id },
-      data: { isActive: 0 },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.userSubscription.update({
+        where: { id: subInfo.id },
+        data: { isActive: 0 },
+      });
 
-    const remainingActive = await prisma.userSubscription.findMany({
-      where: { userId: sub.userId, isActive: 1 },
-      select: { endDate: true },
-    });
-    const validRemaining = remainingActive.filter(s => !isSubExpired(s.endDate));
-    const newExpiry = validRemaining.length > 0
-      ? validRemaining.reduce((max, s) => {
-          const end = parseEndDateUTC(s.endDate);
-          return end > max ? end : max;
-        }, parseEndDateUTC(validRemaining[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
-      : null;
-    await prisma.user.update({ where: { id: sub.userId }, data: { expiryDate: newExpiry } });
+      const remainingActive = await tx.userSubscription.findMany({
+        where: { userId: subInfo.userId, isActive: 1, id: { not: subInfo.id } },
+        select: { endDate: true },
+      });
+      const validRemaining = remainingActive.filter(s => !isSubExpired(s.endDate));
+      const newExpiry = validRemaining.length > 0
+        ? validRemaining.reduce((max, s) => {
+            const end = parseEndDateUTC(s.endDate);
+            return end > max ? end : max;
+          }, parseEndDateUTC(validRemaining[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
+        : null;
+      await tx.user.update({ where: { id: subInfo.userId }, data: { expiryDate: newExpiry } });
 
-    await prisma.activityLog.create({
-      data: {
-        userId: req.user.id,
-        action: `Revoked ${sub.platform?.name || 'unknown'} access for user: ${sub.user?.username || sub.userId}`,
-        ipAddress: req.ip || null, createdAt: nowISO(),
-      },
+      await tx.activityLog.create({
+        data: {
+          userId: req.user.id,
+          action: `Revoked ${subInfo.platform?.name || 'unknown'} access for user: ${subInfo.user?.username || subInfo.userId}`,
+          ipAddress: req.ip || null, createdAt: nowISO(),
+        },
+      });
     });
 
     try {
       const { emitUserEvent } = await import('../server.js');
-      emitUserEvent(sub.userId, 'subscription_revoked', { message: `${sub.platform?.name || 'Platform'} access has been revoked` });
+      emitUserEvent(subInfo.userId, 'subscription_revoked', { message: `${subInfo.platform?.name || 'Platform'} access has been revoked` });
     } catch (_) {}
 
-    res.json({ success: true, message: `${sub.platform?.name || 'Platform'} access revoked` });
+    logger.subscription('revoke', { adminId: req.user.id, subscriptionId: parsedId, userId: subInfo.userId, platform: subInfo.platform?.name });
+    res.json({ success: true, message: `${subInfo.platform?.name || 'Platform'} access revoked` });
   } catch (err) {
-    console.error('revoke_subscription error:', err);
+    logger.error('subscription', { action: 'revoke', error: err.message, subscriptionId: req.body?.subscription_id });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

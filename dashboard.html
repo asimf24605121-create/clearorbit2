@@ -2086,10 +2086,18 @@ async function refreshAfterSlotRelease(data, wasMySession) {
 
 let _dashSocket = null;
 function initDashboardSocket() {
+    if (_dashSocket) { _dashSocket.removeAllListeners(); _dashSocket.disconnect(); _dashSocket = null; }
     try {
-        _dashSocket = io({ path: '/socket.io', withCredentials: true });
-        _dashSocket.on('connect', () => { console.log('[ws] Dashboard socket connected'); });
-        _dashSocket.on('disconnect', () => { console.log('[ws] Dashboard socket disconnected'); });
+        _dashSocket = io({
+            path: '/socket.io', withCredentials: true,
+            reconnection: true, reconnectionAttempts: 20,
+            reconnectionDelay: 1000, reconnectionDelayMax: 10000,
+            timeout: 15000,
+        });
+        _dashSocket.on('connect', () => { console.log('[ws] Dashboard socket connected, id:', _dashSocket.id); });
+        _dashSocket.on('disconnect', (reason) => { console.log('[ws] Dashboard socket disconnected:', reason); });
+        _dashSocket.on('reconnect', (attempt) => { console.log('[ws] Reconnected after', attempt, 'attempts'); });
+        _dashSocket.on('reconnect_failed', () => { console.warn('[ws] Reconnection failed after max attempts'); });
 
         _dashSocket.on('slot_released', (data) => {
             console.log('[ws] slot_released', data);

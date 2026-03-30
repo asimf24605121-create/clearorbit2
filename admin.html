@@ -9038,9 +9038,17 @@ function filterAccountSlots() {
 let _socket = null;
 function initSocket() {
     try {
-        if (_socket) return;
-        _socket = io({ path: '/socket.io', withCredentials: true });
-        _socket.on('connect', () => console.log('Socket connected'));
+        if (_socket) { _socket.removeAllListeners(); _socket.disconnect(); _socket = null; }
+        _socket = io({
+            path: '/socket.io', withCredentials: true,
+            reconnection: true, reconnectionAttempts: 20,
+            reconnectionDelay: 1000, reconnectionDelayMax: 10000,
+            timeout: 15000,
+        });
+        _socket.on('connect', () => console.log('Socket connected, id:', _socket.id));
+        _socket.on('disconnect', (reason) => console.log('Socket disconnected:', reason));
+        _socket.on('reconnect', (attempt) => console.log('Reconnected after', attempt, 'attempts'));
+        _socket.on('reconnect_failed', () => console.warn('Socket reconnection failed after max attempts'));
         _socket.on('slot_updated', (data) => { _refreshAll(); });
         _socket.on('intelligence_updated', (data) => { loadIntelligenceDashboard(); });
         _socket.on('intelligence_run_complete', (data) => { showAlert(`Intelligence run: ${data.updated} accounts scored`, false); loadIntelligenceDashboard(); });

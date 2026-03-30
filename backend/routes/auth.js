@@ -7,6 +7,7 @@ import { loginLimiter } from '../middleware/rateLimit.js';
 import { nowISO, randomToken, getClientIP, parseUserAgent } from '../utils/helpers.js';
 import { sessionStore } from '../utils/sessionStore.js';
 import { lookupIP } from '../utils/geoip.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -115,7 +116,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       redirect: user.role === 'admin' ? 'admin.html' : (user.role === 'reseller' ? 'reseller.html' : 'dashboard.html'),
     });
   } catch (err) {
-    console.error('Login error:', err);
+    logger.error('auth', { action: 'login', error: err.message, username: req.body?.username });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -230,7 +231,7 @@ router.post('/heartbeat', authenticate, async (req, res) => {
 });
 
 router.get('/session/validate', authenticate, (req, res) => {
-  res.json({ valid: true, userId: req.user.id, timestamp: Date.now() });
+  res.json({ success: true, valid: true, userId: req.user.id, timestamp: Date.now() });
 });
 
 router.get('/keep_alive', authenticate, (req, res) => {

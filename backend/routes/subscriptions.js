@@ -3,6 +3,7 @@ import { prisma, emitAdminEvent, emitUserEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, getRemainingObj, getSubStatus, paginate } from '../utils/helpers.js';
+import { logger } from '../utils/logger.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -116,35 +117,50 @@ router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (r
     }
     const unit = ['minutes', 'hours', 'days'].includes(extend_unit) ? extend_unit : 'days';
     const val = parseInt(extend_value) || parseInt(days) || 0;
-    if (val < 1) return res.status(400).json({ success: false, message: 'Extension value required' });
+    if (isNaN(val) || val < 1) return res.status(400).json({ success: false, message: 'Extension value must be a positive number' });
 
-    const subs = await prisma.userSubscription.findMany({
-      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
+    const parsedIds = subscription_ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+    if (!parsedIds.length) return res.status(400).json({ success: false, message: 'No valid subscription IDs' });
+
+    const userIds = await prisma.$transaction(async (tx) => {
+      const subs = await tx.userSubscription.findMany({ where: { id: { in: parsedIds } } });
+      const affectedUsers = new Set();
+
+      for (const sub of subs) {
+        const newEnd = extendEndDate(sub.endDate, val, unit);
+        const updateData = { endDate: newEnd, isActive: 1 };
+        if (unit !== 'days' || (sub.durationUnit && sub.durationUnit !== 'days')) {
+          updateData.durationUnit = unit;
+          updateData.durationValue = val;
+        }
+        await tx.userSubscription.update({ where: { id: sub.id }, data: updateData });
+        affectedUsers.add(sub.userId);
+      }
+
+      for (const uid of affectedUsers) {
+        const activeSubs = await tx.userSubscription.findMany({ where: { userId: uid, isActive: 1 }, select: { endDate: true } });
+        const validSubs = activeSubs.filter(s => !isSubExpired(s.endDate));
+        const newExpiry = validSubs.length > 0
+          ? validSubs.reduce((max, s) => { const e = parseEndDateUTC(s.endDate); return e > max ? e : max; }, parseEndDateUTC(validSubs[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
+          : null;
+        await tx.user.update({ where: { id: uid }, data: { expiryDate: newExpiry } });
+      }
+
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Bulk extended ${subs.length} subscriptions by ${val} ${unit}`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return { count: subs.length, userIds: [...affectedUsers] };
     });
 
-    let updated = 0;
-    for (const sub of subs) {
-      const newEnd = extendEndDate(sub.endDate, val, unit);
-      const updateData = { endDate: newEnd, isActive: 1 };
-      if (unit !== 'days' || (sub.durationUnit && sub.durationUnit !== 'days')) {
-        updateData.durationUnit = unit;
-        updateData.durationValue = val;
-      }
-      await prisma.userSubscription.update({
-        where: { id: sub.id },
-        data: updateData,
-      });
-      try { emitUserEvent(sub.userId, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
-      updated++;
+    for (const uid of userIds.userIds) {
+      try { emitUserEvent(uid, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
     }
 
-    await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Bulk extended ${updated} subscriptions by ${val} ${unit}`, ipAddress: req.ip || null, createdAt: nowISO() },
-    });
-
-    res.json({ success: true, message: `${updated} subscription(s) extended by ${val} ${unit}` });
+    logger.subscription('bulk_extend', { adminId: req.user.id, count: userIds.count, extension: `${val} ${unit}` });
+    res.json({ success: true, message: `${userIds.count} subscription(s) extended by ${val} ${unit}` });
   } catch (err) {
-    console.error('bulk_extend error:', err);
+    logger.error('subscription', { action: 'bulk_extend', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -156,28 +172,45 @@ router.post('/bulk_revoke_subscriptions', authenticate, requireAdmin(), async (r
       return res.status(400).json({ success: false, message: 'subscription_ids array required' });
     }
 
-    const affectedSubs = await prisma.userSubscription.findMany({
-      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
-      select: { userId: true },
+    const parsedIds = subscription_ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+    if (!parsedIds.length) return res.status(400).json({ success: false, message: 'No valid subscription IDs' });
+
+    const result = await prisma.$transaction(async (tx) => {
+      const affectedSubs = await tx.userSubscription.findMany({
+        where: { id: { in: parsedIds } },
+        select: { userId: true },
+      });
+
+      const revokeResult = await tx.userSubscription.updateMany({
+        where: { id: { in: parsedIds } },
+        data: { isActive: 0 },
+      });
+
+      const uniqueUserIds = [...new Set(affectedSubs.map(s => s.userId))];
+      for (const uid of uniqueUserIds) {
+        const remaining = await tx.userSubscription.findMany({ where: { userId: uid, isActive: 1 }, select: { endDate: true } });
+        const valid = remaining.filter(s => !isSubExpired(s.endDate));
+        const newExpiry = valid.length > 0
+          ? valid.reduce((max, s) => { const e = parseEndDateUTC(s.endDate); return e > max ? e : max; }, parseEndDateUTC(valid[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
+          : null;
+        await tx.user.update({ where: { id: uid }, data: { expiryDate: newExpiry } });
+      }
+
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Bulk revoked ${revokeResult.count} subscriptions`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return { count: revokeResult.count, userIds: uniqueUserIds };
     });
 
-    const result = await prisma.userSubscription.updateMany({
-      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
-      data: { isActive: 0 },
-    });
-
-    const uniqueUserIds = [...new Set(affectedSubs.map(s => s.userId))];
-    for (const uid of uniqueUserIds) {
+    for (const uid of result.userIds) {
       try { emitUserEvent(uid, 'subscription_revoked', { message: 'A subscription has been revoked' }); } catch (_) {}
     }
 
-    await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Bulk revoked ${result.count} subscriptions`, ipAddress: req.ip || null, createdAt: nowISO() },
-    });
-
+    logger.subscription('bulk_revoke', { adminId: req.user.id, count: result.count });
     res.json({ success: true, message: `${result.count} subscription(s) revoked` });
   } catch (err) {
-    console.error('bulk_revoke error:', err);
+    logger.error('subscription', { action: 'bulk_revoke', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -229,36 +262,47 @@ router.post('/add_subscription', authenticate, requireAdmin(), async (req, res) 
       return res.status(400).json({ success: false, message: 'User ID and Platform ID required' });
     }
 
-    const unit = ['minutes', 'hours', 'days'].includes(duration_unit) ? duration_unit : 'days';
-    const durVal = parseInt(duration_value) || parseInt(duration_days) || 30;
-    if (durVal < 1) return res.status(400).json({ success: false, message: 'Duration must be at least 1' });
-    const endDateValue = end_date || computeEndDate(durVal, unit);
-
-    const existing = await prisma.userSubscription.findFirst({
-      where: { userId: parseInt(user_id), platformId: parseInt(platform_id), isActive: 1 },
-    });
-    if (existing) {
-      const { parseEndDateUTC } = await import('../utils/helpers.js');
-      if (parseEndDateUTC(existing.endDate) > Date.now()) {
-        return res.status(409).json({ success: false, message: 'User already has an active subscription for this platform. Use extend instead.' });
-      }
+    const parsedUserId = parseInt(user_id);
+    const parsedPlatformId = parseInt(platform_id);
+    if (isNaN(parsedUserId) || isNaN(parsedPlatformId)) {
+      return res.status(400).json({ success: false, message: 'Invalid user or platform ID' });
     }
 
-    const sub = await prisma.userSubscription.create({
-      data: {
-        userId: parseInt(user_id), platformId: parseInt(platform_id),
-        startDate: nowISO(), endDate: endDateValue, isActive: 1,
-        durationValue: durVal, durationUnit: unit,
-      },
+    const unit = ['minutes', 'hours', 'days'].includes(duration_unit) ? duration_unit : 'days';
+    const durVal = parseInt(duration_value) || parseInt(duration_days) || 30;
+    if (isNaN(durVal) || durVal < 1) return res.status(400).json({ success: false, message: 'Duration must be a positive number' });
+    const endDateValue = end_date || computeEndDate(durVal, unit);
+
+    const sub = await prisma.$transaction(async (tx) => {
+      const existing = await tx.userSubscription.findFirst({
+        where: { userId: parsedUserId, platformId: parsedPlatformId, isActive: 1 },
+      });
+      if (existing) {
+        if (parseEndDateUTC(existing.endDate) > Date.now()) {
+          throw Object.assign(new Error('User already has an active subscription for this platform. Use extend instead.'), { statusCode: 409 });
+        }
+      }
+
+      const created = await tx.userSubscription.create({
+        data: {
+          userId: parsedUserId, platformId: parsedPlatformId,
+          startDate: nowISO(), endDate: endDateValue, isActive: 1,
+          durationValue: durVal, durationUnit: unit,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: { userId: req.user.id, action: `Added subscription for user ${user_id} on platform ${platform_id} (${durVal} ${unit})`, ipAddress: req.ip || null, createdAt: nowISO() },
+      });
+
+      return created;
     });
 
-    await prisma.activityLog.create({
-      data: { userId: req.user.id, action: `Added subscription for user ${user_id} on platform ${platform_id} (${durVal} ${unit})`, ipAddress: req.ip || null, createdAt: nowISO() },
-    });
-
+    logger.subscription('add', { adminId: req.user.id, userId: parsedUserId, platformId: parsedPlatformId, duration: `${durVal} ${unit}`, subscriptionId: sub.id });
     res.json({ success: true, message: 'Subscription added', subscription_id: sub.id });
   } catch (err) {
-    console.error('add_subscription error:', err);
+    if (err.statusCode === 409) return res.status(409).json({ success: false, message: err.message });
+    logger.error('subscription', { action: 'add', error: err.message, userId: req.body?.user_id });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -281,30 +325,34 @@ router.post('/extend_subscription', authenticate, requireAdmin(), adminActionLim
     const { subscription_id, days, extend_value, extend_unit } = req.body;
     if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });
 
-    const sub = await prisma.userSubscription.findUnique({ where: { id: parseInt(subscription_id) } });
-    if (!sub) return res.status(404).json({ success: false, message: 'Subscription not found' });
+    const parsedId = parseInt(subscription_id);
+    if (isNaN(parsedId)) return res.status(400).json({ success: false, message: 'Invalid subscription ID' });
 
     const unit = ['minutes', 'hours', 'days'].includes(extend_unit) ? extend_unit : 'days';
     const val = parseInt(extend_value) || parseInt(days) || 0;
-    if (val < 1) return res.status(400).json({ success: false, message: 'Extension value required' });
+    if (isNaN(val) || val < 1) return res.status(400).json({ success: false, message: 'Extension value must be a positive number' });
 
-    const newEndDate = extendEndDate(sub.endDate, val, unit);
+    const result = await prisma.$transaction(async (tx) => {
+      const sub = await tx.userSubscription.findUnique({ where: { id: parsedId } });
+      if (!sub) throw Object.assign(new Error('Subscription not found'), { statusCode: 404 });
 
-    const updateData = { endDate: newEndDate, isActive: 1 };
-    if (unit !== 'days' || sub.durationUnit !== 'days') {
-      updateData.durationUnit = unit;
-      updateData.durationValue = val;
-    }
-    await prisma.userSubscription.update({
-      where: { id: sub.id },
-      data: updateData,
+      const newEndDate = extendEndDate(sub.endDate, val, unit);
+      const updateData = { endDate: newEndDate, isActive: 1 };
+      if (unit !== 'days' || sub.durationUnit !== 'days') {
+        updateData.durationUnit = unit;
+        updateData.durationValue = val;
+      }
+      await tx.userSubscription.update({ where: { id: sub.id }, data: updateData });
+      return { newEndDate, userId: sub.userId };
     });
 
-    try { emitUserEvent(sub.userId, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
+    try { emitUserEvent(result.userId, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
 
-    res.json({ success: true, message: 'Subscription extended', new_end_date: newEndDate });
+    logger.subscription('extend', { adminId: req.user.id, subscriptionId: parsedId, extension: `${val} ${unit}`, newEndDate: result.newEndDate });
+    res.json({ success: true, message: 'Subscription extended', new_end_date: result.newEndDate });
   } catch (err) {
-    console.error('extend_subscription error:', err);
+    if (err.statusCode) return res.status(err.statusCode).json({ success: false, message: err.message });
+    logger.error('subscription', { action: 'extend', error: err.message, subscriptionId: req.body?.subscription_id });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -887,84 +935,99 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
     const { payment_id, action: payAction, reject_reason } = req.body;
     if (!payment_id) return res.status(400).json({ success: false, message: 'Payment ID required' });
 
-    const payment = await prisma.payment.findUnique({ where: { id: parseInt(payment_id) } });
-    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
-
-    if (payment.status !== 'pending') {
-      return res.status(409).json({ success: false, message: `Payment already ${payment.status}. Cannot process again.` });
-    }
+    const parsedPaymentId = parseInt(payment_id);
+    if (isNaN(parsedPaymentId)) return res.status(400).json({ success: false, message: 'Invalid payment ID' });
 
     const newStatus = payAction === 'reject' ? 'rejected' : 'approved';
     const now = nowISO();
-    const updateData = { status: newStatus, updatedAt: now, reviewedAt: now, reviewedBy: req.user.id };
-    if (payAction === 'reject' && reject_reason) updateData.rejectionReason = reject_reason;
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: updateData,
-    });
 
-    if (newStatus === 'approved' && payment.userId) {
-      let durValue, durUnit;
-
-      if (payment.planDurationValue && payment.planDurationUnit) {
-        durValue = payment.planDurationValue;
-        durUnit = payment.planDurationUnit;
-      } else {
-        const plan = await prisma.pricingPlan.findFirst({
-          where: { platformId: payment.platformId, durationKey: payment.durationKey },
-        });
-        if (plan && plan.durationValue > 0) {
-          durValue = plan.durationValue;
-          durUnit = plan.durationUnit;
-        } else {
-          const fallback = { '1_week': 7, '1_month': 30, '6_months': 180, '1_year': 365 };
-          durValue = fallback[payment.durationKey] || 30;
-          durUnit = 'days';
-        }
+    const result = await prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.findUnique({ where: { id: parsedPaymentId } });
+      if (!payment) throw Object.assign(new Error('Payment not found'), { statusCode: 404 });
+      if (payment.status !== 'pending') {
+        throw Object.assign(new Error(`Payment already ${payment.status}. Cannot process again.`), { statusCode: 409 });
       }
 
-      await prisma.userSubscription.create({
-        data: {
-          userId: payment.userId, platformId: payment.platformId,
-          startDate: now, endDate: computeEndDate(durValue, durUnit), isActive: 1,
-          durationValue: durValue, durationUnit: durUnit,
-        },
-      });
+      const updateData = { status: newStatus, updatedAt: now, reviewedAt: now, reviewedBy: req.user.id };
+      if (payAction === 'reject' && reject_reason) updateData.rejectionReason = reject_reason;
+      await tx.payment.update({ where: { id: payment.id }, data: updateData });
 
+      let subscriptionId = null;
+      if (newStatus === 'approved' && payment.userId) {
+        let durValue, durUnit;
+        if (payment.planDurationValue && payment.planDurationUnit) {
+          durValue = payment.planDurationValue;
+          durUnit = payment.planDurationUnit;
+        } else {
+          const plan = await tx.pricingPlan.findFirst({
+            where: { platformId: payment.platformId, durationKey: payment.durationKey },
+          });
+          if (plan && plan.durationValue > 0) {
+            durValue = plan.durationValue;
+            durUnit = plan.durationUnit;
+          } else {
+            const fallback = { '1_week': 7, '1_month': 30, '6_months': 180, '1_year': 365 };
+            durValue = fallback[payment.durationKey] || 30;
+            durUnit = 'days';
+          }
+        }
+
+        const existingActive = await tx.userSubscription.findFirst({
+          where: { userId: payment.userId, platformId: payment.platformId, isActive: 1 },
+        });
+        let sub;
+        if (existingActive && parseEndDateUTC(existingActive.endDate) > Date.now()) {
+          const newEnd = extendEndDate(existingActive.endDate, durValue, durUnit);
+          await tx.userSubscription.update({ where: { id: existingActive.id }, data: { endDate: newEnd } });
+          sub = existingActive;
+        } else {
+          sub = await tx.userSubscription.create({
+            data: {
+              userId: payment.userId, platformId: payment.platformId,
+              startDate: now, endDate: computeEndDate(durValue, durUnit), isActive: 1,
+              durationValue: durValue, durationUnit: durUnit,
+            },
+          });
+        }
+        subscriptionId = sub.id;
+      }
+
+      return { payment, subscriptionId };
+    });
+
+    if (newStatus === 'approved' && result.payment.userId) {
       try {
         await prisma.userNotification.create({
           data: {
-            userId: payment.userId,
+            userId: result.payment.userId,
             title: 'Payment Approved',
-            message: `Your payment for ${payment.durationKey} has been approved. Subscription is now active!`,
-            type: 'success',
-            isRead: 0,
-            createdAt: now,
+            message: `Your payment for ${result.payment.durationKey} has been approved. Subscription is now active!`,
+            type: 'success', isRead: 0, createdAt: now,
           },
         });
-        emitUserEvent(payment.userId, 'payment_approved', { payment_id: payment.id });
-      } catch (e) { console.error('Payment approval notification error:', e.message); }
+        emitUserEvent(result.payment.userId, 'payment_approved', { payment_id: result.payment.id });
+      } catch (e) { logger.error('notification', { action: 'payment_approved', error: e.message }); }
     }
 
-    if (newStatus === 'rejected' && payment.userId) {
+    if (newStatus === 'rejected' && result.payment.userId) {
       try {
         await prisma.userNotification.create({
           data: {
-            userId: payment.userId,
+            userId: result.payment.userId,
             title: 'Payment Rejected',
             message: reject_reason || 'Your payment was rejected. Please contact support.',
-            type: 'warning',
-            isRead: 0,
-            createdAt: now,
+            type: 'warning', isRead: 0, createdAt: now,
           },
         });
-        emitUserEvent(payment.userId, 'payment_rejected', { payment_id: payment.id, reason: reject_reason });
-      } catch (e) { console.error('Payment rejection notification error:', e.message); }
+        emitUserEvent(result.payment.userId, 'payment_rejected', { payment_id: result.payment.id, reason: reject_reason });
+      } catch (e) { logger.error('notification', { action: 'payment_rejected', error: e.message }); }
     }
 
+    logger.payment(newStatus, { adminId: req.user.id, paymentId: parsedPaymentId, userId: result.payment.userId });
     res.json({ success: true, message: `Payment ${newStatus}` });
   } catch (err) {
-    console.error('approve_payment error:', err);
+    if (err.statusCode) return res.status(err.statusCode).json({ success: false, message: err.message });
+    logger.error('payment', { action: 'approve', error: err.message, paymentId: req.body?.payment_id });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

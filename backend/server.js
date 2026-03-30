@@ -123,6 +123,17 @@ app.get('/:page.html', (req, res) => {
   });
 });
 
+app.use('/api', (err, req, res, _next) => {
+  const status = err.statusCode || err.status || 500;
+  const message = status < 500 ? err.message : 'Server error';
+  if (status >= 500) {
+    console.error(JSON.stringify({ ts: new Date().toISOString(), level: 'error', category: 'unhandled', method: req.method, path: req.path, error: err.message, stack: err.stack?.split('\n').slice(0, 3).join(' | ') }));
+  }
+  if (!res.headersSent) {
+    res.status(status).json({ success: false, message });
+  }
+});
+
 const io = new SocketServer(httpServer, {
   cors: {
     origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
@@ -476,6 +487,14 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
 
   const SLOT_SYNC_INTERVAL = 60 * 1000;
   setInterval(sessionStore.runSlotSyncCheck(prisma), SLOT_SYNC_INTERVAL);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error(JSON.stringify({ ts: new Date().toISOString(), level: 'critical', category: 'uncaughtException', error: err.message, stack: err.stack?.split('\n').slice(0, 5).join(' | ') }));
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error(JSON.stringify({ ts: new Date().toISOString(), level: 'critical', category: 'unhandledRejection', error: String(reason), stack: reason?.stack?.split('\n').slice(0, 5).join(' | ') }));
 });
 
 process.on('SIGTERM', async () => {
