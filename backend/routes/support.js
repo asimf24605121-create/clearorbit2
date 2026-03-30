@@ -4,6 +4,7 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO, cutoffISO, paginate } from '../utils/helpers.js';
 import { logger } from '../utils/logger.js';
 import { contactLimiter } from '../middleware/rateLimit.js';
+import { sendContactReplyEmail, isSmtpConfigured } from '../utils/mailer.js';
 
 const router = Router();
 
@@ -472,10 +473,17 @@ router.post('/update_contact', authenticate, requireAdmin(), async (req, res) =>
 
     const data = {};
     if (is_read !== undefined) data.isRead = parseInt(is_read);
+
+    let emailResult = null;
     if (admin_reply !== undefined) {
       data.adminReply = admin_reply;
       data.repliedAt = now;
       data.isRead = 1;
+
+      const contact = await prisma.contactMessage.findUnique({ where: { id: parseInt(contact_id) } });
+      if (contact && contact.email && isSmtpConfigured()) {
+        emailResult = await sendContactReplyEmail(contact.email, contact.name, admin_reply, contact.message);
+      }
     }
 
     await prisma.contactMessage.update({
@@ -483,7 +491,20 @@ router.post('/update_contact', authenticate, requireAdmin(), async (req, res) =>
       data,
     });
 
-    res.json({ success: true, message: 'Contact updated' });
+    let message = 'Contact updated';
+    if (admin_reply !== undefined) {
+      if (emailResult && emailResult.success) {
+        message = 'Reply sent to email';
+      } else if (emailResult && !emailResult.success) {
+        message = 'Reply saved but email delivery failed';
+      } else if (!isSmtpConfigured()) {
+        message = 'Reply saved (email delivery not configured)';
+      } else {
+        message = 'Reply saved';
+      }
+    }
+
+    res.json({ success: true, message });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
