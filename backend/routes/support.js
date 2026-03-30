@@ -503,6 +503,12 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
       if (start_time) data.startTime = start_time;
       if (end_time) data.endTime = end_time;
       const ann = await prisma.announcement.create({ data });
+      if (data.status === 'active') {
+        try {
+          const { io } = await import('../server.js');
+          io.emit('announcement_published', { id: ann.id, title: ann.title, type: ann.type });
+        } catch (_) {}
+      }
       return res.json({ success: true, message: 'Announcement created', id: ann.id });
     }
 
@@ -526,7 +532,14 @@ router.post('/manage_announcement', authenticate, requireAdmin(), async (req, re
     if (action === 'toggle' && annId) {
       const ann = await prisma.announcement.findUnique({ where: { id: parseInt(annId) } });
       if (!ann) return res.status(404).json({ success: false, message: 'Announcement not found' });
-      await prisma.announcement.update({ where: { id: parseInt(annId) }, data: { status: ann.status === 'active' ? 'inactive' : 'active' } });
+      const newStatus = ann.status === 'active' ? 'inactive' : 'active';
+      await prisma.announcement.update({ where: { id: parseInt(annId) }, data: { status: newStatus } });
+      if (newStatus === 'active') {
+        try {
+          const { io } = await import('../server.js');
+          io.emit('announcement_published', { id: ann.id, title: ann.title, type: ann.type });
+        } catch (_) {}
+      }
       return res.json({ success: true, message: 'Announcement toggled' });
     }
 

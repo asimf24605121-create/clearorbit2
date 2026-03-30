@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma, emitAdminEvent } from '../server.js';
+import { prisma, emitAdminEvent, emitUserEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, getRemainingObj, getSubStatus, paginate } from '../utils/helpers.js';
@@ -134,6 +134,7 @@ router.post('/bulk_extend_subscriptions', authenticate, requireAdmin(), async (r
         where: { id: sub.id },
         data: updateData,
       });
+      try { emitUserEvent(sub.userId, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
       updated++;
     }
 
@@ -155,10 +156,20 @@ router.post('/bulk_revoke_subscriptions', authenticate, requireAdmin(), async (r
       return res.status(400).json({ success: false, message: 'subscription_ids array required' });
     }
 
+    const affectedSubs = await prisma.userSubscription.findMany({
+      where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
+      select: { userId: true },
+    });
+
     const result = await prisma.userSubscription.updateMany({
       where: { id: { in: subscription_ids.map(id => parseInt(id)) } },
       data: { isActive: 0 },
     });
+
+    const uniqueUserIds = [...new Set(affectedSubs.map(s => s.userId))];
+    for (const uid of uniqueUserIds) {
+      try { emitUserEvent(uid, 'subscription_revoked', { message: 'A subscription has been revoked' }); } catch (_) {}
+    }
 
     await prisma.activityLog.create({
       data: { userId: req.user.id, action: `Bulk revoked ${result.count} subscriptions`, ipAddress: req.ip || null, createdAt: nowISO() },
@@ -277,6 +288,8 @@ router.post('/extend_subscription', authenticate, requireAdmin(), adminActionLim
       where: { id: sub.id },
       data: updateData,
     });
+
+    try { emitUserEvent(sub.userId, 'subscription_updated', { message: `Your subscription has been extended by ${val} ${unit}` }); } catch (_) {}
 
     res.json({ success: true, message: 'Subscription extended', new_end_date: newEndDate });
   } catch (err) {
@@ -908,7 +921,6 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
       });
 
       try {
-        const { emitUserEvent } = await import('../server.js');
         await prisma.userNotification.create({
           data: {
             userId: payment.userId,
@@ -925,7 +937,6 @@ router.post('/approve_payment', authenticate, requireAdmin('super_admin'), async
 
     if (newStatus === 'rejected' && payment.userId) {
       try {
-        const { emitUserEvent } = await import('../server.js');
         await prisma.userNotification.create({
           data: {
             userId: payment.userId,

@@ -1,0 +1,221 @@
+You are a senior SaaS architect and full-stack engineer.
+
+Your task is to transform this entire platform (Admin Panel + User Dashboard + Support + Payments + WhatsApp + Contact + Announcements) into a production-grade SaaS system used by 1000+ concurrent users.
+
+DO NOT break existing functionality. Upgrade, standardize, and connect everything properly.
+
+-----------------------------------
+CORE OBJECTIVE
+-----------------------------------
+Fix ALL connectivity issues between:
+- Admin panel
+- User dashboard
+- Pricing / Subscription system
+- Support / Contact / WhatsApp modules
+- Extension connection system
+
+Make the system feel like it was built by a senior developer team.
+
+-----------------------------------
+1. FIX CRITICAL BUGS FIRST
+-----------------------------------
+
+1. Premium Subscription Button:
+- Must NEVER trigger logout
+- Add safe navigation (prevent event bubbling issues)
+- Add loading state + route validation
+- Add session check before navigation
+
+2. Button Reliability:
+- All buttons must use centralized handler system
+- Add debounce + loading state
+- No duplicate clicks allowed
+- Show success/error toast
+
+3. Extension Connection:
+- Replace "Extension not connected" with:
+  → Smart detection system
+  → Auto-check every 5 seconds
+  → Show status:
+     - Connected ✅
+     - Not installed ❌
+     - Not active ⚠️
+
+- Add CTA:
+  → Install Extension
+  → Retry Connection
+
+-----------------------------------
+2. ADMIN ↔ USER REAL-TIME SYNC
+-----------------------------------
+
+Implement FULL real-time sync using:
+- Socket.io OR polling fallback
+
+Sync these instantly:
+- Subscription updates
+- Extend / Revoke actions
+- Support replies
+- Announcements
+- Payments status
+
+User dashboard should auto-update WITHOUT refresh.
+
+-----------------------------------
+3. SUPPORT SYSTEM (ULTRA PRO)
+-----------------------------------
+
+Upgrade to full ticketing system:
+
+User Side:
+- Create ticket
+- Attach message
+- See status (Open / In Progress / Closed)
+- Real-time replies
+
+Admin Side:
+- View tickets
+- Reply inline (chat-style)
+- Change status
+- Set priority (Low / Medium / High)
+
+Add:
+- Unread badge
+- Live updates
+- Auto scroll chat
+
+-----------------------------------
+4. CONTACT PAGE (SMART CRM STYLE)
+-----------------------------------
+
+User:
+- Submit message
+- Select category (Bug / Payment / General)
+- Get confirmation
+
+Admin:
+- Inbox system
+- Reply button
+- Mark as:
+   → Pending
+   → Replied
+   → Closed
+
+Optional:
+- Auto email reply system
+
+-----------------------------------
+5. WHATSAPP SYSTEM (SMART)
+-----------------------------------
+
+- Floating WhatsApp button
+- Dynamic number from admin
+- Pre-filled message:
+  "Hello, I need help with my subscription"
+
+Admin panel:
+- Change number
+- Enable/Disable globally
+
+-----------------------------------
+6. PAYMENTS SYSTEM (PRO LEVEL)
+-----------------------------------
+
+User:
+- Upload payment proof
+- Select plan
+
+Admin:
+- Approve / Reject
+- Add note
+- Auto-activate subscription
+
+Add:
+- Payment status:
+   Pending / Approved / Rejected
+- Timeline view
+
+-----------------------------------
+7. ANNOUNCEMENTS SYSTEM
+-----------------------------------
+
+Admin:
+- Create announcement
+- Add:
+   → Title
+   → Message
+   → Type (Info / Warning / Critical)
+
+User:
+- See banner
+- Mark as read
+- Store in local state
+
+-----------------------------------
+8. USER DASHBOARD UX (PREMIUM)
+-----------------------------------
+
+Improve UI to elite SaaS level:
+
+- Smooth animations (no lag)
+- Skeleton loading
+- Better card hover effects
+- Real-time countdown timer (seconds accurate)
+
+Platform Cards:
+- Add:
+   → Status color
+   → Expiry progress bar
+   → Extend button (if allowed)
+
+-----------------------------------
+9. SESSION & SECURITY
+-----------------------------------
+
+- Fix session mismatch issues
+- Add:
+   → Token validation before API calls
+   → Auto logout on invalid session
+   → Multi-device control (already exists → refine UX)
+
+-----------------------------------
+10. PERFORMANCE (IMPORTANT)
+-----------------------------------
+
+Must support:
+- 1000+ concurrent users
+
+Optimize:
+- API responses < 200ms
+- Avoid duplicate fetch calls
+- Use caching where needed
+
+-----------------------------------
+11. CODE STANDARDIZATION
+-----------------------------------
+
+- Central API handler (safe-fetch.js)
+- Central UI toast system
+- Central state management pattern
+- No inline messy JS
+
+-----------------------------------
+FINAL RESULT EXPECTATION
+-----------------------------------
+
+The platform should feel like:
+
+- Stripe Dashboard
+- Notion-level UI polish
+- Real-time SaaS system
+- No broken buttons
+- No UI confusion
+
+Everything must be:
+- Fast
+- Clean
+- Reliable
+- Professional
+
+DO NOT break existing features.
+Only upgrade and connect everything properly.

@@ -739,6 +739,11 @@ router.post('/revoke_subscription', authenticate, requireAdmin(), adminActionLim
       },
     });
 
+    try {
+      const { emitUserEvent } = await import('../server.js');
+      emitUserEvent(sub.userId, 'subscription_revoked', { message: `${sub.platform?.name || 'Platform'} access has been revoked` });
+    } catch (_) {}
+
     res.json({ success: true, message: `${sub.platform?.name || 'Platform'} access revoked` });
   } catch (err) {
     console.error('revoke_subscription error:', err);

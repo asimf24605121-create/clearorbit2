@@ -679,6 +679,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/safe-fetch.js"></script>
+<script src="js/debounce.js"></script>
 <script src="js/timeDisplay.js"></script>
 <script>
 let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
@@ -779,9 +780,7 @@ function showToast(msg, type = 'success') {
 window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'CLEARORBIT_PONG') {
         clearorbitExtensionReady = true;
-        document.getElementById('extensionStatus').innerHTML = '<span class="ext-connected inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span><span class="text-green-600 font-semibold">Extension connected</span>';
-        document.getElementById('extDot').classList.add('ext-connected');
-        document.getElementById('floatingExtAlert').classList.add('hidden');
+        updateExtensionUI('connected');
     }
     if (e.data && e.data.type === 'CLEARORBIT_RESPONSE') {
         if (e.data.success) {
@@ -819,11 +818,60 @@ window.addEventListener('message', (e) => {
         window._lastSlotAssignment = null;
     }
 });
+let _extCheckInterval = null;
+let _extCheckCount = 0;
+const _EXT_CHECK_MAX = 60;
+const _EXT_CHECK_MS = 5000;
+
+function checkExtension() {
+    if (clearorbitExtensionReady) {
+        if (_extCheckInterval) { clearInterval(_extCheckInterval); _extCheckInterval = null; }
+        return;
+    }
+    window.postMessage({ type: 'CLEARORBIT_PING' }, '*');
+}
+
+function updateExtensionUI(state) {
+    const el = document.getElementById('extensionStatus');
+    const alert = document.getElementById('floatingExtAlert');
+    if (state === 'connected') {
+        el.innerHTML = '<span class="ext-connected inline-block w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-600 font-semibold text-xs">Connected</span>';
+        document.getElementById('extDot').classList.add('ext-connected');
+        alert.classList.add('hidden');
+    } else if (state === 'not_active') {
+        el.innerHTML = '<svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span class="text-amber-600 text-xs">Not active</span><button onclick="retryExtension()" class="text-indigo-600 text-xs font-semibold ml-1 hover:underline">Retry</button>';
+        alert.classList.remove('hidden');
+    } else {
+        el.innerHTML = '<svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg><span class="text-slate-500 text-xs">Not installed</span><a href="/assets/extension.zip" download class="text-indigo-600 text-xs font-semibold ml-1 hover:underline">Install</a>';
+        alert.classList.remove('hidden');
+    }
+}
+
+function retryExtension() {
+    _extCheckCount = 0;
+    document.getElementById('extensionStatus').innerHTML = '<svg class="w-3.5 h-3.5 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span class="text-slate-400 text-xs">Checking...</span>';
+    checkExtension();
+    if (!_extCheckInterval) {
+        _extCheckInterval = setInterval(() => {
+            _extCheckCount++;
+            if (clearorbitExtensionReady) { clearInterval(_extCheckInterval); _extCheckInterval = null; return; }
+            if (_extCheckCount >= _EXT_CHECK_MAX) { clearInterval(_extCheckInterval); _extCheckInterval = null; updateExtensionUI('not_installed'); return; }
+            if (_extCheckCount >= 3 && !clearorbitExtensionReady) updateExtensionUI('not_active');
+            checkExtension();
+        }, _EXT_CHECK_MS);
+    }
+}
+
 window.postMessage({ type: 'CLEARORBIT_PING' }, '*');
 setTimeout(() => {
-    if (!clearorbitExtensionReady) {
-        document.getElementById('extensionStatus').innerHTML = '<svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span class="text-amber-600">Extension not detected</span>';
-        document.getElementById('floatingExtAlert').classList.remove('hidden');
+    if (!clearorbitExtensionReady && !_extCheckInterval) {
+        updateExtensionUI('not_active');
+        _extCheckInterval = setInterval(() => {
+            _extCheckCount++;
+            if (clearorbitExtensionReady) { clearInterval(_extCheckInterval); _extCheckInterval = null; return; }
+            if (_extCheckCount >= _EXT_CHECK_MAX) { clearInterval(_extCheckInterval); _extCheckInterval = null; updateExtensionUI('not_installed'); return; }
+            checkExtension();
+        }, _EXT_CHECK_MS);
     }
 }, 2500);
 
@@ -2074,6 +2122,59 @@ function initDashboardSocket() {
                 return;
             }
             refreshAfterSlotRelease(data, wasMySession);
+        });
+
+        _dashSocket.on('subscription_updated', (data) => {
+            console.log('[ws] subscription_updated', data);
+            showToast(data.message || 'Your subscription has been updated', 'info');
+            pollStatus();
+        });
+
+        _dashSocket.on('subscription_revoked', (data) => {
+            console.log('[ws] subscription_revoked', data);
+            showToast(data.message || 'A subscription has been revoked', 'warning');
+            pollStatus();
+        });
+
+        _dashSocket.on('payment_approved', (data) => {
+            console.log('[ws] payment_approved', data);
+            showToast('Your payment has been approved! Subscription activated.', 'success');
+            pollStatus();
+            triggerBellBounce();
+            loadNotifications();
+        });
+
+        _dashSocket.on('payment_rejected', (data) => {
+            console.log('[ws] payment_rejected', data);
+            showToast('Your payment was rejected.' + (data.reason ? ' Reason: ' + data.reason : ''), 'error');
+            loadNotifications();
+        });
+
+        _dashSocket.on('ticket_reply', (data) => {
+            console.log('[ws] ticket_reply', data);
+            showToast('New reply on your support ticket', 'info');
+            triggerBellBounce();
+            loadNotifications();
+        });
+
+        _dashSocket.on('ticket_updated', (data) => {
+            console.log('[ws] ticket_updated', data);
+            if (data.status) showToast('Ticket status changed to: ' + data.status, 'info');
+            loadNotifications();
+        });
+
+        _dashSocket.on('announcement_published', (data) => {
+            console.log('[ws] announcement_published', data);
+            setTimeout(checkAnnouncement, 500);
+        });
+
+        _dashSocket.on('whatsapp_order_updated', (data) => {
+            console.log('[ws] whatsapp_order_updated', data);
+            const wsMsgs = { paid: 'Your WhatsApp order has been confirmed!', completed: 'Your WhatsApp order is complete!', cancelled: 'Your WhatsApp order was cancelled', contacted: 'Your WhatsApp order is being processed' };
+            const wsTypes = { paid: 'success', completed: 'success', cancelled: 'error', contacted: 'info', pending: 'info' };
+            if (data.status && wsMsgs[data.status]) showToast(wsMsgs[data.status], wsTypes[data.status]);
+            else if (data.status) showToast('WhatsApp order status: ' + data.status, wsTypes[data.status] || 'info');
+            loadNotifications();
         });
 
         _dashSocket.on('platform_access_revoked', (data) => {
