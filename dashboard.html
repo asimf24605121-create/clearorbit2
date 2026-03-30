@@ -1019,7 +1019,7 @@ function renderCards(cards) {
         if (isExpired) {
             status = 'Expired'; statusClass = 'badge-red'; barClass = 'progress-bar-expired'; expired++;
         } else if (remainMs <= 3 * 86400000) {
-            const smartLabel = remainMs < 60000 ? 'Expiring now' : remainMs < 3600000 ? Math.floor(remainMs / 60000) + 'm left' : remainMs <= 86400000 ? Math.floor(remainMs / 3600000) + 'h ' + Math.floor((remainMs % 3600000) / 60000) + 'm left' : (function(){ const dd=Math.floor(remainMs/86400000), hh=Math.floor((remainMs%86400000)/3600000); return hh > 0 ? dd+'d '+hh+'h left' : dd+'d left'; })();
+            const smartLabel = remainMs < 60000 ? 'Expiring now' : remainMs < 3600000 ? Math.floor(remainMs / 60000) + 'm left' : remainMs < 86400000 ? Math.floor(remainMs / 3600000) + 'h ' + Math.floor((remainMs % 3600000) / 60000) + 'm left' : (function(){ const dd=Math.floor(remainMs/86400000), hh=Math.floor((remainMs%86400000)/3600000); return hh > 0 ? dd+'d '+hh+'h left' : dd+'d left'; })();
             status = 'Expiring · ' + smartLabel; statusClass = 'badge-yellow'; barClass = 'progress-bar-expiring'; expiring++;
         } else {
             status = 'Active'; statusClass = 'badge-green'; barClass = 'progress-bar-active'; active++;

@@ -856,7 +856,7 @@ async function loadProfile() {
             } else if (totalMs < 3600000) {
                 const mins = Math.floor(totalMs / 60000);
                 remainBadge = `<span class="badge badge-red">${mins < 1 ? 'Expiring now' : mins + 'm left'}</span>`;
-            } else if (totalMs <= 86400000) {
+            } else if (totalMs < 86400000) {
                 const hrs = Math.floor(totalMs / 3600000);
                 const mins = Math.floor((totalMs % 3600000) / 60000);
                 remainBadge = `<span class="badge badge-orange">${hrs}h ${mins}m left</span>`;
