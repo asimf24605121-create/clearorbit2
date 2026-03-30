@@ -3464,7 +3464,7 @@ function getUserStatusBadge(u) {
 }
 
 function smartTimeLabel(ms) {
-    if (ms <= 0) return 'Expired';
+    if (!ms || ms <= 0 || !isFinite(ms)) return 'Expired';
     if (ms < 60000) return '<1m';
     const totalMins = Math.floor(ms / 60000);
     if (totalMins < 60) return totalMins + 'm';

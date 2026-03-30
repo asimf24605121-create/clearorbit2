@@ -1,0 +1,104 @@
+Good. Now do not stop at code changes only.
+
+I want a **final verification pass** for this feature across the full system.
+
+## Final QA and verification tasks
+
+### 1) Verify real behavior with live test data
+
+Create and test real subscriptions with:
+
+* 5 minutes
+* 30 minutes
+* 2 hours
+* 23 hours
+* 25 hours
+* 2 days
+
+Confirm that display is correct everywhere:
+
+* 5 minutes → shows minutes countdown
+* 30 minutes → shows minutes countdown
+* 2 hours → shows hours/minutes
+* 23 hours → shows hours/minutes, not 1 day
+* 25 hours → shows 1d left only if more than full 24h remains according to floor logic
+* 2 days → shows 2d left correctly
+
+---
+
+### 2) Verify every affected screen manually
+
+Check all of these pages/screens in browser with live data:
+
+#### Admin side
+
+* Users table expiry column
+* User status badge
+* View Profile modal subscriptions
+* Manage Subscription / Assign Platform flow
+* Any expiry badges or labels
+* Any sorting related to expiry
+
+#### User side
+
+* Dashboard platform cards
+* Subscription cards
+* Profile page badges
+* Expired/active states
+* Locked/unlocked cards
+
+Do not assume. Open and confirm each one.
+
+---
+
+### 3) Verify countdown transitions
+
+Confirm these transitions happen correctly:
+
+* 25h → 1d left
+* 23h 59m → hours/minutes, not 1d
+* 59m → minutes only
+* under 1m → expiring now / <1m
+* after expiry → expired state immediately
+
+Make sure no stale cached value remains after refresh.
+
+---
+
+### 4) Verify timezone and UTC consistency
+
+Test with exact timestamps and confirm:
+
+* backend stores UTC correctly
+* frontend parses correctly
+* browser local timezone does not cause wrong “1d left”
+* refresh does not change remaining label incorrectly
+
+---
+
+### 5) Verify no regressions
+
+Make sure these old behaviors are not broken:
+
+* long day-based subscriptions still display correctly
+* expired states still work
+* access control still works
+* short-access routing/profile rules still work
+* no NaN / NaNd anywhere
+* no mixed page inconsistency
+
+---
+
+### 6) Final output I want from you
+
+After testing, give me:
+
+1. list of all files changed
+2. list of all screens manually verified
+3. exact test cases run
+4. any remaining edge cases
+5. confirmation that no place still shows “1 day” for under 24 hours
+6. confirmation that all affected pages are now consistent
+
+Do not just say “fixed”.
+I want implementation + verification proof.
