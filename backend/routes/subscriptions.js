@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { nowISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, getRemainingObj, getSubStatus, paginate } from '../utils/helpers.js';
 
 const router = Router();
@@ -229,7 +230,7 @@ router.post('/delete_subscription', authenticate, requireAdmin(), async (req, re
   }
 });
 
-router.post('/extend_subscription', authenticate, requireAdmin(), async (req, res) => {
+router.post('/extend_subscription', authenticate, requireAdmin(), adminActionLimiter, async (req, res) => {
   try {
     const { subscription_id, days, extend_value, extend_unit } = req.body;
     if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });

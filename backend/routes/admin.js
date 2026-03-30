@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { adminActionLimiter } from '../middleware/rateLimit.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
 import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, formatRemainingMs, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
 
@@ -701,7 +702,7 @@ router.post('/delete_user', authenticate, requireAdmin('super_admin'), async (re
   }
 });
 
-router.post('/revoke_subscription', authenticate, requireAdmin(), async (req, res) => {
+router.post('/revoke_subscription', authenticate, requireAdmin(), adminActionLimiter, async (req, res) => {
   try {
     const { subscription_id, user_id } = req.body;
     if (!subscription_id) return res.status(400).json({ success: false, message: 'Subscription ID required' });

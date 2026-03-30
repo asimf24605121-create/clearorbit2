@@ -101,6 +101,7 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Custom extend**: The inline custom-extend form's "Extend" button passes `this` as `btnEl` and carries `data-extend-sub`, so it participates in the same guard and disable logic as the quick buttons.
 - **Toast feedback**: Success → green toast ("Access extended successfully" / "Access revoked successfully"). Error → red toast with server message or "Network error — please try again".
 - **CSRF protection**: All POST requests include `x-csrf-token` header via `csrfHeaders()`. Missing/invalid token returns 403.
+- **Rate limiting**: `adminActionLimiter` (30 req/min per IP+user) applied to both `extend_subscription` and `revoke_subscription` endpoints. Imported from `backend/middleware/rateLimit.js`.
 
 ### Global Admin Dead-Platform Notification System
 - **AdminNotification model** (`admin_notifications` table): Stores platform-dead alerts with `type`, `title`, `message`, `platformId`, `platformName`, `severity`, `isRead`, `dedupeKey` (e.g. `platform_dead_{id}_{date}`), `createdAt`. Indexed on `(isRead, createdAt)` and `dedupeKey`.
