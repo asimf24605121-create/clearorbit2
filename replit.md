@@ -58,18 +58,20 @@ I prefer detailed explanations. I want iterative development. Ask before making 
   - `isSubExpired(endDate)` — Precise datetime comparison using `parseEndDateUTC`.
   - `getRemainingMs(endDate)` — Milliseconds remaining until expiry.
   - `getRemainingObj(endDate)` — Returns `{ days, hours, minutes, seconds, expired, total_seconds, label }`. `label` uses `formatRemainingLabel()` for smart display.
-  - `formatRemainingLabel(ms)` — Smart granular labels: "2h 30m left" when <24h, "45m left" when <1h, "Expiring now" when <1m, "Xd left" for longer.
+  - `formatRemainingMs(ms)` — Canonical time-display formatter. Rules: ≤0→"Expired", <60s→"Expiring now", <1h→"Xm left", <24h→"Xh Ym left", ≥24h→"Xd Yh left". All Math.floor, never Math.ceil.
+  - `formatRemainingLabel(endDate)` — Delegates to `formatRemainingMs(getRemainingMs(endDate))`.
   - `getSubStatus(endDate, isActive)` — Returns 'active'/'expiring'/'expired'/'revoked'. Uses exact ms thresholds (3 days for expiring).
   - `getUserAccessMode(prisma, userId)` — Returns 'short' (only minutes/hours subs), 'regular' (has days subs), or 'none'.
 - **Access mode**: Dashboard and profile routes include `access_mode` in response. Short-access users cannot edit profile (tab hidden, `switchTab` guard). Profile completion redirect removed from dashboard.
 - **Admin UI**: Create User and Manage Access both have unit selector (Minutes/Hours/Days) with per-unit presets, expiry preview, and send `duration_value`/`duration_unit` to backend. `mapUserRow` returns `nearest_remaining_ms` and `nearest_remaining_label` for frontend smart display.
 - **Subscription status**: All routes use centralized helpers for expiry checks — no day-only `todayISO()` comparisons remain for subscription validity. `get_subscriptions` post-filters by computed status after mapping (supports sub-day accuracy). `get_user_subscriptions` and `get_user_profile` both return `remaining` object with `total_seconds`. `extend_subscription` accepts `extend_value`/`extend_unit` and updates `durationUnit`/`durationValue`.
-- **Frontend smart time display (audited across all pages)**:
-  - All frontend `parseEndDate`/`parseEndDateFE` functions parse as UTC (append 'Z').
-  - **admin.html**: `smartTimeLabel(ms)` helper for consistent time labels. `amSubCard` uses `total_seconds`-based status with smart dot colors (red <1h, amber <3d, green 3d+). Quick extend buttons adapt to duration unit (30m/1h for short-access, 7d/30d for day-based). `amCustomExtendToggle` includes unit selector (Min/Hours/Days). `amExtendSub` sends `extend_value`/`extend_unit`. Platform active badge uses `smartTimeLabel`. `getExpiryDisplay` shows sub-hour granularity and "Xh Ym ago" for expired. `getUserStatusBadge` shows hours/minutes for short-access users. Expired subscriptions show "Extend" button.
-  - **dashboard.html**: Status badges show "Expiring · Xh Ym left" for short-access. `timerHtml` auto-switches: d/h/m when >1d, shows h/m/s with seconds when <=1d. `startCountdown` uses 1s interval when <=24h remaining or short-access, 30s otherwise. Auto-flips card to expired state (red badge, "Buy Now" CTA, expired progress bar) when timer reaches zero. End date shows time-of-day ("2:30 PM today") when <=24h remaining.
-  - **profile.html**: Subscription badges use `total_seconds` for smart display (Xm left, Xh Ym left, Xd left) with consistent thresholds (<=1d, <=3d, <=7d). End date shows time-of-day when <=24h remaining.
-  - **Threshold consistency**: All pages use `<=` for boundary conditions (<=24h shows hours, <=3 days shows "expiring").
+- **Frontend smart time display (centralized)**:
+  - **`js/timeDisplay.js`** — Single source of truth for frontend time formatting. Provides `smartTimeLabel(ms)`, `smartTimeLabelWithSuffix(ms)`, `parseEndDateFE(d)`. Loaded by admin.html, dashboard.html, profile.html. Backend equivalent: `formatRemainingMs()` in `backend/utils/helpers.js`.
+  - **Boundary rules (all Math.floor, NEVER Math.ceil)**: ≤0→"Expired", <60s→"<1m", <1h→"{M}m", <24h (strict <)→"{H}h {M}m", ≥24h→"{D}d {H}h". Exactly 24h enters days path (shows "1d left").
+  - **Regression tests**: `backend/tests/timeDisplay.test.js` — 26 boundary cases covering 0ms, 30s, 59s, 1m, 59m, 1h, 23h59m, 24h, 25h, 47h, 48h, 72h, 7d, 30d, NaN, Infinity, null, undefined. Run: `node backend/tests/timeDisplay.test.js`.
+  - **admin.html**: Uses shared `smartTimeLabel`/`smartTimeLabelWithSuffix` + `parseEndDateFE`. `getExpiryDisplay` uses `smartTimeLabelWithSuffix` for all <24h and ≥24h remaining. Color coding: >30d ok, >7d ok, >3d warn, ≤3d danger.
+  - **dashboard.html**: Status badges use `smartTimeLabelWithSuffix(remainMs)`. `parseEndDate` delegates to shared `parseEndDateFE`. Countdown timer (`timerHtml`) stays inline (seconds-level). End date shows time-of-day when <=24h.
+  - **profile.html**: All subscription badges use `smartTimeLabelWithSuffix(totalMs)` with color tiers (red <1d, orange ≤3d, yellow <7d, green ≥7d).
 - **Server enforcement**: `autoRecheckJob` in server.js uses `isSubExpired()` to mark expired subs (fetches all active subs, filters with helper, updates in batch). User expiry sync uses `parseEndDateUTC` for accurate max-expiry calculation.
 
 ### Global Admin Dead-Platform Notification System

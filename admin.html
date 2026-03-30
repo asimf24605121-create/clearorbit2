@@ -2306,6 +2306,7 @@
 </div>
 
 <script src="js/safe-fetch.js"></script>
+<script src="js/timeDisplay.js"></script>
 <script>
 let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
 let ALL_USERS = [];
@@ -3463,25 +3464,7 @@ function getUserStatusBadge(u) {
     return `<span class="badge-status ${cls}"><span class="badge-dot"></span>${label}${extra}</span>`;
 }
 
-function smartTimeLabel(ms) {
-    if (!ms || ms <= 0 || !isFinite(ms)) return 'Expired';
-    if (ms < 60000) return '<1m';
-    const totalMins = Math.floor(ms / 60000);
-    if (totalMins < 60) return totalMins + 'm';
-    const hours = Math.floor(ms / 3600000);
-    const mins = Math.floor((ms % 3600000) / 60000);
-    if (hours < 24) return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
-    const days = Math.floor(ms / 86400000);
-    const remH = Math.floor((ms % 86400000) / 3600000);
-    return remH > 0 ? days + 'd ' + remH + 'h' : days + 'd';
-}
-
-function parseEndDateFE(d) {
-    if (!d) return new Date(0);
-    if (d.includes(' ')) return new Date(d.replace(' ', 'T') + 'Z');
-    if (d.includes('T')) return new Date(d);
-    return new Date(d + 'T23:59:59Z');
-}
+// smartTimeLabel() and parseEndDateFE() are loaded from js/timeDisplay.js
 function getExpiryDisplay(u) {
     const d = u.nearest_expiry || u.expiry_date;
     if (!d) return '<span class="expiry-rel expiry-muted">No expiry</span>';
@@ -3495,18 +3478,13 @@ function getExpiryDisplay(u) {
         else if (absMs < 86400000) relText = Math.floor(absMs / 3600000) + 'h ago';
         else relText = Math.ceil(absMs / 86400000) + 'd ago';
     }
-    else if (diffMs < 60000) { relClass = 'expiry-danger'; relText = '<1m left'; }
-    else if (diffMs < 3600000) { relClass = 'expiry-danger'; relText = Math.floor(diffMs / 60000) + 'm left'; }
     else if (diffMs < 86400000) {
         relClass = 'expiry-danger';
-        const h = Math.floor(diffMs / 3600000);
-        const m = Math.floor((diffMs % 3600000) / 60000);
-        relText = m > 0 ? h + 'h ' + m + 'm left' : h + 'h left';
+        relText = smartTimeLabelWithSuffix(diffMs);
     }
     else {
         const daysLeft = Math.floor(diffMs / 86400000);
-        const remH = Math.floor((diffMs % 86400000) / 3600000);
-        const dhLabel = remH > 0 ? daysLeft + 'd ' + remH + 'h left' : daysLeft + 'd left';
+        const dhLabel = smartTimeLabelWithSuffix(diffMs);
         if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
         else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = dhLabel; }
         else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = dhLabel; }

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
-import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
+import { nowISO, cutoffISO, todayISO, futureDate, computeEndDate, extendEndDate, isSubExpired, parseEndDateUTC, getRemainingMs, formatRemainingMs, paginate, isPermanentSuperAdmin } from '../utils/helpers.js';
 
 const router = Router();
 
@@ -400,19 +400,7 @@ function mapUserRow(u, today) {
     }
     nearestExpiry = nearestEnd.toISOString().replace('T', ' ').substring(0, 19);
     nearestRemainingMs = Math.max(0, nearestEnd - new Date());
-    const ms = nearestRemainingMs;
-    if (ms <= 0) nearestRemainingLabel = 'Expired';
-    else if (ms < 60000) nearestRemainingLabel = 'Expiring now';
-    else if (ms < 3600000) nearestRemainingLabel = `${Math.floor(ms / 60000)}m left`;
-    else if (ms < 86400000) {
-      const h = Math.floor(ms / 3600000);
-      const m = Math.floor((ms % 3600000) / 60000);
-      nearestRemainingLabel = m > 0 ? `${h}h ${m}m left` : `${h}h left`;
-    } else {
-      const dd = Math.floor(ms / 86400000);
-      const hh = Math.floor((ms % 86400000) / 3600000);
-      nearestRemainingLabel = hh > 0 ? `${dd}d ${hh}h left` : `${dd}d left`;
-    }
+    nearestRemainingLabel = formatRemainingMs(nearestRemainingMs);
   }
   return {
     id: u.id, username: u.username, name: u.name, email: u.email,

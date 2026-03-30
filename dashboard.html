@@ -629,6 +629,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/safe-fetch.js"></script>
+<script src="js/timeDisplay.js"></script>
 <script>
 let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
 let clearorbitExtensionReady = false;
@@ -684,12 +685,8 @@ let ALL_CARDS = [];
 let TIMERS = {};
 let CURRENT_MODAL_PLATFORM = null;
 
-function parseEndDate(d) {
-    if (!d) return new Date(0);
-    if (d.includes(' ')) return new Date(d.replace(' ', 'T') + 'Z');
-    if (d.includes('T')) return new Date(d.endsWith('Z') ? d : d + 'Z');
-    return new Date(d + 'T23:59:59Z');
-}
+// parseEndDate delegates to shared parseEndDateFE from js/timeDisplay.js
+function parseEndDate(d) { return parseEndDateFE(d); }
 
 function escHtml(s) {
     const d = document.createElement('div');
@@ -1019,7 +1016,7 @@ function renderCards(cards) {
         if (isExpired) {
             status = 'Expired'; statusClass = 'badge-red'; barClass = 'progress-bar-expired'; expired++;
         } else if (remainMs <= 3 * 86400000) {
-            const smartLabel = remainMs < 60000 ? 'Expiring now' : remainMs < 3600000 ? Math.floor(remainMs / 60000) + 'm left' : remainMs < 86400000 ? Math.floor(remainMs / 3600000) + 'h ' + Math.floor((remainMs % 3600000) / 60000) + 'm left' : (function(){ const dd=Math.floor(remainMs/86400000), hh=Math.floor((remainMs%86400000)/3600000); return hh > 0 ? dd+'d '+hh+'h left' : dd+'d left'; })();
+            const smartLabel = smartTimeLabelWithSuffix(remainMs);
             status = 'Expiring · ' + smartLabel; statusClass = 'badge-yellow'; barClass = 'progress-bar-expiring'; expiring++;
         } else {
             status = 'Active'; statusClass = 'badge-green'; barClass = 'progress-bar-active'; active++;

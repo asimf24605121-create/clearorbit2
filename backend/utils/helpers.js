@@ -67,9 +67,15 @@ export function getRemainingMs(endDate) {
   return Math.max(0, parseEndDateUTC(endDate) - new Date());
 }
 
-export function formatRemainingLabel(endDate) {
-  const ms = getRemainingMs(endDate);
-  if (ms <= 0) return 'Expired';
+// TIME-DISPLAY RULES (shared across entire platform — do NOT use Math.ceil for days):
+//   ≤ 0ms        → "Expired"
+//   < 60s        → "Expiring now" (backend) / "<1m" (frontend compact)
+//   < 1h         → "{M}m left"
+//   < 24h        → "{H}h {M}m left"        (strict <, so exactly 24h → days path)
+//   ≥ 24h        → "{D}d {H}h left"        (omit hours if 0)
+//   All use Math.floor — never Math.ceil for remaining-time display.
+export function formatRemainingMs(ms) {
+  if (!ms || ms <= 0 || !isFinite(ms)) return 'Expired';
   if (ms < 60000) return 'Expiring now';
   const totalMins = Math.floor(ms / 60000);
   if (totalMins < 60) return `${totalMins}m left`;
@@ -79,6 +85,10 @@ export function formatRemainingLabel(endDate) {
   const totalDays = Math.floor(ms / 86400000);
   const remHours = Math.floor((ms % 86400000) / 3600000);
   return remHours > 0 ? `${totalDays}d ${remHours}h left` : `${totalDays}d left`;
+}
+
+export function formatRemainingLabel(endDate) {
+  return formatRemainingMs(getRemainingMs(endDate));
 }
 
 export function getSubStatus(endDate, isActive) {

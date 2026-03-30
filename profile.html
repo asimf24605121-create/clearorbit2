@@ -442,6 +442,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
 <script src="js/safe-fetch.js"></script>
+<script src="js/timeDisplay.js"></script>
 <script>
 let CSRF_TOKEN = sessionStorage.getItem('csrf_token') || '';
 let PROFILE_DATA = null;
@@ -853,22 +854,14 @@ async function loadProfile() {
             let remainBadge;
             if (rem.expired || totalMs <= 0) {
                 remainBadge = '<span class="badge badge-red">Expired</span>';
-            } else if (totalMs < 3600000) {
-                const mins = Math.floor(totalMs / 60000);
-                remainBadge = `<span class="badge badge-red">${mins < 1 ? 'Expiring now' : mins + 'm left'}</span>`;
             } else if (totalMs < 86400000) {
-                const hrs = Math.floor(totalMs / 3600000);
-                const mins = Math.floor((totalMs % 3600000) / 60000);
-                remainBadge = `<span class="badge badge-orange">${hrs}h ${mins}m left</span>`;
+                remainBadge = `<span class="badge badge-${totalMs < 3600000 ? 'red' : 'orange'}">${smartTimeLabelWithSuffix(totalMs)}</span>`;
             } else if (totalMs <= 3 * 86400000) {
-                const dd1 = Math.floor(totalMs / 86400000), hh1 = Math.floor((totalMs % 86400000) / 3600000);
-                remainBadge = `<span class="badge badge-orange">${hh1 > 0 ? dd1+'d '+hh1+'h' : dd1+'d'} left</span>`;
+                remainBadge = `<span class="badge badge-orange">${smartTimeLabelWithSuffix(totalMs)}</span>`;
             } else if (totalMs < 7 * 86400000) {
-                const dd2 = Math.floor(totalMs / 86400000), hh2 = Math.floor((totalMs % 86400000) / 3600000);
-                remainBadge = `<span class="badge badge-yellow">${hh2 > 0 ? dd2+'d '+hh2+'h' : dd2+'d'} left</span>`;
+                remainBadge = `<span class="badge badge-yellow">${smartTimeLabelWithSuffix(totalMs)}</span>`;
             } else {
-                const dd3 = Math.floor(totalMs / 86400000), hh3 = Math.floor((totalMs % 86400000) / 3600000);
-                remainBadge = `<span class="badge badge-green">${hh3 > 0 ? dd3+'d '+hh3+'h' : dd3+'d'} left</span>`;
+                remainBadge = `<span class="badge badge-green">${smartTimeLabelWithSuffix(totalMs)}</span>`;
             }
 
             const endDate = new Date(s.end_date);
