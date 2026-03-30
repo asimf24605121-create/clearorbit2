@@ -176,6 +176,11 @@ router.post('/access_platform', authenticate, async (req, res) => {
 
     const result = await attemptSlotAllocation(req, pid, userId, clientIp, browserSessionId, device_type, now, nowMs, false);
 
+    if (result.all_expired) {
+      console.log(`[slot-alloc] All accounts expired for platform=${pid} user=${userId} — no retry`);
+      return res.status(result.error).json({ success: false, message: result.message, all_expired: true });
+    }
+
     if (result.all_full) {
       console.log(`[slot-alloc] All slots full on first attempt — running platform-wide cleanup and retrying user=${userId} platform=${pid}`);
       const retryNowMs = Date.now();
@@ -240,20 +245,28 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
     });
 
     if (existing) {
-      await tx.accountSession.update({
-        where: { id: existing.id },
-        data: { lastActive: now, lastActiveAt: BigInt(nowMs) },
-      });
-      sessionStore.heartbeatAccountSession(existing.id, nowMs);
-      console.log(`[session] Reused accountSession id=${existing.id} user=${userId} platform=${pid} ip=${clientIp} lastActiveAt=${nowMs}`);
-
-      const account = await tx.platformAccount.findUnique({
+      const existingAccount = await tx.platformAccount.findUnique({
         where: { id: existing.accountId },
         include: { platform: { select: { name: true, cookieDomain: true, loginUrl: true } } },
       });
 
-      if (account) {
-        return { account, session: existing, reused: true };
+      const accountExpired = existingAccount && existingAccount.expiresAt && parseEndDateUTC(existingAccount.expiresAt) <= new Date();
+
+      if (accountExpired) {
+        await tx.accountSession.update({
+          where: { id: existing.id },
+          data: { status: 'inactive', reason: 'account_expired_auto_shift' },
+        });
+        sessionStore.releaseAccountSession(existing.id);
+        console.log(`[slot-shift] Released session=${existing.id} from expired account=${existing.accountId} user=${userId} platform=${pid} — will allocate new slot`);
+      } else if (existingAccount) {
+        await tx.accountSession.update({
+          where: { id: existing.id },
+          data: { lastActive: now, lastActiveAt: BigInt(nowMs) },
+        });
+        sessionStore.heartbeatAccountSession(existing.id, nowMs);
+        console.log(`[session] Reused accountSession id=${existing.id} user=${userId} platform=${pid} ip=${clientIp} lastActiveAt=${nowMs}`);
+        return { account: existingAccount, session: existing, reused: true };
       }
     }
 
@@ -274,8 +287,15 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
       return { error: 404, message: 'No available account' };
     }
 
+    const nowDate = new Date();
     let bestAccount = null;
+    let allExpired = true;
     for (const acct of accounts) {
+      if (acct.expiresAt && parseEndDateUTC(acct.expiresAt) <= nowDate) {
+        console.log(`[slot-alloc] SKIP expired account=${acct.id} platform=${pid} expiresAt=${acct.expiresAt}`);
+        continue;
+      }
+      allExpired = false;
       const dbCount = acct.accountSessions.length;
       const maxSlots = acct.maxUsers ?? 1;
       console.log(`[slot-alloc] account=${acct.id} dbActive=${dbCount} maxSlots=${maxSlots} platform=${pid}`);
@@ -286,6 +306,9 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
     }
 
     if (!bestAccount) {
+      if (allExpired) {
+        return { error: 503, message: 'All logins for this platform have expired. Please contact the admin.', all_expired: true };
+      }
       return { error: 429, message: 'All slots are full, try again later', all_full: true };
     }
 

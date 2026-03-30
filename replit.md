@@ -17,7 +17,7 @@ I prefer detailed explanations. I want iterative development. Ask before making 
 - **Core Logic**:
     - **Cookie Engine**: Handles parsing, validation, detection, and fingerprint generation for cookies.
     - **Platform Adapters**: Modular system for integrating with various platforms (e.g., Netflix, Spotify).
-    - **Session Management**: Slot-based system with unique identity dedup keys, atomic slot allocation, real-time release mechanisms, heartbeat monitoring, and stale session cleanup.
+    - **Session Management**: Slot-based system with unique identity dedup keys, atomic slot allocation, real-time release mechanisms, heartbeat monitoring, and stale session cleanup. **Expired Account Auto-Shift**: When an account's `expiresAt` passes, active sessions on it are automatically released and users are reallocated to the next available non-expired account on their next access. Background `autoRecheckJob` proactively cleans up sessions on expired accounts. Distinct error messaging for "all logins expired" vs "all slots full".
     - **Account Intelligence (ALIE)**: A scoring system with exponential time decay, confidence multipliers, anomaly penalties, and streak bonuses to assess account stability. Includes features for running intelligence, auto-cleaning accounts, and detailed score breakdowns.
     - **Job Queue**: In-memory for background tasks like auto-rechecking accounts.
     - **Cache**: TTL-based in-memory cache with LRU eviction.

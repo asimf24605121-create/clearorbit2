@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 import { apiLimiter } from './middleware/rateLimit.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { verifyToken } from './middleware/auth.js';
-import { cutoffISO } from './utils/helpers.js';
+import { cutoffISO, parseEndDateUTC } from './utils/helpers.js';
 import { sessionStore } from './utils/sessionStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -305,6 +305,35 @@ async function autoRecheckJob(data, updateProgress) {
     const { invalidateAccountCaches } = await import('./utils/cache.js');
     invalidateAccountCaches();
     emitAdminEvent('accounts_rechecked', { updated, total: accounts.length });
+  }
+
+  try {
+    const accountsWithExpiry = await prisma.platformAccount.findMany({
+      where: { isActive: 1, expiresAt: { not: null } },
+      select: { id: true, slotName: true, platformId: true, expiresAt: true },
+    });
+    const expiredAccounts = accountsWithExpiry.filter(a => parseEndDateUTC(a.expiresAt) <= new Date());
+    if (expiredAccounts.length > 0) {
+      const expiredAccountIds = expiredAccounts.map(a => a.id);
+      const staleSessions = await prisma.accountSession.findMany({
+        where: { accountId: { in: expiredAccountIds }, status: 'active' },
+        select: { id: true, userId: true, accountId: true, platformId: true },
+      });
+      if (staleSessions.length > 0) {
+        await prisma.accountSession.updateMany({
+          where: { id: { in: staleSessions.map(s => s.id) } },
+          data: { status: 'inactive', reason: 'account_expired_auto_cleanup' },
+        });
+        for (const s of staleSessions) {
+          sessionStore.releaseAccountSession(s.id);
+          emitUserEvent(s.userId, 'slot_released', { platform_id: s.platformId, session_ids: [s.id], released: 1, reason: 'account_expired' });
+        }
+        console.log(`Auto-recheck: released ${staleSessions.length} session(s) from ${expiredAccounts.length} expired account(s)`);
+        emitAdminEvent('expired_account_cleanup', { sessions_released: staleSessions.length, accounts: expiredAccounts.length });
+      }
+    }
+  } catch (e) {
+    console.error('Expired account session cleanup error:', e.message);
   }
 
   try {
