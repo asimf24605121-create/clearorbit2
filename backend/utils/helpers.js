@@ -70,10 +70,12 @@ export function getRemainingMs(endDate) {
 export function formatRemainingLabel(endDate) {
   const ms = getRemainingMs(endDate);
   if (ms <= 0) return 'Expired';
-  const totalMins = Math.ceil(ms / 60000);
+  if (ms < 60000) return 'Expiring now';
+  const totalMins = Math.floor(ms / 60000);
   if (totalMins < 60) return `${totalMins}m left`;
-  const totalHours = Math.ceil(ms / 3600000);
-  if (totalHours < 24) return `${totalHours}h left`;
+  const hours = Math.floor(ms / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  if (hours < 24) return mins > 0 ? `${hours}h ${mins}m left` : `${hours}h left`;
   const totalDays = Math.ceil(ms / 86400000);
   return `${totalDays}d left`;
 }
@@ -82,20 +84,20 @@ export function getSubStatus(endDate, isActive) {
   if (!isActive || isActive === 0) return 'revoked';
   if (isSubExpired(endDate)) return 'expired';
   const ms = getRemainingMs(endDate);
-  const daysLeft = ms / 86400000;
-  if (daysLeft <= 3) return 'expiring';
+  if (ms <= 3 * 86400000) return 'expiring';
   return 'active';
 }
 
 export function getRemainingObj(endDate) {
   const ms = getRemainingMs(endDate);
-  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, expired: true, total_seconds: 0 };
+  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true, total_seconds: 0, label: 'Expired' };
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(ms / 86400000);
   const hours = Math.floor((ms % 86400000) / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
-  return { days, hours, minutes, seconds, expired: false, total_seconds: totalSec };
+  const label = formatRemainingLabel(endDate);
+  return { days, hours, minutes, seconds, expired: false, total_seconds: totalSec, label };
 }
 
 export async function getUserAccessMode(prisma, userId) {

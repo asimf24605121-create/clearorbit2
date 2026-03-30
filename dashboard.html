@@ -1012,8 +1012,9 @@ function renderCards(cards) {
         let status, statusClass, barClass;
         if (isExpired) {
             status = 'Expired'; statusClass = 'badge-red'; barClass = 'progress-bar-expired'; expired++;
-        } else if (remainMs < 3 * 86400000) {
-            status = 'Expiring Soon'; statusClass = 'badge-yellow'; barClass = 'progress-bar-expiring'; expiring++;
+        } else if (remainMs <= 3 * 86400000) {
+            const smartLabel = remainMs < 60000 ? 'Expiring now' : remainMs < 3600000 ? Math.floor(remainMs / 60000) + 'm left' : remainMs <= 86400000 ? Math.floor(remainMs / 3600000) + 'h ' + Math.floor((remainMs % 3600000) / 60000) + 'm left' : Math.ceil(remainMs / 86400000) + 'd left';
+            status = 'Expiring · ' + smartLabel; statusClass = 'badge-yellow'; barClass = 'progress-bar-expiring'; expiring++;
         } else {
             status = 'Active'; statusClass = 'badge-green'; barClass = 'progress-bar-active'; active++;
         }
@@ -1022,10 +1023,12 @@ function renderCards(cards) {
             ? `<img src="${escHtml(logoSrc)}" alt="${escHtml(platformName)}" class="w-12 h-12 rounded-xl object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div style="display:none" class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 items-center justify-center text-base font-bold">${escHtml(platformName[0].toUpperCase())}</div>`
             : `<div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg" style="background:${escHtml(color)}">${escHtml(platformName[0].toUpperCase())}</div>`;
 
-        const formattedEnd = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const formattedEnd = remainMs > 0 && remainMs <= 86400000
+            ? endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) + ' today'
+            : endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
         return `
-        <div class="card ${isExpired ? 'expired-card' : ''}" data-status="${status === 'Active' ? 'active' : status === 'Expiring Soon' ? 'expiring' : 'expired'}" data-name="${escHtml(platformName.toLowerCase())}" style="animation:fadeInUp .5s ease ${delay}ms forwards;opacity:0">
+        <div class="card ${isExpired ? 'expired-card' : ''}" data-status="${statusClass === 'badge-green' ? 'active' : statusClass === 'badge-yellow' ? 'expiring' : 'expired'}" data-name="${escHtml(platformName.toLowerCase())}" style="animation:fadeInUp .5s ease ${delay}ms forwards;opacity:0">
             <div class="card-top-accent"></div>
             <div class="p-5">
                 <div class="flex items-start justify-between mb-4">
@@ -1121,12 +1124,18 @@ async function loadAvailability(cards) {
 }
 
 function timerHtml(d, h, m, expired, s) {
-    if (expired) return `<span class="text-xs text-gray-400 font-medium">Access has expired</span>`;
-    const isShort = (d === 0);
-    if (isShort) {
-        const sec = s !== undefined ? s : 0;
+    if (expired) return `<span class="text-xs text-red-500 font-semibold">Access has expired</span>`;
+    const sec = s !== undefined ? s : 0;
+    if (d === 0) {
         return `
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${h}</p><p class="text-[10px] text-gray-400 font-medium">Hrs</p></div>
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${m}</p><p class="text-[10px] text-gray-400 font-medium">Min</p></div>
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${sec}</p><p class="text-[10px] text-gray-400 font-medium">Sec</p></div>`;
+    }
+    if (d === 1) {
+        const totalH = 24 + h;
+        return `
+        <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${totalH}</p><p class="text-[10px] text-gray-400 font-medium">Hrs</p></div>
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${m}</p><p class="text-[10px] text-gray-400 font-medium">Min</p></div>
         <div class="countdown-digit"><p class="text-lg font-bold text-gray-900">${sec}</p><p class="text-[10px] text-gray-400 font-medium">Sec</p></div>`;
     }
@@ -1138,15 +1147,28 @@ function timerHtml(d, h, m, expired, s) {
 
 function startCountdown(platformId, endDateStr, durationUnit) {
     const end = parseEndDate(endDateStr);
-    const isShortUnit = (durationUnit === 'minutes' || durationUnit === 'hours');
+    if (TIMERS[platformId]) clearInterval(TIMERS[platformId]);
     const update = () => {
         const now = new Date();
         const diff = end - now;
         const el = document.getElementById('timer-' + platformId);
-        if (!el) return;
+        if (!el) { clearInterval(TIMERS[platformId]); return; }
         if (diff <= 0) {
             el.innerHTML = timerHtml(0, 0, 0, true, 0);
             clearInterval(TIMERS[platformId]);
+            const card = el.closest('.card');
+            if (card) {
+                card.classList.add('expired-card');
+                card.dataset.status = 'expired';
+                const badge = card.querySelector('.badge');
+                if (badge) { badge.className = 'badge badge-red'; badge.textContent = 'Expired'; }
+                const btn = card.querySelector('.access-btn-premium');
+                if (btn) {
+                    btn.outerHTML = `<a href="buy.html" class="access-btn buy-btn-premium"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>Buy Now</a>`;
+                }
+                const bar = card.querySelector('.progress-bar');
+                if (bar) { bar.className = 'progress-bar progress-bar-expired'; bar.style.width = '0%'; }
+            }
             return;
         }
         const d = Math.floor(diff / 86400000);
@@ -1156,8 +1178,9 @@ function startCountdown(platformId, endDateStr, durationUnit) {
         el.innerHTML = timerHtml(d, h, m, false, s);
     };
     update();
-    const interval = (isShortUnit || (end - new Date()) < 86400000) ? 1000 : 30000;
-    TIMERS[platformId] = setInterval(update, interval);
+    const remainNow = end - new Date();
+    const intervalMs = (durationUnit === 'minutes' || durationUnit === 'hours' || remainNow <= 86400000) ? 1000 : 30000;
+    TIMERS[platformId] = setInterval(update, intervalMs);
 }
 
 function filterCards() {

@@ -849,20 +849,29 @@ async function loadProfile() {
 
         container.innerHTML = '<div class="space-y-3">' + subs.map(s => {
             const rem = s.remaining || {};
-            const d = rem.days || 0, h = rem.hours || 0, m = rem.minutes || 0;
+            const totalMs = rem.total_seconds ? rem.total_seconds * 1000 : 0;
             let remainBadge;
-            if (rem.expired) remainBadge = '<span class="badge badge-red">Expired</span>';
-            else if (d >= 1) {
-                if (d <= 3) remainBadge = `<span class="badge badge-orange">${d}d left</span>`;
-                else if (d <= 7) remainBadge = `<span class="badge badge-yellow">${d}d left</span>`;
-                else remainBadge = `<span class="badge badge-green">${d}d left</span>`;
-            } else if (h >= 1) {
-                remainBadge = `<span class="badge badge-orange">${h}h ${m}m left</span>`;
-            } else if (m > 0) {
-                remainBadge = `<span class="badge badge-red">${m}m left</span>`;
-            } else {
+            if (rem.expired || totalMs <= 0) {
                 remainBadge = '<span class="badge badge-red">Expired</span>';
+            } else if (totalMs < 3600000) {
+                const mins = Math.floor(totalMs / 60000);
+                remainBadge = `<span class="badge badge-red">${mins < 1 ? 'Expiring now' : mins + 'm left'}</span>`;
+            } else if (totalMs <= 86400000) {
+                const hrs = Math.floor(totalMs / 3600000);
+                const mins = Math.floor((totalMs % 3600000) / 60000);
+                remainBadge = `<span class="badge badge-orange">${hrs}h ${mins}m left</span>`;
+            } else if (totalMs <= 3 * 86400000) {
+                remainBadge = `<span class="badge badge-orange">${Math.ceil(totalMs / 86400000)}d left</span>`;
+            } else if (totalMs < 7 * 86400000) {
+                remainBadge = `<span class="badge badge-yellow">${Math.ceil(totalMs / 86400000)}d left</span>`;
+            } else {
+                remainBadge = `<span class="badge badge-green">${Math.floor(totalMs / 86400000)}d left</span>`;
             }
+
+            const endDate = new Date(s.end_date);
+            const smartEnd = totalMs > 0 && totalMs <= 86400000
+                ? endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) + ' today'
+                : formatDate(s.end_date);
 
             const logo = s.logo_url
                 ? `<img src="${escHtml(s.logo_url)}" alt="${escHtml(s.platform_name)}" class="w-10 h-10 rounded-lg object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold" style="display:none;background:${escHtml(s.bg_color_hex || '#4F46E5')}">${escHtml((s.platform_name||'?')[0].toUpperCase())}</div>`
@@ -873,7 +882,7 @@ async function loadProfile() {
                 ${logo}
                 <div class="flex-1">
                     <p class="font-medium text-sm text-gray-900">${escHtml(s.platform_name)}</p>
-                    <p class="text-xs text-gray-400">${formatDate(s.start_date)} — ${formatDate(s.end_date)}</p>
+                    <p class="text-xs text-gray-400">${formatDate(s.start_date)} — ${smartEnd}</p>
                 </div>
                 ${remainBadge}
             </div>`;

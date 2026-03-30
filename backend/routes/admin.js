@@ -389,12 +389,29 @@ function mapUserRow(u, today) {
   const subs = (u.subscriptions || []);
   const activeSubs = subs.filter(s => s.isActive === 1 && !isSubExpired(s.endDate));
   const activePlatforms = activeSubs.map(s => s.platform?.name).filter(Boolean);
-  const nearestExpiry = activeSubs.length > 0
-    ? activeSubs.reduce((min, s) => {
-        const end = parseEndDateUTC(s.endDate);
-        return end < min ? end : min;
-      }, parseEndDateUTC(activeSubs[0].endDate)).toISOString().replace('T', ' ').substring(0, 19)
-    : null;
+  let nearestExpiry = null;
+  let nearestRemainingMs = null;
+  let nearestRemainingLabel = null;
+  if (activeSubs.length > 0) {
+    let nearestEnd = parseEndDateUTC(activeSubs[0].endDate);
+    for (const s of activeSubs) {
+      const end = parseEndDateUTC(s.endDate);
+      if (end < nearestEnd) nearestEnd = end;
+    }
+    nearestExpiry = nearestEnd.toISOString().replace('T', ' ').substring(0, 19);
+    nearestRemainingMs = Math.max(0, nearestEnd - new Date());
+    const ms = nearestRemainingMs;
+    if (ms <= 0) nearestRemainingLabel = 'Expired';
+    else if (ms < 60000) nearestRemainingLabel = 'Expiring now';
+    else if (ms < 3600000) nearestRemainingLabel = `${Math.floor(ms / 60000)}m left`;
+    else if (ms < 86400000) {
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      nearestRemainingLabel = m > 0 ? `${h}h ${m}m left` : `${h}h left`;
+    } else {
+      nearestRemainingLabel = `${Math.ceil(ms / 86400000)}d left`;
+    }
+  }
   return {
     id: u.id, username: u.username, name: u.name, email: u.email,
     phone: u.phone, is_active: u.isActive, created_at: u.createdAt,
@@ -404,6 +421,8 @@ function mapUserRow(u, today) {
     active_platform_count: activePlatforms.length,
     active_platforms: activePlatforms,
     nearest_expiry: nearestExpiry,
+    nearest_remaining_ms: nearestRemainingMs,
+    nearest_remaining_label: nearestRemainingLabel,
     status: computeUserStatus(u, today),
     device_id: u.deviceId || null,
     last_login_ip: u.lastLoginIp || null,

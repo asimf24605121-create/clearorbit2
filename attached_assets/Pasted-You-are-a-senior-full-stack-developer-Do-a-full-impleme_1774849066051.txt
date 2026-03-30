@@ -1,0 +1,391 @@
+You are a senior full-stack developer. Do a full implementation update for the **short-access subscription UX** across the entire website.
+
+## Main requirement
+
+When a user has **minutes-based** or **hours-based** access, the system must behave differently in a more professional and real-time way.
+
+This is not just a small UI fix. Audit and update **every affected screen, component, API response, badge, countdown, user card, sorting logic, expired-state UI, and admin action flow**.
+
+---
+
+# 1) Short-access countdown must be visible and professional
+
+When a user has access in:
+
+* minutes
+* hours
+
+then on the relevant pages, the remaining time must be shown as a **real-time countdown** in a clean professional way.
+
+## Countdown rules
+
+For short-access users, show:
+
+* `12m left`
+* `1h 18m left`
+* `45m left`
+* `2h left`
+
+Do **not** show:
+
+* only days
+* vague expiry text
+* stale status
+* broken values
+* NaN
+* date-only labels for short access
+
+## UI placement
+
+Show the countdown in a polished and visible place such as:
+
+* in the user row/card status area
+* in the expiry column
+* in user profile/admin modal if needed
+* anywhere short-access status is important
+
+It should look premium, not noisy.
+
+### Desired style
+
+* compact professional badge/chip
+* subtle live countdown style
+* visually clear for short-access users
+* use warning/orange tone when time is getting low
+* use red tone when expired
+* use neutral/professional colors otherwise
+
+Example:
+
+* `⏱ 18m left`
+* `⏱ 1h 05m left`
+
+---
+
+# 2) Expired short-access users must move to the top and appear red
+
+When a short-access user expires:
+
+## Required behavior
+
+* that user should immediately become visually marked as expired
+* user row/card should move upward in priority where expired/problematic users are visible first
+* status should become clearly red
+* expiry badge should become red
+* no stale "active" green state should remain
+
+## In users/admin list
+
+When expired:
+
+* show red expired badge
+* sort/show expired short-access users prominently at top or in a high-priority section
+* make them easy for admin to notice and manage quickly
+
+### Example
+
+Instead of being buried in the list, expired short-access users should surface clearly for action.
+
+---
+
+# 3) Clicking expired short-access user should help admin extend quickly
+
+This is very important.
+
+When a short-access user expires, admin should be able to click from that expired state and quickly go to the correct management flow.
+
+## Required UX flow
+
+When admin clicks the expired user / expired badge / extend action / popup CTA:
+
+* open the proper user management context
+* go directly to that user’s:
+
+  * assigned platforms
+  * manage subscription
+  * access management section
+
+From there admin should be able to:
+
+* extend time
+* change minutes to more minutes
+* change hours to more hours
+* convert to days if needed
+* save immediately
+
+Do not make admin search manually again.
+
+---
+
+# 4) Expired short-access popup / modal must appear above that user context
+
+When the user expires, and admin clicks on the action:
+
+## Desired flow
+
+* show a professional popup / quick-action modal / dropdown action anchored to that user
+* this popup should clearly indicate:
+
+  * user expired
+  * current platform/subscription affected
+  * expired at what time
+  * quick action available
+
+### CTA options
+
+* `Extend Access`
+* `Manage Subscription`
+* `Open Assigned Platforms`
+
+When clicking the CTA:
+
+* route directly to that specific user’s assign-platform/manage-subscription page
+* preselect that user context
+* avoid extra manual searching
+
+---
+
+# 5) Apply this everywhere the feature is relevant
+
+Do not only update one table row.
+
+Audit all places where short-access expiry appears, including:
+
+* admin users list
+* user detail modal
+* view profile modal
+* access/security panel
+* assign platform/manage subscription screens
+* subscription cards
+* dashboard cards if applicable
+* top status counters
+* alerts/notifications if any
+* expired user quick-action flows
+* search/filter/sort logic
+
+If a page shows expiry or status, it must correctly support short-access behavior.
+
+---
+
+# 6) Real-time countdown logic must be exact
+
+Use exact expiry timestamp logic.
+
+## Required
+
+* countdown updates in real time on frontend
+* expired state flips automatically when timer ends
+* no page refresh required for visual state change if feasible
+* backend must still remain source of truth
+* frontend must not drift into wrong time state
+
+### After expiry
+
+As soon as time ends:
+
+* badge changes to expired/red
+* countdown stops
+* action changes from active to expired state
+* row/card visually updates
+* if list sorting is dynamic, expired item can move accordingly
+
+---
+
+# 7) Sorting and prioritization improvement
+
+Improve admin visibility.
+
+## Suggested sort priority
+
+For admin user list / short-access monitoring:
+
+1. expired short-access users
+2. expiring very soon short-access users
+3. active short-access users
+4. normal users
+
+This can be applied either globally or in a targeted smart sort mode.
+At minimum, expired short-access users should not stay hidden lower in the table.
+
+---
+
+# 8) Extend-time flow must be fast and prefilled
+
+When admin reaches manage subscription / assigned platform page from an expired short-access user:
+
+## Required
+
+* open the correct user directly
+* prefill the affected platform/subscription
+* show current expired state
+* allow quick extension
+* allow changing:
+
+  * duration value
+  * duration unit
+  * expiry preview
+
+### Example
+
+Admin clicks expired user → lands directly in user manage-subscription screen → extends from:
+
+* expired 30 minutes
+  to
+* 2 hours
+  or
+* 7 days
+
+This must be smooth and fast.
+
+---
+
+# 9) Professional UI improvements
+
+Make the short-access state look intentionally designed.
+
+## Improve:
+
+* countdown badge
+* expired badge
+* row highlight
+* warning state when close to expiry
+* quick-action button/icon
+* extend CTA
+* hover states
+* modal/popup clarity
+* mobile responsiveness if applicable
+
+### Visual state suggestions
+
+#### Active short-access
+
+* subtle timer badge
+* clean neutral accent
+
+#### Expiring soon
+
+* amber/orange warning
+* slightly stronger highlight
+
+#### Expired
+
+* red badge
+* red text/accent
+* clear “Extend Access” action
+
+---
+
+# 10) Access-related behavior after expiry
+
+Make sure expired short-access users are also handled correctly functionally:
+
+* access should be revoked correctly
+* platform should lock if expired
+* admin UI should show expired immediately
+* user dashboard/platform state should match expiry truth
+
+No mismatch between:
+
+* UI showing active
+* backend already expired
+
+or vice versa.
+
+---
+
+# 11) Notifications / alerts improvement
+
+If useful, add a smart expired-user admin alert.
+
+For example:
+
+* short-access user expired
+* click alert → open that user’s manage-subscription flow
+
+This is optional, but useful if it fits current architecture.
+
+---
+
+# 12) Full audit instruction
+
+Search the full codebase for all logic related to:
+
+* expiry display
+* user sorting
+* status badges
+* countdowns
+* active/expired flags
+* short-access mode
+* row actions
+* manage subscription navigation
+* user detail popup
+* platform assignment pages
+
+Update all affected places.
+Do not leave partial old behavior anywhere.
+
+---
+
+# 13) Performance
+
+This platform must not be slow and should be optimized for **1000+ concurrent users**.
+
+So:
+
+* lightweight countdown updates
+* efficient sorting
+* no heavy rerenders
+* no duplicate timers per row if avoidable
+* backend queries optimized
+* smooth admin experience
+
+---
+
+# 14) Final expected outcome
+
+After implementation:
+
+## For minutes/hours users
+
+* remaining time shows in real-time countdown
+* UI looks professional
+* expiry is obvious
+* expiring soon is obvious
+
+## When expired
+
+* user becomes red/expired
+* user is surfaced clearly for admin
+* clicking action opens the correct user management flow
+* admin can directly extend time from assign platform/manage subscription area
+
+## Most important
+
+Admin should be able to handle expired short-access users quickly and cleanly without searching manually.
+
+---
+
+# 15) Deliverables
+
+Implement and provide:
+
+1. short-access real-time countdown UI
+2. expired-user red/high-priority state
+3. sorting/prioritization logic
+4. quick-action popup/modal
+5. direct navigation to assign platform/manage subscription page
+6. prefilled extend-time flow
+7. full-site audit of all affected expiry/status areas
+8. confirmation of every place updated
+
+## Final instruction
+
+This should feel like a polished premium admin workflow for short-access users.
+
+Main result I want:
+
+* short-access users show live minutes/hours countdown
+* expired users turn red and become easy to notice
+* admin can click and go straight to that user’s assign-platform/manage-subscription page
+* from there admin can extend access immediately
+* all related pages reflect this consistently

@@ -3453,14 +3453,26 @@ function getUserStatusBadge(u) {
     };
     const [cls, label] = map[st] || map.active;
     let extra = '';
-    if (st === 'expiring' && u.nearest_expiry) {
+    if ((st === 'expiring' || st === 'active') && u.nearest_expiry) {
         const end = parseEndDateFE(u.nearest_expiry);
         const diffMs = end - new Date();
-        const dl = Math.ceil(diffMs / 86400000);
-        const hl = Math.floor(diffMs / 3600000);
-        extra = dl >= 1 ? ` (${dl}d)` : hl >= 1 ? ` (${hl}h)` : ` (<1h)`;
+        if (diffMs > 0) {
+            extra = ' (' + smartTimeLabel(diffMs) + ')';
+        }
     }
     return `<span class="badge-status ${cls}"><span class="badge-dot"></span>${label}${extra}</span>`;
+}
+
+function smartTimeLabel(ms) {
+    if (ms <= 0) return 'Expired';
+    if (ms < 60000) return '<1m';
+    const totalMins = Math.floor(ms / 60000);
+    if (totalMins < 60) return totalMins + 'm';
+    const hours = Math.floor(ms / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    if (hours < 24) return mins > 0 ? hours + 'h ' + mins + 'm' : hours + 'h';
+    const days = Math.ceil(ms / 86400000);
+    return days + 'd';
 }
 
 function parseEndDateFE(d) {
@@ -3474,22 +3486,34 @@ function getExpiryDisplay(u) {
     if (!d) return '<span class="expiry-rel expiry-muted">No expiry</span>';
     const end = parseEndDateFE(d);
     const diffMs = end - new Date();
-    const daysLeft = Math.ceil(diffMs / 86400000);
-    const hoursLeft = Math.floor(diffMs / 3600000);
-    const minsLeft = Math.floor(diffMs / 60000);
     let relClass, relText;
     if (diffMs < 0) {
         relClass = 'expiry-danger';
-        const absDays = Math.abs(daysLeft);
-        relText = absDays > 0 ? absDays + 'd ago' : Math.abs(Math.floor(diffMs / 3600000)) + 'h ago';
+        const absMs = Math.abs(diffMs);
+        if (absMs < 3600000) relText = Math.floor(absMs / 60000) + 'm ago';
+        else if (absMs < 86400000) relText = Math.floor(absMs / 3600000) + 'h ago';
+        else relText = Math.ceil(absMs / 86400000) + 'd ago';
     }
-    else if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
-    else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
-    else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
-    else if (daysLeft >= 1) { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
-    else if (hoursLeft >= 1) { relClass = 'expiry-danger'; relText = hoursLeft + 'h left'; }
-    else { relClass = 'expiry-danger'; relText = minsLeft + 'm left'; }
-    return `<div><div class="expiry-rel ${relClass}">${relText}</div><div class="expiry-abs">${formatDate(d)}</div></div>`;
+    else if (diffMs < 60000) { relClass = 'expiry-danger'; relText = '<1m left'; }
+    else if (diffMs < 3600000) { relClass = 'expiry-danger'; relText = Math.floor(diffMs / 60000) + 'm left'; }
+    else if (diffMs < 86400000) {
+        relClass = 'expiry-danger';
+        const h = Math.floor(diffMs / 3600000);
+        const m = Math.floor((diffMs % 3600000) / 60000);
+        relText = m > 0 ? h + 'h ' + m + 'm left' : h + 'h left';
+    }
+    else {
+        const daysLeft = Math.ceil(diffMs / 86400000);
+        if (daysLeft > 30) { relClass = 'expiry-ok'; relText = Math.floor(daysLeft / 30) + 'mo ' + (daysLeft % 30) + 'd'; }
+        else if (daysLeft > 7) { relClass = 'expiry-ok'; relText = daysLeft + 'd left'; }
+        else if (daysLeft > 3) { relClass = 'expiry-warn'; relText = daysLeft + 'd left'; }
+        else { relClass = 'expiry-danger'; relText = daysLeft + 'd left'; }
+    }
+    let absText = formatDate(d);
+    if (diffMs > 0 && diffMs < 86400000) {
+        absText = end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) + ' today';
+    }
+    return `<div><div class="expiry-rel ${relClass}">${relText}</div><div class="expiry-abs">${absText}</div></div>`;
 }
 
 function showTableSkeleton() {
@@ -9062,11 +9086,8 @@ async function amLoadSubs(userId) {
             if (activePlatMap[cb.value]) {
                 const sub = activePlatMap[cb.value];
                 const rem = sub.remaining || {};
-                let remLabel;
-                if (rem.days >= 1) remLabel = rem.days + 'd';
-                else if (rem.hours >= 1) remLabel = rem.hours + 'h ' + (rem.minutes || 0) + 'm';
-                else if (rem.minutes > 0) remLabel = rem.minutes + 'm';
-                else remLabel = 'Expired';
+                const totalMs = rem.total_seconds ? rem.total_seconds * 1000 : 0;
+                const remLabel = totalMs > 0 ? smartTimeLabel(totalMs) : 'Expired';
                 cb.checked = false; cb.disabled = true;
                 item.classList.add('am-plat-disabled');
                 item.title = 'Active — ' + remLabel + ' left';
@@ -9094,20 +9115,19 @@ function amSubCard(s, isActive) {
         ? `<img src="${escHtml(logo)}" class="am-sub-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="am-sub-initial" style="background:${escHtml(bgColor)};display:none">${escHtml(initial)}</div>`
         : `<div class="am-sub-initial" style="background:${escHtml(bgColor)}">${escHtml(initial)}</div>`;
     const rem = s.remaining || {};
-    const daysLeft = rem.days || 0;
-    const hoursLeft = rem.hours || 0;
-    const minsLeft = rem.minutes || 0;
     const isExpired = rem.expired || false;
     let dotColor, statusText;
     if (!isActive) { dotColor = '#EF4444'; statusText = s.is_active == 0 ? 'Revoked' : 'Expired'; }
     else if (isExpired) { dotColor = '#EF4444'; statusText = 'Expired'; }
-    else if (daysLeft >= 1) {
-        if (daysLeft <= 3) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
-        else if (daysLeft <= 7) { dotColor = '#F59E0B'; statusText = `${daysLeft}d`; }
-        else { dotColor = '#10B981'; statusText = `${daysLeft}d`; }
-    } else if (hoursLeft >= 1) { dotColor = '#F59E0B'; statusText = `${hoursLeft}h ${minsLeft}m`; }
-    else if (minsLeft > 0) { dotColor = '#EF4444'; statusText = `${minsLeft}m`; }
-    else { dotColor = '#EF4444'; statusText = 'Expired'; }
+    else {
+        const totalMs = rem.total_seconds ? rem.total_seconds * 1000 : 0;
+        statusText = smartTimeLabel(totalMs);
+        if (totalMs < 3600000) dotColor = '#EF4444';
+        else if (totalMs < 3 * 86400000) dotColor = '#F59E0B';
+        else dotColor = '#10B981';
+    }
+    const durUnit = s.duration_unit || 'days';
+    const isShort = (durUnit === 'minutes' || durUnit === 'hours');
 
     return `<div class="am-sub-row${isActive ? '' : ' am-sub-expired'}">
         <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -9119,10 +9139,12 @@ function amSubCard(s, isActive) {
         <div class="flex items-center gap-1 flex-shrink-0">
             <span class="text-[9px] text-gray-300 hidden sm:inline">${formatDate(s.start_date)}→${formatDate(s.end_date)}</span>
             ${isActive ? `
-                <button onclick="amExtendSub(${s.id}, 7)" class="am-sub-act am-sub-act-ext" title="+7 days">+7</button>
-                <button onclick="amExtendSub(${s.id}, 30)" class="am-sub-act am-sub-act-ext" title="+30 days">+30</button>
+                <button onclick="amExtendSub(${s.id}, ${isShort ? 30 : 7}, '${isShort ? 'minutes' : 'days'}')" class="am-sub-act am-sub-act-ext" title="+${isShort ? '30m' : '7d'}">+${isShort ? '30m' : '7'}</button>
+                <button onclick="amExtendSub(${s.id}, ${isShort ? 1 : 30}, '${isShort ? 'hours' : 'days'}')" class="am-sub-act am-sub-act-ext" title="+${isShort ? '1h' : '30d'}">+${isShort ? '1h' : '30'}</button>
                 <button onclick="amCustomExtendToggle(this,${s.id})" class="am-sub-act" title="Custom extend" style="color:#6B7280">+N</button>
-            ` : ''}
+            ` : `
+                <button onclick="openUserWorkflow(${s.user_id || '_uwUserId'}, 'access')" class="am-sub-act am-sub-act-ext" title="Extend Access" style="color:#059669;font-size:9px;font-weight:600">Extend</button>
+            `}
             <button onclick="amRevokeSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="am-sub-act am-sub-act-del" title="${isActive ? 'Revoke' : 'Delete'}">
                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -9137,14 +9159,15 @@ function amCustomExtendToggle(btn, subId) {
     const div = document.createElement('div');
     div.className = 'am-custom-extend-row';
     div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;margin-top:4px;margin-bottom:4px';
-    div.innerHTML = `<input type="number" min="1" max="3650" placeholder="Days" value="14" class="input text-sm" style="width:80px;padding:4px 8px"/><button onclick="amExtendSub(${subId}, parseInt(this.previousElementSibling.value)||0); this.parentElement.remove()" class="btn text-white text-xs font-semibold" style="background:#059669;border:none;border-radius:6px;padding:4px 10px;white-space:nowrap">Extend</button><button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-xs" style="padding:2px">Cancel</button>`;
+    div.innerHTML = `<input type="number" min="1" max="3650" placeholder="Value" value="14" class="input text-sm" style="width:70px;padding:4px 8px"/><select class="input text-sm" style="width:80px;padding:4px 6px"><option value="minutes">Min</option><option value="hours">Hours</option><option value="days" selected>Days</option></select><button onclick="amExtendSub(${subId}, parseInt(this.parentElement.querySelector('input').value)||0, this.parentElement.querySelector('select').value); this.parentElement.remove()" class="btn text-white text-xs font-semibold" style="background:#059669;border:none;border-radius:6px;padding:4px 10px;white-space:nowrap">Extend</button><button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-xs" style="padding:2px">Cancel</button>`;
     card.after(div);
     div.querySelector('input').focus();
 }
 
-async function amExtendSub(subId, days) {
+async function amExtendSub(subId, val, unit) {
+    const extUnit = unit || 'days';
     try {
-        const res = await fetch('api/extend_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId, days }) });
+        const res = await fetch('api/extend_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId, extend_value: val, extend_unit: extUnit }) });
         const data = await res.json();
         showAlert(data.message, !data.success);
         if (data.success) { amRefresh(); refreshUsersTable(); }

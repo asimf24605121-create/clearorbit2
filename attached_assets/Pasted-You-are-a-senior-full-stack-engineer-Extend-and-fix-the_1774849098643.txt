@@ -1,0 +1,236 @@
+You are a senior full-stack engineer. Extend and fix the **short-access duration + expiry display system** across the entire platform.
+
+## New critical issue to fix
+
+Currently, when access is near expiry (like under 1 day), the system is not behaving correctly:
+
+* sometimes it still shows `1 day`
+* instead of switching to minutes/hours
+* countdown is not granular
+* display is not professional
+
+This must be fixed globally.
+
+---
+
+# 1) Smart time display logic (VERY IMPORTANT)
+
+Implement a **dynamic time-format system** everywhere.
+
+## Rule
+
+Display remaining time based on actual remaining duration:
+
+### If remaining time > 1 day
+
+Show:
+
+* `2d left`
+* `7d left`
+* `29d left`
+
+### If remaining time ≤ 1 day
+
+Do NOT show `1 day`
+
+Instead switch automatically to:
+
+* hours + minutes format
+
+### Example
+
+Instead of:
+❌ `1 day left`
+
+Show:
+✅ `23h 40m left`
+✅ `18h left`
+✅ `5h 20m left`
+
+---
+
+### If remaining time ≤ 1 hour
+
+Show:
+
+* `45m left`
+* `12m left`
+* `3m left`
+
+---
+
+### If remaining time ≤ 1 minute
+
+Show:
+
+* `less than 1 min`
+  or
+* `expiring now`
+
+---
+
+# 2) This must apply everywhere (full audit)
+
+Apply this logic across ALL places:
+
+## Admin side
+
+* Users table (expiry column)
+* User cards
+* User modal (view profile)
+* Manage subscription page
+* Assign platform section
+* Extend subscription popup
+* Activity logs (if expiry shown)
+* Export logic if showing time
+
+## User side
+
+* Dashboard cards
+* Platform cards
+* Subscription cards
+* Expiry banners
+* Locked/unlocked states
+* “Buy now / expired” sections
+* Profile page
+* Any top summary widgets
+
+---
+
+# 3) Replace ALL old day-based display logic
+
+Search and remove any logic like:
+
+* always showing `Xd left`
+* rounding to days
+* date-only difference calculations
+* ignoring hours/minutes
+
+Replace with:
+
+* exact time difference using expiry timestamp
+
+---
+
+# 4) Countdown must be real-time
+
+For short-access users:
+
+* countdown updates live (every second or optimized interval)
+* when time crosses thresholds:
+
+  * automatically switch format
+
+    * day → hours
+    * hours → minutes
+* no page refresh required
+
+Example:
+
+* 1d 2h → becomes → 23h 59m
+* 1h 0m → becomes → 59m
+* 1m → becomes → 59s / expiring soon
+
+---
+
+# 5) Expiry UI behavior must sync with this logic
+
+When:
+
+* < 24h → show hours/minutes
+* < 1h → show minutes only
+* expired → show red state
+
+No mismatch like:
+
+* still showing “1d left” but actually few hours remaining
+* showing wrong day counts
+* showing stale values
+
+---
+
+# 6) Sorting logic improvement (based on real time)
+
+Use real remaining time instead of days.
+
+### Priority:
+
+1. expired users
+2. expiring soon (minutes/hours)
+3. active long-term users
+
+So short-access users nearing expiry come up properly.
+
+---
+
+# 7) Backend consistency
+
+Backend must:
+
+* always return exact expiry timestamp
+* not pre-format as days
+* not truncate time
+* not round to date-only
+
+Frontend must:
+
+* calculate remaining time dynamically
+* not depend on “days_left” fields only
+
+---
+
+# 8) Fix existing bug patterns
+
+Specifically fix issues like:
+
+* showing `1 day` when only few hours left
+* showing `NaNd`
+* showing incorrect countdown after refresh
+* mismatch between admin and user dashboard
+* wrong expiry labels in different pages
+* incorrect format when switching units (minutes → days etc.)
+
+---
+
+# 9) Professional UX requirement
+
+The time display should feel premium:
+
+### Use:
+
+* compact badge/chip
+* clean typography
+* consistent format everywhere
+* smooth transitions
+* color indicators:
+
+  * normal → neutral
+  * expiring soon → orange
+  * expired → red
+
+---
+
+# 10) Final expected result
+
+After fix:
+
+* No place in the system should show wrong “1 day” when less time remains
+* Short-access users always see:
+
+  * hours/minutes countdown
+* UI automatically adapts as time decreases
+* Admin sees accurate urgency
+* No stale or inconsistent expiry display anywhere
+
+---
+
+## Final instruction
+
+Do a full codebase audit and fix ALL occurrences.
+
+Main outcome:
+
+* time display is intelligent
+* short-access UX is professional
+* no incorrect “1 day” display
+* everything is consistent across admin + user + backend
