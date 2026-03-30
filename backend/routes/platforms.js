@@ -113,7 +113,7 @@ router.get('/get_public_platforms', async (req, res) => {
     res.json({
       success: true,
       platforms: platforms.map(p => ({
-        id: p.id, name: p.name, logo_url: p.logoUrl, bg_color_hex: p.bgColorHex,
+        id: p.id, name: p.name, logo_url: p.logoUrl, bg_color_hex: p.bgColorHex, is_active: true,
       })),
     });
   } catch (err) {
