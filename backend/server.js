@@ -13,6 +13,7 @@ import { apiLimiter } from './middleware/rateLimit.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { verifyToken } from './middleware/auth.js';
 import { cutoffISO, parseEndDateUTC } from './utils/helpers.js';
+import { logger } from './utils/logger.js';
 import { sessionStore } from './utils/sessionStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,7 +59,16 @@ app.use(apiLimiter);
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
+    const start = process.hrtime.bigint();
+    res.on('finish', () => {
+      const ms = Number(process.hrtime.bigint() - start) / 1e6;
+      if (ms > 500) {
+        console.warn(JSON.stringify({ ts: new Date().toISOString(), level: 'warn', category: 'slow_request', method: req.method, path: req.originalUrl, status: res.statusCode, ms: Math.round(ms) }));
+      }
+      if (res.statusCode >= 400) {
+        console.log(JSON.stringify({ ts: new Date().toISOString(), level: res.statusCode >= 500 ? 'error' : 'warn', category: 'http', method: req.method, path: req.originalUrl, status: res.statusCode, ms: Math.round(ms) }));
+      }
+    });
   }
   next();
 });
@@ -252,7 +262,7 @@ async function autoRecheckJob(data, updateProgress) {
       });
       updated++;
     } catch (e) {
-      console.error(`Auto-recheck error for account ${account.id}:`, e.message);
+      logger.error("auto_recheck", { action: "account_check", account: account.id, error: e.message });
     }
     updateProgress(Math.round(((i + 1) / accounts.length) * 100));
   }
@@ -271,11 +281,11 @@ async function autoRecheckJob(data, updateProgress) {
         return deleted.count;
       });
       if (resolved > 0) {
-        console.log(`Auto-resolved ${resolved} dead-platform notification(s) for ${platformName} (recovered)`);
+        logger.info("auto_recheck", { action: "auto_resolve", resolved, platform: platformName });
         emitAdminEvent('platform_dead_resolved', { platformId, platformName });
       }
     } catch (e) {
-      console.error(`Notification auto-resolve error for platform ${platformId}:`, e.message);
+      logger.warn("auto_recheck", { action: "auto_resolve_error", platform: platformId, error: e.message });
     }
   }
 
@@ -307,12 +317,12 @@ async function autoRecheckJob(data, updateProgress) {
         });
       }
     } catch (e) {
-      console.error(`Dead-platform notification error for platform ${platformId}:`, e.message);
+      logger.warn("auto_recheck", { action: "dead_platform_notification", platform: platformId, error: e.message });
     }
   }
 
   if (updated > 0) {
-    console.log(`Auto-recheck: updated ${updated} accounts`);
+    logger.info("auto_recheck", { action: "complete", updated });
     const { invalidateAccountCaches } = await import('./utils/cache.js');
     invalidateAccountCaches();
     emitAdminEvent('accounts_rechecked', { updated, total: accounts.length });
@@ -339,12 +349,12 @@ async function autoRecheckJob(data, updateProgress) {
           sessionStore.releaseAccountSession(s.id);
           emitUserEvent(s.userId, 'slot_released', { platform_id: s.platformId, session_ids: [s.id], released: 1, reason: 'account_expired' });
         }
-        console.log(`Auto-recheck: released ${staleSessions.length} session(s) from ${expiredAccounts.length} expired account(s)`);
+        logger.info("auto_recheck", { action: "expired_cleanup", sessions: staleSessions.length, accounts: expiredAccounts.length });
         emitAdminEvent('expired_account_cleanup', { sessions_released: staleSessions.length, accounts: expiredAccounts.length });
       }
     }
   } catch (e) {
-    console.error('Expired account session cleanup error:', e.message);
+    logger.error("auto_recheck", { action: "expired_cleanup_error", error: e.message });
   }
 
   try {
@@ -360,7 +370,7 @@ async function autoRecheckJob(data, updateProgress) {
         where: { id: { in: expiredIds } },
         data: { isActive: 0 },
       });
-      console.log(`Auto-recheck: expired ${expiredIds.length} subscription(s)`);
+      logger.info("auto_recheck", { action: "sub_expiry", expired: expiredIds.length });
       const affectedUserIds = [...new Set(allActiveSubs.filter(s => expiredIds.includes(s.id)).map(s => s.userId))];
       for (const userId of affectedUserIds) {
         const remaining = await prisma.userSubscription.findMany({
@@ -378,7 +388,7 @@ async function autoRecheckJob(data, updateProgress) {
       }
     }
   } catch (e) {
-    console.error('Subscription expiry enforcement error:', e.message);
+    logger.error("auto_recheck", { action: "sub_expiry_error", error: e.message });
   }
 
   return { updated, total: accounts.length };
@@ -389,7 +399,7 @@ function scheduleAutoRecheck() {
 }
 
 accountQueue.on('failed', (data) => {
-  console.error(`Job ${data.name} failed after ${data.attempts} attempts: ${data.error}`);
+  logger.error("job_queue", { job: data.name, attempts: data.attempts, error: data.error });
 });
 
 const SESSION_STALE_SECONDS = 30;
@@ -431,7 +441,7 @@ async function cleanupStaleSessions() {
       for (const s of staleSessions) {
         sessionStore.releaseAccountSession(s.id);
         const ageMs = nowMs - Number(s.lastActiveAt || 0);
-        console.log(`[slot-release] stale_timeout sessionId=${s.id} user=${s.userId} platform=${s.platformId} account=${s.accountId} age=${Math.round(ageMs/1000)}s`);
+        logger.info("slot", { action: "stale_timeout", session: s.id, user: s.userId, platform: s.platformId, ageSec: Math.round(ageMs/1000) });
         emitUserEvent(s.userId, 'session_ended', { session_id: s.id, platform_id: s.platformId, reason: 'stale_timeout' });
         const key = `${s.userId}:${s.platformId}`;
         if (!userPlatformMap.has(key)) userPlatformMap.set(key, { userId: s.userId, platformId: s.platformId, sids: [] });
@@ -440,7 +450,7 @@ async function cleanupStaleSessions() {
       for (const [, entry] of userPlatformMap) {
         emitUserEvent(entry.userId, 'slot_released', { platform_id: entry.platformId, session_ids: entry.sids, released: entry.sids.length, reason: 'stale_timeout' });
       }
-      console.log(`[cleanup] Released ${staleIds.length} stale account session(s) (cutoffMs=${accountCutoffMs}, store had ${storeBefore.activeAccountSessions})`);
+      logger.info("cleanup", { action: "stale_sessions", released: staleIds.length });
       emitAdminEvent('sessions_cleaned', { released: staleIds.length });
     }
 
@@ -462,10 +472,10 @@ async function cleanupStaleSessions() {
         data: { status: 'inactive', logoutReason: 'stale_timeout' },
       });
       for (const id of staleUserIds) sessionStore.releaseUserSession(id);
-      console.log(`[cleanup] Marked ${staleUserIds.length} stale user session(s) inactive (cutoffMs=${userCutoffMs}, store had ${storeBefore.activeUserSessions})`);
+      logger.info("cleanup", { action: "stale_user_sessions", marked: staleUserIds.length });
     }
   } catch (err) {
-    console.error('Session cleanup error:', err.message);
+    logger.error("cleanup", { action: "session_cleanup_error", error: err.message });
   }
 }
 

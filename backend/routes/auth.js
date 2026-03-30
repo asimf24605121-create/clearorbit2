@@ -65,7 +65,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       },
     });
     sessionStore.registerUserSession(sess);
-    console.log(`[session] Created userSession id=${sess.id} user=${user.id} ip=${ip} browser=${browser} fp=${fp.substring(0,8)}`);
+    logger.info("session", { action: "created", session: sess.id, user: user.id });
 
     await prisma.loginHistory.create({
       data: { userId: user.id, ipAddress: ip, userAgent: ua, deviceType, browser, os, action: 'login', createdAt: nowISO() },
@@ -88,7 +88,7 @@ router.post('/login', loginLimiter, async (req, res) => {
               ipLat: geo.lat, ipLon: geo.lon, ipLookupStatus: 'success',
             },
           });
-        } catch (e) { console.warn('[login] IP geo save error:', e.message); }
+        } catch (e) { logger.warn('auth', { action: 'ip_geo_save', error: e.message }); }
       }
     }).catch(() => {});
 
@@ -162,7 +162,7 @@ router.post('/logout', authenticate, async (req, res) => {
       data: { status: 'inactive', logoutReason: 'user_logout' },
     });
     if (req.sessionId) sessionStore.releaseUserSession(req.sessionId);
-    console.log(`[session] Logout userSession user=${userId} released=${logoutResult.count} reason=user_logout`);
+    logger.info("session", { action: "logout", user: userId, released: logoutResult.count });
 
     const activeSlots = await prisma.accountSession.findMany({
       where: { userId, status: 'active' },
@@ -178,9 +178,9 @@ router.post('/logout', authenticate, async (req, res) => {
       });
       for (const s of activeSlots) {
         sessionStore.releaseAccountSession(s.id);
-        console.log(`[slot-release] logout_revoke sessionId=${s.id} user=${userId} platform=${s.platformId} account=${s.accountId}`);
+        logger.info("slot", { action: "logout_revoke", session: s.id, user: userId, platform: s.platformId });
       }
-      console.log(`[logout-revoke] Released ${slotIds.length} platform slot(s) on logout user=${userId}`);
+      logger.info("slot", { action: "logout_bulk_revoke", user: userId, released: slotIds.length });
 
       const platformIds = [...new Set(activeSlots.map(s => s.platformId))];
       const platformRecords = await prisma.platform.findMany({
@@ -210,7 +210,7 @@ router.post('/logout', authenticate, async (req, res) => {
     res.clearCookie('auth_token', { path: '/' });
     res.json({ success: true, message: 'Logged out', platforms });
   } catch (err) {
-    console.error('Logout error:', err);
+    logger.auth({ action: 'logout', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -255,7 +255,7 @@ router.post('/forgot_password', async (req, res) => {
 
     res.json({ success: true, message: 'If the account exists, a reset link has been sent', token });
   } catch (err) {
-    console.error('Forgot password error:', err);
+    logger.auth({ action: 'forgot_password', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -279,7 +279,7 @@ router.post('/reset_password', async (req, res) => {
 
     res.json({ success: true, message: 'Password reset successful' });
   } catch (err) {
-    console.error('Reset password error:', err);
+    logger.auth({ action: 'reset_password', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -299,7 +299,7 @@ router.post('/change_password', authenticate, async (req, res) => {
 
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (err) {
-    console.error('Change password error:', err);
+    logger.auth({ action: 'change_password', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

@@ -167,7 +167,7 @@ router.get('/admin_init', authenticate, requireAdmin(), async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('admin_init error:', err);
+    logger.error('admin', { action: 'admin_init', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -237,7 +237,7 @@ router.get('/admin_stats', authenticate, requireAdmin(), async (req, res) => {
       kpi: { total_users: totalUsers, active_users: activeUsers },
     });
   } catch (err) {
-    console.error('admin_stats error:', err);
+    logger.error('admin', { action: 'admin_stats', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -416,7 +416,7 @@ router.get('/admin_overview', authenticate, requireAdmin(), async (req, res) => 
       })),
     });
   } catch (err) {
-    console.error('admin_overview error:', err);
+    logger.error('admin', { action: 'admin_overview', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -570,7 +570,7 @@ router.get('/get_users', authenticate, requireAdmin(), async (req, res) => {
       });
     }
   } catch (err) {
-    console.error('get_users error:', err);
+    logger.error('admin', { action: 'get_users', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -601,7 +601,7 @@ router.post('/add_user', authenticate, requireAdmin(), async (req, res) => {
 
     res.json({ success: true, message: 'User created', user_id: user.id });
   } catch (err) {
-    console.error('add_user error:', err);
+    logger.error('admin', { action: 'add_user', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -630,7 +630,7 @@ router.post('/edit_user', authenticate, requireAdmin(), async (req, res) => {
 
     res.json({ success: true, message: 'User updated' });
   } catch (err) {
-    console.error('edit_user error:', err);
+    logger.error('admin', { action: 'edit_user', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -662,7 +662,7 @@ router.post('/delete_user_preview', authenticate, requireAdmin('super_admin'), a
       },
     });
   } catch (err) {
-    console.error('delete_user_preview error:', err);
+    logger.error('admin', { action: 'delete_user_preview', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -698,7 +698,7 @@ router.post('/delete_user', authenticate, requireAdmin('super_admin'), async (re
 
     res.json({ success: true, message: `User "${user.username}" permanently deleted` });
   } catch (err) {
-    console.error('delete_user error:', err);
+    logger.error('admin', { action: 'delete_user', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -813,7 +813,7 @@ router.get('/export_users_csv', authenticate, requireAdmin(), async (req, res) =
     res.setHeader('Content-Disposition', `attachment; filename="clearorbit_users_${today}.csv"`);
     res.send(csv);
   } catch (err) {
-    console.error('export_users_csv error:', err);
+    logger.error('admin', { action: 'export_users_csv', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -851,7 +851,7 @@ router.post('/toggle_user', authenticate, requireAdmin(), async (req, res) => {
 
     res.json({ success: true, message: `User ${newStatus ? 'enabled' : 'disabled'}`, is_active: newStatus });
   } catch (err) {
-    console.error('toggle_user error:', err);
+    logger.error('admin', { action: 'toggle_user', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -873,7 +873,7 @@ router.get('/get_admins', authenticate, requireAdmin('super_admin'), async (req,
       })),
     });
   } catch (err) {
-    console.error('get_admins error:', err);
+    logger.error('admin', { action: 'get_admins', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -897,7 +897,7 @@ router.post('/create_admin', authenticate, requireAdmin('super_admin'), async (r
 
     res.json({ success: true, message: 'Admin created' });
   } catch (err) {
-    console.error('create_admin error:', err);
+    logger.error('admin', { action: 'create_admin', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -914,7 +914,7 @@ router.post('/delete_admin', authenticate, requireAdmin('super_admin'), async (r
     await prisma.user.delete({ where: { id: admin.id } });
     res.json({ success: true, message: 'Admin deleted' });
   } catch (err) {
-    console.error('delete_admin error:', err);
+    logger.error('admin', { action: 'delete_admin', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -932,7 +932,7 @@ router.post('/toggle_admin', authenticate, requireAdmin('super_admin'), async (r
     await prisma.user.update({ where: { id: admin.id }, data: { isActive: newStatus } });
     res.json({ success: true, message: `Admin ${newStatus ? 'enabled' : 'disabled'}` });
   } catch (err) {
-    console.error('toggle_admin error:', err);
+    logger.error('admin', { action: 'toggle_admin', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -953,7 +953,7 @@ router.post('/force_logout', authenticate, requireAdmin(), async (req, res) => {
 
     res.json({ success: true, message: 'User sessions terminated' });
   } catch (err) {
-    console.error('force_logout error:', err);
+    logger.error('admin', { action: 'force_logout', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -970,7 +970,7 @@ router.post('/admin_kill_session', authenticate, requireAdmin('super_admin'), as
 
     res.json({ success: true, message: 'Session killed' });
   } catch (err) {
-    console.error('admin_kill_session error:', err);
+    logger.error('admin', { action: 'admin_kill_session', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -982,7 +982,7 @@ router.get('/check_username', authenticate, requireAdmin(), async (req, res) => 
     const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } });
     res.json({ available: !existing });
   } catch (err) {
-    console.error('check_username error:', err);
+    logger.error('admin', { action: 'check_username', error: err.message });
     res.json({ available: false });
   }
 });
@@ -1053,7 +1053,7 @@ router.post('/create_user_with_sub', authenticate, requireAdmin(), async (req, r
       platforms_skipped: skippedPlatforms,
     });
   } catch (err) {
-    console.error('create_user_with_sub error:', err);
+    logger.error('admin', { action: 'create_user_with_sub', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1127,7 +1127,7 @@ router.post('/assign_platforms', authenticate, requireAdmin(), async (req, res) 
       platforms_extended: result.extended,
     });
   } catch (err) {
-    console.error('assign_platforms error:', err);
+    logger.error('admin', { action: 'assign_platforms', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1174,7 +1174,7 @@ router.get('/user_intelligence', authenticate, requireAdmin(), async (req, res) 
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('user_intelligence error:', err);
+    logger.error('admin', { action: 'user_intelligence', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1205,7 +1205,7 @@ router.post('/user_intelligence', authenticate, requireAdmin(), async (req, res)
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('user_intelligence POST error:', err);
+    logger.error('admin', { action: 'user_intelligence_post', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1314,7 +1314,7 @@ router.post('/verify_login', authenticate, requireAdmin(), async (req, res) => {
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('verify_login error:', err);
+    logger.error('admin', { action: 'verify_login', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1346,7 +1346,7 @@ router.get('/get_active_sessions', authenticate, requireAdmin(), async (req, res
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
-    console.error('get_active_sessions error:', err);
+    logger.error('admin', { action: 'get_active_sessions', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

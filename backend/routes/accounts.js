@@ -3,6 +3,7 @@ import { prisma, emitAdminEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO, cutoffISO, paginate } from '../utils/helpers.js';
 import { sessionStore } from '../utils/sessionStore.js';
+import { logger } from '../utils/logger.js';
 import { parseRawCookieString, computeCookieScore, extractCookieExpiry, detectPlatformFromCookies, generateFingerprint, classifyCookieCompleteness, detectRequiredSessionComponents } from '../utils/cookieEngine.js';
 import { getAdapter, getAllAdapters, checkSessionCompleteness, detectMissingComponents } from '../adapters/registry.js';
 import { logAdminAction, getSetting, setSetting } from '../utils/auditLog.js';
@@ -351,7 +352,7 @@ router.get('/manage_platform_accounts', authenticate, requireAdmin(), async (req
     accountCache.set(cacheKey, response, 30000);
     res.json(response);
   } catch (err) {
-    console.error('manage_platform_accounts GET error:', err);
+    logger.error('accounts', { action: 'manage_platform_accounts_get', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -768,7 +769,7 @@ router.post('/manage_platform_accounts', authenticate, requireAdmin(), massAssig
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('manage_platform_accounts POST error:', err);
+    logger.error('accounts', { action: 'manage_platform_accounts_post', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1101,7 +1102,7 @@ router.post('/add_account_unified', authenticate, requireAdmin(), importLimiter,
     emitAdminEvent('slot_updated', { action: 'add_account', adminId, account_id: account.id });
     res.json({ success: true, message: 'Account added', account_id: account.id, cookie_id: cookie.id });
   } catch (err) {
-    console.error('add_account_unified error:', err);
+    logger.error('accounts', { action: 'add_account_unified', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1365,7 +1366,7 @@ router.get('/account_intelligence', authenticate, requireAdmin(), async (req, re
       })),
     });
   } catch (err) {
-    console.error('account_intelligence GET error:', err);
+    logger.error('accounts', { action: 'account_intelligence_get', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1563,7 +1564,7 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
         });
         for (const s of activeSess) {
           sessionStore.releaseAccountSession(s.id);
-          console.log(`[slot-release] auto_clean sessionId=${s.id} account=${account.id}`);
+          logger.info("slot", { action: "auto_clean", session: s.id, account: account.id });
         }
         freedSessions += activeSess.length;
 
@@ -1606,7 +1607,7 @@ router.post('/account_intelligence', authenticate, requireAdmin(), intelligenceL
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('account_intelligence POST error:', err);
+    logger.error('accounts', { action: 'account_intelligence_post', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1629,7 +1630,7 @@ router.get('/account_manager', authenticate, requireAdmin(), async (req, res) =>
 
     res.json({ success: true, accounts: accounts.map(a => enrichAccountWithSessions(a, staleCutoff)) });
   } catch (err) {
-    console.error('account_manager error:', err);
+    logger.error('accounts', { action: 'account_manager', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1682,14 +1683,14 @@ router.post('/reassign_slot', authenticate, requireAdmin(), adminActionLimiter, 
       sessionStore.releaseAccountSession(sid);
       const updated = await prisma.accountSession.findUnique({ where: { id: sid } });
       if (updated && updated.status === 'active') sessionStore.registerAccountSession(updated);
-      console.log(`[slot-alloc] REASSIGNED sessionId=${sid} newAccount=${newAccId} by admin=${req.user.id}`);
+      logger.info("slot", { action: "reassigned", session: sid, newAccount: newAccId, admin: req.user.id });
     } else {
       await prisma.accountSession.update({
         where: { id: sid },
         data: { status: 'inactive', reason: 'admin_release' },
       });
       sessionStore.releaseAccountSession(sid);
-      console.log(`[slot-release] admin_release sessionId=${sid} by admin=${req.user.id}`);
+      logger.info("slot", { action: "admin_release", session: sid, admin: req.user.id });
     }
 
     invalidateAccountCaches();
@@ -1823,7 +1824,7 @@ router.post('/assign_slot', authenticate, async (req, res) => {
     if (err.message.includes('currently being assigned') || err.message.includes('filled while waiting')) {
       return res.status(409).json({ success: false, message: err.message });
     }
-    console.error('assign_slot error:', err);
+    logger.error('accounts', { action: 'assign_slot', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -1903,7 +1904,7 @@ router.post('/check_session_completeness', authenticate, requireAdmin(), async (
         : 'insufficient_data',
     });
   } catch (err) {
-    console.error('check_session_completeness error:', err);
+    logger.error('accounts', { action: 'check_session_completeness', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

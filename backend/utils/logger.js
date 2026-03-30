@@ -10,29 +10,49 @@ function formatLog(level, category, data) {
   });
 }
 
+function logAtLevel(level, category, data) {
+  const lvl = LOG_LEVELS[level] ?? LOG_LEVELS.info;
+  if (currentLevel > lvl) return;
+  const output = formatLog(level, category, data);
+  if (lvl >= LOG_LEVELS.error) console.error(output);
+  else if (lvl >= LOG_LEVELS.warn) console.warn(output);
+  else console.log(output);
+}
+
 export const logger = {
   info(category, data) {
-    if (currentLevel <= LOG_LEVELS.info) console.log(formatLog('info', category, data));
+    logAtLevel('info', category, data);
   },
   warn(category, data) {
-    if (currentLevel <= LOG_LEVELS.warn) console.warn(formatLog('warn', category, data));
+    logAtLevel('warn', category, data);
   },
   error(category, data) {
-    if (currentLevel <= LOG_LEVELS.error) console.error(formatLog('error', category, data));
+    logAtLevel('error', category, data);
   },
   critical(category, data) {
     console.error(formatLog('critical', category, data));
   },
   admin(action, adminId, data = {}) {
-    console.log(formatLog('info', 'admin_action', { action, adminId, ...data }));
+    const level = data.level || 'info';
+    delete data.level;
+    logAtLevel(level, 'admin_action', { action, adminId, ...data });
   },
-  auth(action, data = {}) {
-    console.log(formatLog('info', 'auth', { action, ...data }));
+  auth(actionOrData, data = {}) {
+    if (typeof actionOrData === 'object') { data = actionOrData; actionOrData = data.action; }
+    const level = data.level || 'info';
+    delete data.level;
+    logAtLevel(level, 'auth', { action: actionOrData, ...data });
   },
-  payment(action, data = {}) {
-    console.log(formatLog('info', 'payment', { action, ...data }));
+  payment(actionOrData, data = {}) {
+    if (typeof actionOrData === 'object') { data = actionOrData; actionOrData = data.action; }
+    const level = data.level || 'info';
+    delete data.level;
+    logAtLevel(level, 'payment', { action: actionOrData, ...data });
   },
-  subscription(action, data = {}) {
-    console.log(formatLog('info', 'subscription', { action, ...data }));
+  subscription(actionOrData, data = {}) {
+    if (typeof actionOrData === 'object') { data = actionOrData; actionOrData = data.action; }
+    const level = data.level || 'info';
+    delete data.level;
+    logAtLevel(level, 'subscription', { action: actionOrData, ...data });
   },
 };

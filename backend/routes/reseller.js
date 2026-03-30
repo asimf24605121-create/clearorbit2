@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../server.js';
 import { authenticate, requireRole, requireAdmin } from '../middleware/auth.js';
 import { nowISO, todayISO, futureDate, paginate } from '../utils/helpers.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -43,7 +44,7 @@ router.get('/reseller_dashboard', authenticate, requireRole('reseller', 'admin')
       })),
     });
   } catch (err) {
-    console.error('reseller_dashboard error:', err);
+    logger.error('reseller', { action: 'dashboard', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -71,7 +72,7 @@ router.post('/reseller_signup', async (req, res) => {
 
     res.json({ success: true, message: 'Reseller registration submitted for approval' });
   } catch (err) {
-    console.error('reseller_signup error:', err);
+    logger.error('reseller', { action: 'signup', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -266,7 +267,7 @@ router.post('/reseller_wallet', authenticate, requireAdmin(), async (req, res) =
 
     return res.status(400).json({ success: false, message: 'Invalid action' });
   } catch (err) {
-    console.error('reseller_wallet POST error:', err);
+    logger.error('reseller', { action: 'wallet_post', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

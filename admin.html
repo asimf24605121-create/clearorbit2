@@ -2791,7 +2791,7 @@ function showSection(name) {
     if (name === 'accounts') { loadAccountSlots(); loadIntelligenceDashboard(); uaPopulatePlatforms(); startAutoRecheck(); }
     else { stopAutoRecheck(); _alieStopLiveUpdates(); }
     if (name === 'platforms') loadPlatformIntelligence();
-    if (name === 'users') { fetchUsersFromServer(1); try { cuRenderPlatGrid(); } catch(e2) { console.error('cuRenderPlatGrid error', e2); } }
+    if (name === 'users') { fetchUsersFromServer(1); try { cuRenderPlatGrid(); } catch(e2) {  } }
 }
 
 const _autoRefreshTimers = {};
@@ -2845,15 +2845,15 @@ async function loadStats(cachedData = null) {
         ALL_COOKIES = data.cookies || [];
 
         if (ADMIN_LEVEL === 'manager') {
-            try { cuRenderPlatGrid(); } catch(e2) { console.error('cuRenderPlatGrid error', e2); }
+            try { cuRenderPlatGrid(); } catch(e2) {  }
             return;
         }
 
-        try { renderOverviewUsers(ALL_USERS.slice(0, 8)); } catch(e2) { console.error('renderOverviewUsers error', e2); }
-        try { renderOverviewLogs(data.recent_logs || []); } catch(e2) { console.error('renderOverviewLogs error', e2); }
-        try { renderPlatformsList(ALL_PLATFORMS); } catch(e2) { console.error('renderPlatformsList error', e2); }
-        try { renderCookiesTable(ALL_COOKIES); } catch(e2) { console.error('renderCookiesTable error', e2); }
-        try { populateDropdowns(); } catch(e2) { console.error('populateDropdowns error', e2); }
+        try { renderOverviewUsers(ALL_USERS.slice(0, 8)); } catch(e2) {  }
+        try { renderOverviewLogs(data.recent_logs || []); } catch(e2) {  }
+        try { renderPlatformsList(ALL_PLATFORMS); } catch(e2) {  }
+        try { renderCookiesTable(ALL_COOKIES); } catch(e2) {  }
+        try { populateDropdowns(); } catch(e2) {  }
 
         try {
             const pending = data.pending_payments || 0;
@@ -2862,15 +2862,15 @@ async function loadStats(cachedData = null) {
                 if (pending > 0) { badge.textContent = pending; badge.classList.remove('hidden'); }
                 else { badge.classList.add('hidden'); }
             }
-        } catch(e2) { console.error('pendingBadge error', e2); }
+        } catch(e2) {  }
 
-        try { fetchTicketBadge(); } catch(e2) { console.error('fetchTicketBadge error', e2); }
-        try { fetchContactBadge(); } catch(e2) { console.error('fetchContactBadge error', e2); }
-        try { loadAccountSlots(); } catch(e2) { console.error('loadAccountSlots error', e2); }
-        try { populateAccountSlotDropdowns(); } catch(e2) { console.error('populateAccountSlotDropdowns error', e2); }
-        try { initEventFilters(); } catch(e2) { console.error('initEventFilters error', e2); }
+        try { fetchTicketBadge(); } catch(e2) {  }
+        try { fetchContactBadge(); } catch(e2) {  }
+        try { loadAccountSlots(); } catch(e2) {  }
+        try { populateAccountSlotDropdowns(); } catch(e2) {  }
+        try { initEventFilters(); } catch(e2) {  }
         if (!cachedData) loadOverviewDashboard();
-    } catch (e) { console.error('loadStats error', e); if (!cachedData) loadOverviewDashboard(); }
+    } catch (e) {  if (!cachedData) loadOverviewDashboard(); }
 }
 
 async function fetchTicketBadge() {
@@ -3038,7 +3038,7 @@ async function loadOverviewDashboard(cachedData = null) {
         ovRefreshTimer = setInterval(() => {
             if (document.getElementById('sec-overview').classList.contains('active')) loadOverviewDashboard();
         }, 30000);
-    } catch (e) { console.error('loadOverviewDashboard error', e); clearOverviewSkeletons('Error loading overview'); }
+    } catch (e) {  clearOverviewSkeletons('Error loading overview'); }
 }
 
 function clearOverviewSkeletons(msg) {
@@ -3246,7 +3246,7 @@ async function loadFilteredEvents() {
             const countEl = document.getElementById('evtCount');
             if (countEl) countEl.textContent = (d.logs||[]).length + ' of ' + (d.total||0);
         }
-    } catch(e) { console.error('loadFilteredEvents error', e); }
+    } catch(e) {  }
 }
 
 async function confirmClearAllEvents() {
@@ -3757,7 +3757,7 @@ async function fetchUsersFromServer(page) {
         renderUsersTable(users);
         renderUsersPagination();
     } catch (e) {
-        console.error('fetchUsersFromServer error', e);
+        
         document.getElementById('usersBody').innerHTML = '<tr><td colspan="6"><div class="user-empty-state"><div class="user-empty-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="user-empty-title">Network error</div><div class="user-empty-sub">Could not reach the server. Check your connection.</div></div></td></tr>';
     }
     finally { _usersLoading = false; }
@@ -4381,7 +4381,7 @@ async function loadPlatformIntelligence() {
             _startPlatHealthPoll();
         }
     } catch(e) {
-        console.error('loadPlatformIntelligence error:', e);
+        
         document.getElementById('platIntelGrid').innerHTML = '<div class="text-center text-gray-400 text-sm py-8 col-span-full">Unable to load platform data. Please try again.</div>';
     }
 }
@@ -4674,7 +4674,7 @@ function _startPlatHealthPoll() {
                 _stopPlatHealthPoll();
                 loadPlatformIntelligence();
             }
-        } catch(e) { console.error('platHealthPoll error:', e); }
+        } catch(e) {  }
     }, 2000);
 }
 
@@ -5994,7 +5994,7 @@ async function loadActivityLogs() {
         const data = await res.json();
         ALL_LOGS = data.logs || data.data || [];
         renderLogs(ALL_LOGS);
-    } catch (e) { console.error('loadActivityLogs error', e); }
+    } catch (e) {  }
 }
 
 function renderLogs(logs) {
@@ -6333,7 +6333,7 @@ async function loadWhatsAppForPlatform() {
         const data = await res.json();
         const cfg = (data.whatsapp || []).find(w => w.platform_id === pid);
         document.getElementById('wa_number').value = cfg?.number || '';
-    } catch(e) { console.error(e); }
+    } catch(e) { }
 }
 
 async function loadWhatsAppTable() {
@@ -6349,7 +6349,7 @@ async function loadWhatsAppTable() {
                 <td class="text-sm">${escHtml(num)}</td>
             </tr>`;
         }).join('') || '<tr><td colspan="2" class="text-center text-gray-400 py-4">No WhatsApp config yet</td></tr>';
-    } catch(e) { console.error(e); }
+    } catch(e) { }
 }
 
 async function saveWhatsApp() {
@@ -6428,7 +6428,7 @@ async function loadPayments(page = 1) {
             </tr>`;
         }).join('');
         renderPagination('paymentsPagination', data.pagination, loadPayments);
-    } catch(e) { console.error('loadPayments error', e); }
+    } catch(e) {  }
 }
 
 function safeUrl(url) {
@@ -6513,7 +6513,7 @@ async function loadAdmins() {
         if (data.csrf_token) { CSRF_TOKEN = data.csrf_token; sessionStorage.setItem('csrf_token', CSRF_TOKEN); }
         ALL_ADMINS = data.admins || [];
         renderAdminsTable(ALL_ADMINS);
-    } catch (e) { console.error('loadAdmins error:', e); showAlert('Failed to load admins: ' + e.message, true); }
+    } catch (e) { showAlert('Failed to load admins: ' + e.message, true); }
 }
 
 function renderAdminsTable(admins) {
@@ -7491,7 +7491,7 @@ async function loadAccountSlots() {
         }
         container.innerHTML = html;
     } catch (e) {
-        console.error('loadAccountSlots error:', e);
+        
         container.innerHTML = '<div class="text-center text-red-400 text-sm py-4">Error loading slots: ' + escHtml(e.message || 'Unknown error') + '</div>';
     }
 }
@@ -9035,6 +9035,21 @@ function filterAccountSlots() {
     container.innerHTML = html;
 }
 
+function _cleanupAllTimers() {
+    Object.keys(_autoRefreshTimers).forEach(k => { clearInterval(_autoRefreshTimers[k]); delete _autoRefreshTimers[k]; });
+    if (typeof ovRefreshTimer !== 'undefined' && ovRefreshTimer) { clearInterval(ovRefreshTimer); ovRefreshTimer = null; }
+    if (typeof ovClockTimer !== 'undefined' && ovClockTimer) { clearInterval(ovClockTimer); ovClockTimer = null; }
+    if (typeof ovLastUpdateTimer !== 'undefined' && ovLastUpdateTimer) { clearInterval(ovLastUpdateTimer); ovLastUpdateTimer = null; }
+    if (typeof _platHealthPollTimer !== 'undefined' && _platHealthPollTimer) { clearInterval(_platHealthPollTimer); _platHealthPollTimer = null; }
+    if (typeof _alieJobPollTimer !== 'undefined' && _alieJobPollTimer) { clearInterval(_alieJobPollTimer); _alieJobPollTimer = null; }
+    if (window._alieTimestampInterval) { clearInterval(window._alieTimestampInterval); window._alieTimestampInterval = null; }
+    if (window._alieEventPollInterval) { clearInterval(window._alieEventPollInterval); window._alieEventPollInterval = null; }
+    if (typeof _autoRecheckTimer !== 'undefined' && _autoRecheckTimer) { clearInterval(_autoRecheckTimer); _autoRecheckTimer = null; }
+    if (_socket) { _socket.removeAllListeners(); _socket.disconnect(); _socket = null; }
+}
+window.addEventListener('pagehide', _cleanupAllTimers);
+window.addEventListener('beforeunload', _cleanupAllTimers);
+
 let _socket = null;
 function initSocket() {
     try {
@@ -9045,10 +9060,10 @@ function initSocket() {
             reconnectionDelay: 1000, reconnectionDelayMax: 10000,
             timeout: 15000,
         });
-        _socket.on('connect', () => console.log('Socket connected, id:', _socket.id));
-        _socket.on('disconnect', (reason) => console.log('Socket disconnected:', reason));
-        _socket.on('reconnect', (attempt) => console.log('Reconnected after', attempt, 'attempts'));
-        _socket.on('reconnect_failed', () => console.warn('Socket reconnection failed after max attempts'));
+        _socket.on('connect', () => {});
+        _socket.on('disconnect', () => {});
+        _socket.on('reconnect', () => {});
+        _socket.on('reconnect_failed', () => {});
         _socket.on('slot_updated', (data) => { _refreshAll(); });
         _socket.on('intelligence_updated', (data) => { loadIntelligenceDashboard(); });
         _socket.on('intelligence_run_complete', (data) => { showAlert(`Intelligence run: ${data.updated} accounts scored`, false); loadIntelligenceDashboard(); });
@@ -9065,8 +9080,8 @@ function initSocket() {
         _socket.on('platform_dead_resolved', (data) => {
             _resolveDeadNotifs(data.platformId, data.platformName);
         });
-        _socket.on('disconnect', () => console.log('Socket disconnected'));
-    } catch(e) { console.warn('Socket init failed:', e.message); }
+        _socket.on('disconnect', () => {});
+    } catch(e) {  }
 }
 
 function showSkeletonLoader(containerId, count) {
@@ -9935,7 +9950,7 @@ async function loadResellers() {
                 </td>
             </tr>`;
         }).join('');
-    } catch(e) { console.error(e); }
+    } catch(e) { }
 }
 
 async function addResellerBalance(resellerId) {
@@ -10026,7 +10041,7 @@ async function loadRechargeRequests() {
                 <td class="flex gap-1">${actions}</td>
             </tr>`;
         }).join('');
-    } catch(e) { console.error(e); }
+    } catch(e) { }
 }
 
 async function approveRecharge(requestId) {

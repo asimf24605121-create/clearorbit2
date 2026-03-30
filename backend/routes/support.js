@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma, emitAdminEvent, emitUserEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO, cutoffISO, paginate } from '../utils/helpers.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.get('/get_tickets', authenticate, requireAdmin(), async (req, res) => {
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
-    console.error('get_tickets error:', err);
+    logger.error('support', { action: 'get_tickets', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -129,11 +130,11 @@ router.post('/create_ticket', authenticate, async (req, res) => {
         username: req.user.username,
         subject: subject || message.substring(0, 60),
       });
-    } catch (e) { console.error('Ticket notification error:', e.message); }
+    } catch (e) { logger.warn('support', { action: 'ticket_notification', error: e.message }); }
 
     res.json({ success: true, message: 'Ticket created', ticket_id: ticket.id });
   } catch (err) {
-    console.error('create_ticket error:', err);
+    logger.error('support', { action: 'create_ticket', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -287,7 +288,7 @@ router.post('/create_ticket_reply', authenticate, async (req, res) => {
         emitUserEvent(ticket.userId, 'ticket_reply', {
           ticket_id: ticket.id, message: message.substring(0, 100),
         });
-      } catch (e) { console.error('Reply notification error:', e.message); }
+      } catch (e) { logger.warn('support', { action: 'reply_notification', error: e.message }); }
     }
 
     if (!isAdmin) {
@@ -297,12 +298,12 @@ router.post('/create_ticket_reply', authenticate, async (req, res) => {
           username: req.user.username,
           message: message.substring(0, 100),
         });
-      } catch (e) { console.error('Admin notify error:', e.message); }
+      } catch (e) { logger.warn('support', { action: 'admin_notify', error: e.message }); }
     }
 
     res.json({ success: true, message: 'Reply added', reply_id: reply.id });
   } catch (err) {
-    console.error('create_ticket_reply error:', err);
+    logger.error('support', { action: 'create_ticket_reply', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -334,7 +335,7 @@ router.post('/submit_contact', async (req, res) => {
         contact_id: contact.id, name, email,
         preview: message.substring(0, 80),
       });
-    } catch (e) { console.error('Contact notification error:', e.message); }
+    } catch (e) { logger.warn('support', { action: 'contact_notification', error: e.message }); }
 
     res.json({ success: true, message: 'Message sent' });
   } catch (err) {
@@ -475,7 +476,7 @@ router.get('/manage_announcement', authenticate, requireAdmin(), async (req, res
       })),
     });
   } catch (err) {
-    console.error('manage_announcement GET error:', err);
+    logger.error('support', { action: 'manage_announcement', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -641,7 +642,7 @@ router.post('/create_whatsapp_order', authenticate, async (req, res) => {
         platform_name: platform.name,
         price,
       });
-    } catch (e) { console.error('WA order notification error:', e.message); }
+    } catch (e) { logger.warn('support', { action: 'wa_order_notification', error: e.message }); }
 
     res.json({
       success: true,
@@ -650,7 +651,7 @@ router.post('/create_whatsapp_order', authenticate, async (req, res) => {
       whatsapp_message: msgParts.join(' | '),
     });
   } catch (err) {
-    console.error('create_whatsapp_order error:', err);
+    logger.error('support', { action: 'create_whatsapp_order', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -704,7 +705,7 @@ router.get('/get_whatsapp_orders', authenticate, requireAdmin(), async (req, res
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
-    console.error('get_whatsapp_orders error:', err);
+    logger.error('support', { action: 'get_whatsapp_orders', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

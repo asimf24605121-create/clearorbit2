@@ -387,7 +387,7 @@ async function loadPlatforms() {
         document.getElementById('platformsGrid').classList.remove('hidden');
     } catch (e) {
         document.getElementById('skeletonGrid').classList.add('hidden');
-        console.error('loadPlatforms error', e);
+        // error handled by toast
     }
 }
 

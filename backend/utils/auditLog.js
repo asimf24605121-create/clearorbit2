@@ -15,7 +15,7 @@ export async function logAdminAction(adminId, action, entityType, entityId, deta
       },
     });
   } catch (err) {
-    console.error('Audit log error:', err.message);
+    ;
   }
 }
 

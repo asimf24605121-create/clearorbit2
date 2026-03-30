@@ -5,6 +5,7 @@ import { nowISO, cutoffISO, todayISO, getClientIP, parseUserAgent, getUserAccess
 import { parseRawCookieString, classifyCookieCompleteness, detectRequiredSessionComponents } from '../utils/cookieEngine.js';
 import { sessionStore } from '../utils/sessionStore.js';
 import { lookupIP, reverseGeocode, computeConfidence } from '../utils/geoip.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -150,7 +151,7 @@ router.get('/get_dashboard', authenticate, async (req, res) => {
       device_limit: 2,
     });
   } catch (err) {
-    console.error('get_dashboard error:', err);
+    logger.error('dashboard', { action: 'get_dashboard', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -178,19 +179,19 @@ router.post('/access_platform', authenticate, async (req, res) => {
     const result = await attemptSlotAllocation(req, pid, userId, clientIp, browserSessionId, device_type, now, nowMs, false);
 
     if (result.all_expired) {
-      console.log(`[slot-alloc] All accounts expired for platform=${pid} user=${userId} — no retry`);
+      logger.info("slot", { action: "alloc_expired", platform: pid, user: userId });
       return res.status(result.error).json({ success: false, message: result.message, all_expired: true });
     }
 
     if (result.all_full) {
-      console.log(`[slot-alloc] All slots full on first attempt — running platform-wide cleanup and retrying user=${userId} platform=${pid}`);
+      logger.info("slot", { action: "alloc_retry", platform: pid, user: userId });
       const retryNowMs = Date.now();
       const retryResult = await attemptSlotAllocation(req, pid, userId, clientIp, browserSessionId, device_type, nowISO(), retryNowMs, true);
       if (retryResult.error) {
-        console.log(`[slot-alloc] RETRY FAILED — still no slots user=${userId} platform=${pid}`);
+        logger.warn("slot", { action: "alloc_retry_failed", platform: pid, user: userId });
         return res.status(retryResult.error).json({ success: false, message: retryResult.message, all_full: retryResult.all_full });
       }
-      console.log(`[slot-alloc] RETRY SUCCESS — slot allocated on retry user=${userId} platform=${pid} session=${retryResult.session.id}`);
+      logger.info("slot", { action: "alloc_retry_success", platform: pid, user: userId, session: retryResult.session.id });
       return res.json(buildAccessResponse(retryResult.account, pid, retryResult.session.id, retryResult.session.sessionKey));
     }
 
@@ -200,7 +201,7 @@ router.post('/access_platform', authenticate, async (req, res) => {
 
     res.json(buildAccessResponse(result.account, pid, result.session.id, result.session.sessionKey));
   } catch (err) {
-    console.error('access_platform error:', err);
+    logger.error('dashboard', { action: 'access_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -230,9 +231,9 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
       for (const s of stalePlatformWide) {
         sessionStore.releaseAccountSession(s.id);
         const ageMs = nowMs - Number(s.lastActiveAt || 0);
-        console.log(`[slot-release] pre_access_cleanup sessionId=${s.id} user=${s.userId} platform=${pid} account=${s.accountId} age=${Math.round(ageMs/1000)}s retry=${isRetry}`);
+        logger.info("slot", { action: "pre_cleanup", session: s.id, user: s.userId, platform: pid, account: s.accountId, ageSec: Math.round(ageMs/1000), retry: isRetry });
       }
-      console.log(`[slot-alloc] Pre-access cleanup released ${staleIds.length} stale session(s) platform=${pid} retry=${isRetry}`);
+      logger.info("slot", { action: "stale_cleanup", released: staleIds.length, platform: pid, retry: isRetry });
     }
 
     const existing = await tx.accountSession.findFirst({
@@ -259,14 +260,14 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
           data: { status: 'inactive', reason: 'account_expired_auto_shift' },
         });
         sessionStore.releaseAccountSession(existing.id);
-        console.log(`[slot-shift] Released session=${existing.id} from expired account=${existing.accountId} user=${userId} platform=${pid} — will allocate new slot`);
+        logger.info("slot", { action: "expired_shift", session: existing.id, account: existing.accountId, user: userId, platform: pid });
       } else if (existingAccount) {
         await tx.accountSession.update({
           where: { id: existing.id },
           data: { lastActive: now, lastActiveAt: BigInt(nowMs) },
         });
         sessionStore.heartbeatAccountSession(existing.id, nowMs);
-        console.log(`[session] Reused accountSession id=${existing.id} user=${userId} platform=${pid} ip=${clientIp} lastActiveAt=${nowMs}`);
+        logger.info("session", { action: "reuse", session: existing.id, user: userId, platform: pid });
         return { account: existingAccount, session: existing, reused: true };
       }
     }
@@ -293,13 +294,13 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
     let allExpired = true;
     for (const acct of accounts) {
       if (acct.expiresAt && parseEndDateUTC(acct.expiresAt) <= nowDate) {
-        console.log(`[slot-alloc] SKIP expired account=${acct.id} platform=${pid} expiresAt=${acct.expiresAt}`);
+        logger.info("slot", { action: "skip_expired", account: acct.id, platform: pid });
         continue;
       }
       allExpired = false;
       const dbCount = acct.accountSessions.length;
       const maxSlots = acct.maxUsers ?? 1;
-      console.log(`[slot-alloc] account=${acct.id} dbActive=${dbCount} maxSlots=${maxSlots} platform=${pid}`);
+      logger.info("slot", { action: "account_check", account: acct.id, active: dbCount, max: maxSlots, platform: pid });
       if (dbCount < maxSlots) {
         bestAccount = acct;
         break;
@@ -326,7 +327,7 @@ async function attemptSlotAllocation(req, pid, userId, clientIp, browserSessionI
       },
     });
     sessionStore.registerAccountSession(session);
-    console.log(`[slot-alloc] ALLOCATED sessionId=${session.id} user=${userId} platform=${pid} account=${bestAccount.id} ip=${clientIp} lastActiveAt=${nowMs} retry=${isRetry}`);
+    logger.info("slot", { action: "allocated", session: session.id, user: userId, platform: pid, account: bestAccount.id, retry: isRetry });
 
     await tx.platformAccount.update({
       where: { id: bestAccount.id },
@@ -397,7 +398,7 @@ router.post('/release_session', tryAuthenticate, async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      console.log(`[session] release_session called without auth — ignored`);
+      logger.info("session", { action: "release_no_auth" });
       return res.json({ success: false, message: 'Not authenticated' });
     }
 
@@ -418,9 +419,9 @@ router.post('/release_session', tryAuthenticate, async (req, res) => {
         sessionStore.releaseAccountSession(sid);
         released = 1;
         releasedSessionIds.push(sid);
-        console.log(`[slot-release] sessionId=${sid} user=${userId} platform=${target.platformId} account=${target.accountId} reason=user_release`);
+        logger.info("slot", { action: "release", session: sid, user: userId, platform: target.platformId, account: target.accountId });
       } else {
-        console.log(`[slot-release] sessionId=${sid} user=${userId} NOT FOUND or already inactive`);
+        logger.info("slot", { action: "release_not_found", session: sid, user: userId });
       }
     } else if (platform_id) {
       const pid = parseInt(platform_id);
@@ -440,9 +441,9 @@ router.post('/release_session', tryAuthenticate, async (req, res) => {
           releasedSessionIds.push(s.id);
         }
         released = activeSessions.length;
-        console.log(`[slot-release] user=${userId} platform=${pid} released=${released} ids=[${ids.join(',')}] reason=user_release`);
+        logger.info("slot", { action: "bulk_release", user: userId, platform: pid, released: released });
       } else {
-        console.log(`[slot-release] user=${userId} platform=${pid} NO active sessions to release`);
+        logger.info("slot", { action: "release_none", user: userId, platform: pid });
       }
     }
 
@@ -453,7 +454,7 @@ router.post('/release_session', tryAuthenticate, async (req, res) => {
 
     res.json({ success: true, message: 'Session released', released });
   } catch (err) {
-    console.error('[slot-release] error:', err.message);
+    logger.error('dashboard', { action: 'slot_release', error: err.message });
     res.status(500).json({ success: false, message: 'Release failed' });
   }
 });
@@ -529,7 +530,7 @@ router.get('/session_status', authenticate, async (req, res) => {
       device_limit: 2,
     });
   } catch (err) {
-    console.error('session_status error:', err);
+    logger.error('dashboard', { action: 'session_status', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -560,7 +561,7 @@ router.post('/session_heartbeat', authenticate, async (req, res) => {
       if (updated > 0) sessionStore.heartbeatAccountSessionByIdentity(userId, parseInt(platform_id), clientIp, nowMs);
     }
     if (updated > 0) {
-      console.log(`[heartbeat] user=${userId} session=${session_id || 'n/a'} platform=${platform_id || 'n/a'} updated=${updated} at=${nowMs}`);
+      logger.info("session", { action: "heartbeat", user: userId, session: session_id, platform: platform_id, updated: updated });
     }
     res.json({ success: true });
   } catch (err) {
@@ -584,7 +585,7 @@ router.post('/force_logout', authenticate, async (req, res) => {
       data: { status: 'inactive', reason: 'force_logout_others' },
     });
     sessionStore.releaseAllAccountSessionsForUser(userId);
-    console.log(`[slot-release] Force logout others user=${userId} userSessions=${result.count} accountSessions=${slotResult.count}`);
+    logger.info("slot", { action: "force_logout_others", user: userId, userSessions: result.count, accountSessions: slotResult.count });
     emitUserEvent(userId, 'session_ended', { reason: 'force_logout_others', slots_released: slotResult.count });
 
     await prisma.loginHistory.create({
@@ -593,7 +594,7 @@ router.post('/force_logout', authenticate, async (req, res) => {
 
     res.json({ success: true, message: `Logged out ${result.count} other session(s)`, released: result.count });
   } catch (err) {
-    console.error('force_logout error:', err);
+    logger.error("dashboard", { action: "force_logout", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -619,7 +620,7 @@ router.post('/force_logout_session', authenticate, async (req, res) => {
       data: { status: 'inactive', logoutReason: 'force_logout_single' },
     });
     sessionStore.releaseUserSession(target.id);
-    console.log(`[session] Force logout single userSession id=${target.id} user=${userId} ip=${target.ipAddress}`);
+    logger.info("session", { action: "force_logout_single", session: target.id, user: userId });
 
     if (target.ipAddress) {
       const releasedSlots = await prisma.accountSession.updateMany({
@@ -628,14 +629,14 @@ router.post('/force_logout_session', authenticate, async (req, res) => {
       });
       sessionStore.releaseAccountSessionsByUserAndIp(userId, target.ipAddress);
       if (releasedSlots.count > 0) {
-        console.log(`[slot-release] Force logout single: also released ${releasedSlots.count} platform slot(s) for IP ${target.ipAddress}`);
+        logger.info("slot", { action: "force_logout_slots", released: releasedSlots.count });
       }
     }
     emitUserEvent(userId, 'session_ended', { reason: 'force_logout_single', session_id: parseInt(session_id) });
 
     res.json({ success: true, message: 'Session terminated' });
   } catch (err) {
-    console.error('force_logout_session error:', err);
+    logger.error("dashboard", { action: "force_logout_session", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -773,7 +774,7 @@ router.get('/get_user_profile', authenticate, async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('get_user_profile error:', err);
+    logger.error("dashboard", { action: "get_user_profile", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -841,7 +842,7 @@ router.get('/security-location', authenticate, async (req, res) => {
       confidence,
     });
   } catch (err) {
-    console.error('security-location error:', err);
+    logger.error("dashboard", { action: "security_location", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -887,7 +888,7 @@ router.post('/device-location', authenticate, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('device-location error:', err);
+    logger.error("dashboard", { action: "device_location", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -922,7 +923,7 @@ router.post('/refresh-ip-location', authenticate, async (req, res) => {
       res.json({ success: false, ip, message: 'IP location lookup failed', ip_location: ipLocation });
     }
   } catch (err) {
-    console.error('refresh-ip-location error:', err);
+    logger.error("dashboard", { action: "refresh_ip_location", error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

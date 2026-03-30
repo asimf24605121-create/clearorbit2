@@ -30,7 +30,7 @@ export function parseEndDateUTC(endDate) {
     d = new Date(s + 'T23:59:59Z');
   }
   if (isNaN(d.getTime())) {
-    console.warn('[parseEndDateUTC] invalid date input:', endDate);
+    ;
     return new Date(0);
   }
   return d;
@@ -81,7 +81,7 @@ export function getRemainingMs(endDate) {
 export function formatRemainingMs(ms) {
   if (!ms || ms <= 0 || !isFinite(ms)) {
     if (ms !== 0 && ms !== null && ms !== undefined && (typeof ms !== 'number' || isNaN(ms) || !isFinite(ms))) {
-      console.warn('[formatRemainingMs] edge-case input:', ms);
+      ;
     }
     return 'Expired';
   }

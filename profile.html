@@ -884,7 +884,7 @@ async function loadProfile() {
             </div>`;
         }).join('') + '</div>';
     } catch (e) {
-        console.error('loadProfile error', e);
+        
         document.getElementById('profileDisplayName').textContent = 'Unable to load';
         showAlert('Failed to load profile.', true);
     }

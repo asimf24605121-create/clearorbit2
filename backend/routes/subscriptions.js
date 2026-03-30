@@ -104,7 +104,7 @@ router.get('/get_subscriptions', authenticate, requireAdmin(), async (req, res) 
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
-    console.error('get_subscriptions error:', err);
+    logger.subscription({ action: 'get_subscriptions', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -250,7 +250,7 @@ router.get('/get_user_subscriptions', authenticate, async (req, res) => {
       }),
     });
   } catch (err) {
-    console.error('get_user_subscriptions error:', err);
+    logger.subscription({ action: 'get_user_subscriptions', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -315,7 +315,7 @@ router.post('/delete_subscription', authenticate, requireAdmin(), async (req, re
     await prisma.userSubscription.delete({ where: { id: parseInt(subscription_id) } });
     res.json({ success: true, message: 'Subscription deleted' });
   } catch (err) {
-    console.error('delete_subscription error:', err);
+    logger.subscription({ action: 'delete_subscription', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -498,7 +498,7 @@ router.post('/add_pricing_plan', authenticate, requireAdmin(), async (req, res) 
 
     res.json({ success: true, message: 'Pricing plan added', plan: formatPlan(plan) });
   } catch (err) {
-    console.error('add_pricing_plan error:', err);
+    logger.subscription({ action: 'add_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -572,7 +572,7 @@ router.post('/update_pricing_plan', authenticate, requireAdmin(), async (req, re
 
     res.json({ success: true, message: 'Pricing plan updated', plan: formatPlan(plan) });
   } catch (err) {
-    console.error('update_pricing_plan error:', err);
+    logger.subscription({ action: 'update_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -609,7 +609,7 @@ router.post('/delete_pricing_plan', authenticate, requireAdmin(), async (req, re
 
     res.json({ success: true, message: 'Pricing plan deleted' });
   } catch (err) {
-    console.error('delete_pricing_plan error:', err);
+    logger.subscription({ action: 'delete_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -664,7 +664,7 @@ router.post('/add_pricing_plan', authenticate, requireAdmin(), async (req, res) 
       },
     });
   } catch (err) {
-    console.error('add_pricing_plan error:', err);
+    logger.subscription({ action: 'add_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -737,7 +737,7 @@ router.put('/update_pricing_plan', authenticate, requireAdmin(), async (req, res
       },
     });
   } catch (err) {
-    console.error('update_pricing_plan error:', err);
+    logger.subscription({ action: 'update_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -753,7 +753,7 @@ router.delete('/delete_pricing_plan', authenticate, requireAdmin(), async (req, 
     await prisma.pricingPlan.delete({ where: { id: parseInt(id) } });
     res.json({ success: true, message: 'Plan deleted' });
   } catch (err) {
-    console.error('delete_pricing_plan error:', err);
+    logger.subscription({ action: 'delete_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -777,7 +777,7 @@ router.post('/toggle_pricing_plan', authenticate, requireAdmin(), async (req, re
       is_active: plan.isActive,
     });
   } catch (err) {
-    console.error('toggle_pricing_plan error:', err);
+    logger.subscription({ action: 'toggle_pricing_plan', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -855,11 +855,11 @@ router.post('/create_payment', authenticate, async (req, res) => {
         platform_name: platform?.name,
         price,
       });
-    } catch (e) { console.error('Payment notification error:', e.message); }
+    } catch (e) { logger.payment({ action: 'notification', level: 'error', error: e.message }); }
 
     res.json({ success: true, message: 'Payment request created', payment_id: payment.id });
   } catch (err) {
-    console.error('create_payment error:', err);
+    logger.subscription({ action: 'create_payment', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -925,7 +925,7 @@ router.get('/get_payments', authenticate, requireAdmin(), async (req, res) => {
       pagination: { total_count: total, page: p, per_page: pp, total_pages: Math.ceil(total / pp) },
     });
   } catch (err) {
-    console.error('get_payments error:', err);
+    logger.subscription({ action: 'get_payments', level: 'error', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

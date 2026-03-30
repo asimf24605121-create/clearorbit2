@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger.js';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../server.js';
 import { nowISO } from '../utils/helpers.js';
@@ -63,13 +64,13 @@ export async function authenticate(req, res, next) {
         data: { status: 'inactive', logoutReason: 'inactivity_timeout' },
       });
       sessionStore.releaseUserSession(session.id);
-      console.log(`[session] Expired userSession id=${session.id} user=${decoded.userId} reason=inactivity_timeout idle=${Math.round(diffMinutes)}min`);
+      logger.info("session", { action: "expired_inactivity", session: session.id, user: decoded.userId, idleMin: Math.round(diffMinutes) });
       return res.status(401).json({ success: false, message: 'Session timed out' });
     }
 
     const currentFingerprint = sessionStore.generateFingerprint(req.ip, req.headers['user-agent']);
     if (session.fingerprint && session.fingerprint !== currentFingerprint) {
-      console.log(`[security] Fingerprint mismatch for userSession id=${session.id} user=${decoded.userId} expected=${session.fingerprint.substring(0,8)}... got=${currentFingerprint.substring(0,8)}...`);
+      logger.warn("security", { action: "fingerprint_mismatch", session: session.id, user: decoded.userId });
     }
 
     await prisma.userSession.update({
@@ -88,7 +89,7 @@ export async function authenticate(req, res, next) {
     req.sessionToken = decoded.sessionToken;
     next();
   } catch (err) {
-    console.error('Auth middleware error:', err);
+    logger.error("auth", { action: "middleware_error", error: err.message });
     return res.status(500).json({ success: false, message: 'Authentication error' });
   }
 }

@@ -279,7 +279,7 @@ async function loadDashboard() {
             txEl.innerHTML = html;
         }
     } catch(e) {
-        console.error('Dashboard load failed', e);
+        
         if (txEl) txEl.innerHTML = '<div class="text-center py-4 text-red-400">Failed to load data</div>';
         document.getElementById('kpi-balance').textContent = '0';
         document.getElementById('kpi-users').textContent = '0';

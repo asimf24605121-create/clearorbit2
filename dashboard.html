@@ -441,6 +441,18 @@
             <div class="card p-5"><div class="skeleton h-10 w-10 mb-4"></div><div class="skeleton h-4 w-3/4 mb-2"></div><div class="skeleton h-3 w-1/2 mb-4"></div><div class="skeleton h-1.5 w-full mb-3"></div><div class="skeleton h-11 w-full" style="border-radius:.75rem"></div></div>
         </div>
 
+        <div id="errorState" class="hidden py-16 text-center animate-in">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            </div>
+            <p class="text-gray-500 text-sm font-medium">Failed to load your dashboard.</p>
+            <p class="text-gray-400 text-xs mt-1">Please check your connection and try again.</p>
+            <button onclick="document.getElementById('errorState').classList.add('hidden');document.getElementById('skeletonState').classList.remove('hidden');loadDashboard();" class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Retry
+            </button>
+        </div>
+
         <div id="emptyState" class="hidden py-16 text-center">
             <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 flex items-center justify-center">
                 <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -753,7 +765,7 @@ async function reportSlotFeedback(accountId, platformId, status) {
             credentials: 'include',
             body: JSON.stringify({ account_id: accountId, platform_id: platformId, status: status })
         });
-    } catch(e) { console.warn('Slot feedback failed:', e); }
+    } catch(e) {  }
 }
 
 function csrfHeaders() {
@@ -805,14 +817,14 @@ window.addEventListener('message', (e) => {
         if (accId && platId) {
             if (e.data.status === 'success') {
                 reportSlotFeedback(accId, platId, 'success');
-                console.log('[ClearOrbit] Login verified — reported success for slot', accId);
+                
             } else if (e.data.status === 'unknown') {
-                console.warn('[ClearOrbit] Login verification inconclusive for slot', accId, e.data.reason);
+                
                 showToast('Session injected but verification was inconclusive. Platform may still work.', 'warning');
             } else {
                 reportSlotFeedback(accId, platId, 'fail');
                 showToast('Login verification failed: ' + (e.data.reason || 'Could not verify login.'), 'error');
-                console.warn('[ClearOrbit] Login verification FAILED — reported failure for slot', accId, e.data.reason);
+                
             }
         }
         window._lastSlotAssignment = null;
@@ -963,7 +975,7 @@ async function openModal(platformId, platformName, isExpired) {
         }, '*');
 
     } catch(e) {
-        console.error(e);
+        
         _openModalBusy = false;
         slotsEl.innerHTML = `<div class="text-center py-6">
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-red-50 flex items-center justify-center">
@@ -1053,8 +1065,8 @@ async function loadDashboard() {
         }
     } catch (e) {
         document.getElementById('skeletonState').classList.add('hidden');
-        showToast('Failed to load dashboard. Please refresh.', 'error');
-        console.error('loadDashboard error', e);
+        const errorDiv = document.getElementById('errorState');
+        if (errorDiv) { errorDiv.classList.remove('hidden'); }
     }
 }
 
@@ -1396,7 +1408,7 @@ async function pollStatus() {
         }
         updateDeviceInfo(data);
     } catch (e) {
-        console.error('Poll error', e);
+        
     }
 }
 
@@ -1766,7 +1778,7 @@ async function loadNotifications() {
         if (!data.success) return;
         updateNotifBadge(data.unread_count);
         renderNotifPanel(data.notifications);
-    } catch (e) { console.error('Notifications error', e); }
+    } catch (e) {  }
 }
 
 function updateNotifBadge(count) {
@@ -1837,7 +1849,7 @@ async function markNotifRead(id, el) {
         const badge = document.getElementById('notifBadge');
         const cur = parseInt(badge.getAttribute('data-count')) || 0;
         if (cur > 0) updateNotifBadge(cur - 1);
-    } catch (e) { console.error('Mark read error', e); }
+    } catch (e) {  }
 }
 
 async function markAllNotificationsRead(e) {
@@ -1876,7 +1888,7 @@ async function pollNotifications() {
         if (NOTIF_PANEL_OPEN) {
             loadNotifications();
         }
-    } catch (e) { console.error('Notification poll error', e); }
+    } catch (e) {  }
 }
 
 // ========== ANNOUNCEMENTS ==========
@@ -1922,7 +1934,7 @@ async function checkAnnouncement() {
                 setTimeout(() => dismissNotification(n.id), 8000);
             });
         }
-    } catch (e) { console.error('Announcement check failed', e); }
+    } catch (e) {  }
 }
 
 function dismissNotification(id) {
@@ -2047,7 +2059,7 @@ async function refreshAfterSlotRelease(data, wasMySession) {
     _refreshDebounce = setTimeout(async () => {
         try {
             const reason = data.reason || 'unknown';
-            console.log('[ws] refreshAfterSlotRelease — reason:', reason, 'wasMySession:', wasMySession);
+            
 
             await pollStatus();
 
@@ -2079,7 +2091,7 @@ async function refreshAfterSlotRelease(data, wasMySession) {
                 showToast('Your platform session was released', 'info');
             }
         } catch (e) {
-            console.error('[ws] refreshAfterSlotRelease error:', e);
+            
         }
     }, 300);
 }
@@ -2094,13 +2106,13 @@ function initDashboardSocket() {
             reconnectionDelay: 1000, reconnectionDelayMax: 10000,
             timeout: 15000,
         });
-        _dashSocket.on('connect', () => { console.log('[ws] Dashboard socket connected, id:', _dashSocket.id); });
-        _dashSocket.on('disconnect', (reason) => { console.log('[ws] Dashboard socket disconnected:', reason); });
-        _dashSocket.on('reconnect', (attempt) => { console.log('[ws] Reconnected after', attempt, 'attempts'); });
-        _dashSocket.on('reconnect_failed', () => { console.warn('[ws] Reconnection failed after max attempts'); });
+        _dashSocket.on('connect', () => {});
+        _dashSocket.on('disconnect', () => {});
+        _dashSocket.on('reconnect', () => {});
+        _dashSocket.on('reconnect_failed', () => {});
 
         _dashSocket.on('slot_released', (data) => {
-            console.log('[ws] slot_released', data);
+            
             let wasMySession = false;
             if (data.platform_id && data.session_ids) {
                 const pid = String(data.platform_id);
@@ -2117,7 +2129,7 @@ function initDashboardSocket() {
         });
 
         _dashSocket.on('session_ended', (data) => {
-            console.log('[ws] session_ended', data);
+            
             let wasMySession = false;
             if (data.session_id) {
                 for (const pid of Object.keys(ACTIVE_SESSIONS)) {
@@ -2145,19 +2157,19 @@ function initDashboardSocket() {
         });
 
         _dashSocket.on('subscription_updated', (data) => {
-            console.log('[ws] subscription_updated', data);
+            
             showToast(data.message || 'Your subscription has been updated', 'info');
             pollStatus();
         });
 
         _dashSocket.on('subscription_revoked', (data) => {
-            console.log('[ws] subscription_revoked', data);
+            
             showToast(data.message || 'A subscription has been revoked', 'warning');
             pollStatus();
         });
 
         _dashSocket.on('payment_approved', (data) => {
-            console.log('[ws] payment_approved', data);
+            
             showToast('Your payment has been approved! Subscription activated.', 'success');
             pollStatus();
             triggerBellBounce();
@@ -2165,31 +2177,31 @@ function initDashboardSocket() {
         });
 
         _dashSocket.on('payment_rejected', (data) => {
-            console.log('[ws] payment_rejected', data);
+            
             showToast('Your payment was rejected.' + (data.reason ? ' Reason: ' + data.reason : ''), 'error');
             loadNotifications();
         });
 
         _dashSocket.on('ticket_reply', (data) => {
-            console.log('[ws] ticket_reply', data);
+            
             showToast('New reply on your support ticket', 'info');
             triggerBellBounce();
             loadNotifications();
         });
 
         _dashSocket.on('ticket_updated', (data) => {
-            console.log('[ws] ticket_updated', data);
+            
             if (data.status) showToast('Ticket status changed to: ' + data.status, 'info');
             loadNotifications();
         });
 
         _dashSocket.on('announcement_published', (data) => {
-            console.log('[ws] announcement_published', data);
+            
             setTimeout(checkAnnouncement, 500);
         });
 
         _dashSocket.on('whatsapp_order_updated', (data) => {
-            console.log('[ws] whatsapp_order_updated', data);
+            
             const wsMsgs = { paid: 'Your WhatsApp order has been confirmed!', completed: 'Your WhatsApp order is complete!', cancelled: 'Your WhatsApp order was cancelled', contacted: 'Your WhatsApp order is being processed' };
             const wsTypes = { paid: 'success', completed: 'success', cancelled: 'error', contacted: 'info', pending: 'info' };
             if (data.status && wsMsgs[data.status]) showToast(wsMsgs[data.status], wsTypes[data.status]);
@@ -2198,7 +2210,7 @@ function initDashboardSocket() {
         });
 
         _dashSocket.on('platform_access_revoked', (data) => {
-            console.log('[ws] platform_access_revoked', data);
+            
             for (const pid of Object.keys(ACTIVE_SESSIONS)) {
                 if (HEARTBEAT_INTERVALS[pid]) {
                     clearInterval(HEARTBEAT_INTERVALS[pid]);
@@ -2217,7 +2229,7 @@ function initDashboardSocket() {
             pollStatus();
             if (ALL_CARDS.length > 0) loadAvailability(ALL_CARDS);
         });
-    } catch(e) { console.error('[ws] Socket init error:', e); }
+    } catch(e) {  }
 }
 
 fetch('api/check_session', { credentials: 'include' }).then(res => {

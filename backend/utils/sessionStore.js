@@ -1,3 +1,4 @@
+import { logger } from './logger.js';
 import crypto from 'crypto';
 
 class SessionStore {
@@ -254,7 +255,7 @@ class SessionStore {
     }
 
     this.initialized = true;
-    console.log(`[store] Synced from DB: ${accountSessions.length} account sessions, ${userSessions.length} user sessions`);
+    logger.info("store", { action: "sync", accountSessions: accountSessions.length, userSessions: userSessions.length });
   }
 
   runSlotSyncCheck(prisma) {
@@ -281,11 +282,11 @@ class SessionStore {
         }
 
         if (drifted) {
-          console.log(`[sync] ID-level mismatch detected — DB account: ${dbAccountIds.size} vs Store: ${storeAccountIds.size}, DB user: ${dbUserIds.size} vs Store: ${storeUserIds.size}. Re-syncing...`);
+          logger.warn("store", { action: "sync_mismatch" });
           await this.syncFromDb(prisma);
         }
       } catch (err) {
-        console.error('[sync] Slot sync check error:', err.message);
+        logger.error("store", { action: "sync_error", error: err.message });
       }
     };
   }

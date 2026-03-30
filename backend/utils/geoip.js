@@ -160,7 +160,7 @@ async function saveToCache(ip, data) {
       },
     });
   } catch (err) {
-    console.error('[geoip] Cache save error:', err.message);
+    ;
   }
 }
 
@@ -178,7 +178,7 @@ export async function lookupIP(rawIp) {
       return primary;
     }
   } catch (err) {
-    console.warn('[geoip] Primary lookup failed:', err.message);
+    ;
   }
 
   try {
@@ -188,7 +188,7 @@ export async function lookupIP(rawIp) {
       return fallback;
     }
   } catch (err) {
-    console.warn('[geoip] Fallback lookup failed:', err.message);
+    ;
   }
 
   return makeUnknownResult(ip);
@@ -210,7 +210,7 @@ export async function reverseGeocode(lat, lon) {
       countryCode: addr.country_code?.toUpperCase() || '',
     };
   } catch (err) {
-    console.warn('[geoip] Reverse geocode failed:', err.message);
+    ;
     return null;
   }
 }

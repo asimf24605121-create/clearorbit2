@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma, emitAdminEvent } from '../server.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { nowISO } from '../utils/helpers.js';
+import { logger } from '../utils/logger.js';
 import {
   parseRawCookieString, detectPlatformFromCookies, generateNetscape,
   extractCookieExpiry, computeCookieScore,
@@ -97,7 +98,7 @@ router.get('/get_platforms', authenticate, async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error('get_platforms error:', err);
+    logger.error('platform', { action: 'get_platforms', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -141,7 +142,7 @@ router.post('/add_platform', authenticate, requireAdmin(), async (req, res) => {
 
     res.json({ success: true, message: 'Platform added', platform_id: platform.id });
   } catch (err) {
-    console.error('add_platform error:', err);
+    logger.error('platform', { action: 'add_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -234,7 +235,7 @@ router.post('/update_platform', authenticate, requireAdmin(), async (req, res) =
 
     res.json({ success: true, message: 'Platform updated', platform: _formatPlatformResponse(updated), changes });
   } catch (err) {
-    console.error('update_platform error:', err);
+    logger.error('platform', { action: 'update_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -279,7 +280,7 @@ router.post('/delete_platform', authenticate, requireAdmin('super_admin'), async
     invalidateAccountCaches();
     res.json({ success: true, message: `Platform "${platform.name}" deleted` });
   } catch (err) {
-    console.error('delete_platform error:', err);
+    logger.error('platform', { action: 'delete_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -299,7 +300,7 @@ router.post('/delete_platforms_bulk', authenticate, requireAdmin('super_admin'),
     invalidateAccountCaches();
     res.json({ success: true, message: `${deleted.count} platform(s) deleted`, count: deleted.count });
   } catch (err) {
-    console.error('delete_platforms_bulk error:', err);
+    logger.error('platform', { action: 'delete_platforms_bulk', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -343,7 +344,7 @@ router.post('/toggle_platform', authenticate, requireAdmin(), async (req, res) =
       : `Platform "${platform.name}" disabled. ${terminatedSessions} active session(s) terminated.`;
     res.json({ success: true, message: msg, is_active: newStatus, terminated_sessions: terminatedSessions });
   } catch (err) {
-    console.error('toggle_platform error:', err);
+    logger.error('platform', { action: 'toggle_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -384,7 +385,7 @@ router.post('/upload_logo', authenticate, requireAdmin(), (req, res) => {
       platformCache.invalidate('platform:dashboard');
       res.json({ success: true, message: 'Logo uploaded', logo_url: logoUrl });
     } catch (e) {
-      console.error('upload_logo error:', e);
+      logger.error('platform', { action: 'upload_logo', error: e.message });
       if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       res.status(500).json({ success: false, message: 'Server error' });
     }
@@ -413,7 +414,7 @@ router.post('/remove_logo', authenticate, requireAdmin(), async (req, res) => {
     platformCache.invalidate('platform:dashboard');
     res.json({ success: true, message: 'Logo removed' });
   } catch (err) {
-    console.error('remove_logo error:', err);
+    logger.error('platform', { action: 'remove_logo', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -443,7 +444,7 @@ router.get('/get_cookie', authenticate, async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('get_cookie error:', err);
+    logger.error('platform', { action: 'get_cookie', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -475,7 +476,7 @@ router.post('/update_cookie', authenticate, requireAdmin(), async (req, res) => 
 
     res.json({ success: true, message: 'Cookie updated' });
   } catch (err) {
-    console.error('update_cookie error:', err);
+    logger.error('platform', { action: 'update_cookie', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -488,7 +489,7 @@ router.post('/delete_cookie', authenticate, requireAdmin('super_admin'), async (
     await prisma.cookieVault.delete({ where: { id: parseInt(cookie_id) } });
     res.json({ success: true, message: 'Cookie deleted' });
   } catch (err) {
-    console.error('delete_cookie error:', err);
+    logger.error('platform', { action: 'delete_cookie', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -621,7 +622,7 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
             emitAdminEvent('platform_dead_resolved', { platformId: platId, platformName: platName });
           }
         } catch (e) {
-          console.error(`Notification auto-resolve error for platform ${platId}:`, e.message);
+          logger.warn("platform", { action: "auto_resolve_notification", platform: platId, error: e.message });
         }
       }
 
@@ -677,7 +678,7 @@ router.post('/validate_cookie', authenticate, recheckLimiter, async (req, res) =
       required_components: requirements,
     });
   } catch (err) {
-    console.error('validate_cookie error:', err);
+    logger.error('platform', { action: 'validate_cookie', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -713,7 +714,7 @@ router.post('/cookie_detect_platform', authenticate, async (req, res) => {
       auto_created: platform?.autoDetected === 1,
     });
   } catch (err) {
-    console.error('cookie_detect_platform error:', err);
+    logger.error('platform', { action: 'cookie_detect_platform', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -897,7 +898,7 @@ router.get('/platform_health', authenticate, requireAdmin(), async (req, res) =>
     platformCache.set('platform:dashboard', result, 15000);
     return res.json(result);
   } catch (err) {
-    console.error('platform_health error:', err);
+    logger.error('platform', { action: 'platform_health', error: err.message });
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -985,7 +986,7 @@ router.post('/platform_health', authenticate, requireAdmin(), async (req, res) =
 
     return res.status(400).json({ success: false, message: 'Unknown action' });
   } catch (err) {
-    console.error('platform_health POST error:', err);
+    logger.error('platform', { action: 'platform_health_post', error: err.message });
     res.status(500).json({ success: false, message: 'Health check failed' });
   }
 });
