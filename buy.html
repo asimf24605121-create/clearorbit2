@@ -254,13 +254,18 @@
         </div>
 
         <div class="p-6 space-y-5">
-            <div id="modalPlansLoading" class="py-6 text-center text-gray-400 text-sm">Loading plans...</div>
+            <div id="modalPlansLoading" class="py-6 text-center text-gray-400 text-sm">
+                <div class="flex justify-center mb-2"><div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>
+                Loading plans...
+            </div>
             <div id="modalPlansEmpty" class="hidden py-6 text-center">
+                <svg class="w-10 h-10 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 <p class="text-gray-400 text-sm">No plans available for this platform yet.</p>
             </div>
             <div id="modalPlansError" class="hidden py-6 text-center">
+                <svg class="w-10 h-10 mx-auto text-red-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                 <p class="text-gray-400 text-sm mb-2">Failed to load plans.</p>
-                <button onclick="loadModalPlans()" class="btn-gradient" style="padding:.375rem .75rem;font-size:.75rem">Retry</button>
+                <button onclick="loadModalPlans()" class="text-indigo-600 text-xs font-medium hover:underline cursor-pointer">Retry</button>
             </div>
 
             <div id="modalPlansContent" class="hidden space-y-5">
@@ -272,12 +277,12 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-2.5 uppercase tracking-wider">Account Type</label>
                     <div class="flex gap-3">
-                        <div class="type-option" onclick="selectType(this, 'shared')">
+                        <div class="type-option" data-type="shared" onclick="selectType(this, 'shared')">
                             <svg class="w-5 h-5 mx-auto mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <p class="text-sm font-medium text-gray-900">Shared</p>
                             <p class="text-xs text-gray-400">Lower price</p>
                         </div>
-                        <div class="type-option selected" onclick="selectType(this, 'private')">
+                        <div class="type-option selected" data-type="private" onclick="selectType(this, 'private')">
                             <svg class="w-5 h-5 mx-auto mb-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             <p class="text-sm font-medium text-gray-900">Private</p>
                             <p class="text-xs text-gray-400">Solo access</p>
@@ -346,19 +351,25 @@ function closeSuccessModal() {
     setTimeout(() => { document.getElementById('successModal').style.display = 'none'; }, 200);
 }
 
-let selectedPlanId = null;
+let selectedPlan = null;
 let selectedType = 'private';
 let currentPlatform = null;
 let currentPlans = [];
+let currentWhatsapp = { shared_number: '', private_number: '' };
 let ALL_PLATFORMS = [];
-
-const BADGE_MAP = { 'Netflix': 'card-popular', 'ChatGPT': 'card-popular', 'Canva': 'card-best', 'Coursera': 'card-best' };
 
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
 
 function formatDurationLabel(value, unit) {
-    if (value === 1) return '1 ' + unit.charAt(0).toUpperCase() + unit.slice(1, -1);
-    return value + ' ' + unit.charAt(0).toUpperCase() + unit.slice(1);
+    if (unit === 'days' && value === 7) return '1 Week';
+    if (unit === 'days' && value === 14) return '2 Weeks';
+    if (unit === 'days' && value === 30) return '1 Month';
+    if (unit === 'days' && value === 60) return '2 Months';
+    if (unit === 'days' && value === 90) return '3 Months';
+    if (unit === 'days' && value === 180) return '6 Months';
+    if (unit === 'days' && value === 365) return '1 Year';
+    const unitLabel = unit.charAt(0).toUpperCase() + unit.slice(1);
+    return `${value} ${unitLabel}`;
 }
 
 async function loadPlatforms() {
@@ -384,13 +395,12 @@ function renderPlatforms(platforms) {
     document.getElementById('platformsGrid').innerHTML = platforms.map((p, i) => {
         const logoSrc = p.logo_url || '';
         const color = p.bg_color_hex || '#6C5CE7';
-        const badgeClass = BADGE_MAP[p.name] || '';
         const logoHtml = logoSrc
             ? `<img src="${escHtml(logoSrc)}" alt="${escHtml(p.name)}" class="w-16 h-16 rounded-2xl object-cover mx-auto" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div style="display:none" class="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 items-center justify-center text-2xl font-bold mx-auto">${escHtml(p.name.charAt(0))}</div>`
             : `<div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto" style="background:${escHtml(color)}">${escHtml(p.name[0].toUpperCase())}</div>`;
         const delay = Math.min(i * 60, 300);
         return `
-        <div class="card card-glow ${badgeClass} p-6 text-center platform-card" data-name="${escHtml(p.name.toLowerCase())}" data-platform-idx="${i}" style="animation:fadeInUp .5s ease ${delay}ms forwards;opacity:0">
+        <div class="card card-glow p-6 text-center platform-card" data-name="${escHtml(p.name.toLowerCase())}" data-platform-idx="${i}" style="animation:fadeInUp .5s ease ${delay}ms forwards;opacity:0">
             <div class="mb-4">${logoHtml}</div>
             <h3 class="font-bold text-gray-900 mb-1">${escHtml(p.name)}</h3>
             <p class="text-xs text-gray-400 mb-4">Premium access available</p>
@@ -415,11 +425,14 @@ function filterPlatforms() {
     });
 }
 
-function openPlanModal(platform) {
+async function openPlanModal(platform) {
     currentPlatform = platform;
     currentPlans = [];
-    selectedPlanId = null;
+    selectedPlan = null;
     selectedType = 'private';
+    document.querySelectorAll('.type-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.type === 'private');
+    });
 
     document.getElementById('modalPlatformName').textContent = platform.name;
     const logoEl = document.getElementById('modalLogo');
@@ -435,7 +448,6 @@ function openPlanModal(platform) {
     document.getElementById('modalPlansEmpty').classList.add('hidden');
     document.getElementById('modalPlansError').classList.add('hidden');
     document.getElementById('modalPlansContent').classList.add('hidden');
-
     document.getElementById('planModal').classList.add('active');
     loadModalPlans();
 }
@@ -448,9 +460,12 @@ async function loadModalPlans() {
     document.getElementById('modalPlansContent').classList.add('hidden');
 
     try {
-        const res = await fetch(`api/get_public_pricing?platform_id=${currentPlatform.id}`);
+        const res = await fetch(`api/get_public_pricing?platform_id=${currentPlatform.id}`, { credentials: 'include' });
         const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
         currentPlans = data.plans || [];
+        currentWhatsapp = data.whatsapp || { shared_number: '', private_number: '' };
         document.getElementById('modalPlansLoading').classList.add('hidden');
 
         if (currentPlans.length === 0) {
@@ -458,9 +473,9 @@ async function loadModalPlans() {
             return;
         }
 
-        selectedPlanId = currentPlans[0].id;
+        selectedPlan = currentPlans[0];
         renderDurationOptions();
-        updateTotalPrice();
+        updatePrices();
         document.getElementById('modalPlansContent').classList.remove('hidden');
     } catch(e) {
         document.getElementById('modalPlansLoading').classList.add('hidden');
@@ -472,26 +487,27 @@ function renderDurationOptions() {
     const container = document.getElementById('durationOptions');
     container.innerHTML = currentPlans.map((p, i) => {
         const label = formatDurationLabel(p.duration_value, p.duration_unit);
-        const price = selectedType === 'private' ? p.private_price : p.shared_price;
-        const origPrice = p.original_price;
-        const badgeHtml = p.badge ? `<span class="best-badge">${escHtml(p.badge)}</span>` : '';
-        const origHtml = origPrice != null ? `<span class="text-xs text-gray-400 line-through mr-1">$${origPrice.toFixed(2)}</span>` : '';
-        const selected = p.id === selectedPlanId ? 'selected' : '';
-        return `<div class="plan-option ${selected}" onclick="selectPlan(this, ${p.id})" data-plan-id="${p.id}">
+        const badgeHtml = p.badge ? `<div class="best-badge">${escHtml(p.badge)}</div>` : '';
+        const originalPrice = parseFloat(p.original_price);
+        const originalHtml = originalPrice ? `<span class="text-xs text-gray-400 line-through mr-1">$${originalPrice.toFixed(2)}</span>` : '';
+        const price = selectedType === 'shared' ? parseFloat(p.shared_price) : parseFloat(p.private_price);
+        const selected = selectedPlan && p.id === selectedPlan.id ? 'selected' : '';
+        return `
+        <div class="plan-option ${selected}" onclick="selectPlan(this, ${i})" data-plan-idx="${i}">
             ${badgeHtml}
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3"><div class="check"></div><span class="text-sm font-medium text-gray-900">${escHtml(label)}</span></div>
-                <div>${origHtml}<span class="text-sm font-bold text-gray-900">$${price.toFixed(2)}</span></div>
+                <div>${originalHtml}<span class="text-sm font-bold text-gray-900" data-price-idx="${i}">$${price.toFixed(2)}</span></div>
             </div>
         </div>`;
     }).join('');
 }
 
-function selectPlan(el, planId) {
+function selectPlan(el, idx) {
     document.querySelectorAll('.plan-option').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
-    selectedPlanId = planId;
-    updateTotalPrice();
+    selectedPlan = currentPlans[idx];
+    updatePrices();
 }
 
 function selectType(el, type) {
@@ -499,30 +515,35 @@ function selectType(el, type) {
     el.classList.add('selected');
     selectedType = type;
     renderDurationOptions();
-    updateTotalPrice();
+    updatePrices();
 }
 
-function updateTotalPrice() {
-    const plan = currentPlans.find(p => p.id === selectedPlanId);
-    if (!plan) return;
-    const price = selectedType === 'private' ? plan.private_price : plan.shared_price;
-    document.getElementById('totalPrice').textContent = '$' + price.toFixed(2);
+function updatePrices() {
+    if (!selectedPlan) return;
+
+    currentPlans.forEach((p, i) => {
+        const price = selectedType === 'shared' ? p.shared_price : p.private_price;
+        const el = document.querySelector(`[data-price-idx="${i}"]`);
+        if (el) el.textContent = '$' + parseFloat(price).toFixed(2);
+    });
+
+    const total = selectedType === 'shared' ? selectedPlan.shared_price : selectedPlan.private_price;
+    document.getElementById('totalPrice').textContent = '$' + parseFloat(total).toFixed(2);
 }
 
 function closePlanModal() {
     document.getElementById('planModal').classList.remove('active');
     currentPlatform = null;
     currentPlans = [];
+    selectedPlan = null;
 }
 
-function getSelectedPlan() {
-    return currentPlans.find(p => p.id === selectedPlanId);
+function getDurationLabel(plan) {
+    return formatDurationLabel(plan.duration_value, plan.duration_unit);
 }
 
 async function buyNow() {
-    if (!currentPlatform) return;
-    const plan = getSelectedPlan();
-    if (!plan) return;
+    if (!currentPlatform || !selectedPlan) return;
     const username = document.getElementById('buyUsername').value.trim();
     if (!username) {
         document.getElementById('buyUsername').focus();
@@ -537,10 +558,10 @@ async function buyNow() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 platform_id: currentPlatform.id,
-                plan_id: plan.id,
-                duration_key: plan.duration_key,
+                plan_id: selectedPlan.id,
                 username,
-                account_type: selectedType,
+                duration_key: selectedPlan.duration_key,
+                account_type: selectedType
             })
         });
         const data = await res.json();
@@ -556,9 +577,7 @@ async function buyNow() {
 }
 
 async function orderViaWhatsApp() {
-    if (!currentPlatform) return;
-    const plan = getSelectedPlan();
-    if (!plan) return;
+    if (!currentPlatform || !selectedPlan) return;
     const username = document.getElementById('buyUsername').value.trim();
     if (!username) {
         document.getElementById('buyUsername').focus();
@@ -567,8 +586,8 @@ async function orderViaWhatsApp() {
         return;
     }
 
-    const price = (selectedType === 'private' ? plan.private_price : plan.shared_price).toFixed(2);
-    const durLabel = formatDurationLabel(plan.duration_value, plan.duration_unit);
+    const price = (selectedType === 'shared' ? selectedPlan.shared_price : selectedPlan.private_price).toFixed(2);
+    const whatsappNumber = (selectedType === 'shared' ? currentWhatsapp.shared_number : currentWhatsapp.private_number) || currentWhatsapp.shared_number || currentWhatsapp.private_number || currentPlatform.whatsapp_number || '1234567890';
 
     try {
         await fetch('api/create_payment', { credentials: 'include',
@@ -576,16 +595,15 @@ async function orderViaWhatsApp() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 platform_id: currentPlatform.id,
-                plan_id: plan.id,
-                duration_key: plan.duration_key,
+                plan_id: selectedPlan.id,
                 username,
-                account_type: selectedType,
+                duration_key: selectedPlan.duration_key,
+                account_type: selectedType
             })
         });
     } catch(e) {}
 
-    const whatsappNumber = currentPlatform.whatsapp_number || '1234567890';
-    const message = `Hello, I want to buy *${currentPlatform.name}*\nUsername: ${username}\nPlan: ${durLabel}\nType: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}\nPrice: $${price}`;
+    const message = `Hello, I want to buy *${currentPlatform.name}*\nUsername: ${username}\nPlan: ${getDurationLabel(selectedPlan)}\nType: ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}\nPrice: $${price}`;
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
 }
 

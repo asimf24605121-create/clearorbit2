@@ -223,7 +223,7 @@ model PricingPlan {
 
   platform      Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
 
-  @@unique([platformId, durationKey])
+  @@unique([platformId, durationValue, durationUnit])
   @@map("pricing_plans")
 }
 

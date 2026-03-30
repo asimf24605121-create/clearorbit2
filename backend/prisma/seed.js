@@ -101,20 +101,70 @@ async function main() {
   }
 
   const defaultPricing = [
-    [1, '1_week', 1.79, 2.99], [1, '1_month', 4.79, 7.99], [1, '6_months', 20.99, 34.99], [1, '1_year', 35.99, 59.99],
-    [2, '1_week', 1.19, 1.99], [2, '1_month', 2.99, 4.99], [2, '6_months', 14.99, 24.99], [2, '1_year', 26.99, 44.99],
-    [3, '1_week', 1.49, 2.49], [3, '1_month', 4.19, 6.99], [3, '6_months', 17.99, 29.99], [3, '1_year', 29.99, 49.99],
-    [4, '1_week', 2.39, 3.99], [4, '1_month', 5.99, 9.99], [4, '6_months', 26.99, 44.99], [4, '1_year', 47.99, 79.99],
-    [5, '1_week', 1.19, 1.99], [5, '1_month', 3.59, 5.99], [5, '6_months', 17.99, 29.99], [5, '1_year', 29.99, 49.99],
-    [6, '1_week', 1.49, 2.49], [6, '1_month', 3.99, 6.99], [6, '6_months', 18.99, 31.99], [6, '1_year', 32.99, 54.99],
-    [7, '1_week', 1.49, 2.49], [7, '1_month', 3.99, 6.99], [7, '6_months', 18.99, 31.99], [7, '1_year', 32.99, 54.99],
-    [8, '1_week', 1.19, 1.99], [8, '1_month', 2.99, 4.99], [8, '6_months', 14.99, 24.99], [8, '1_year', 26.99, 44.99],
-    [9, '1_week', 1.79, 2.99], [9, '1_month', 4.79, 7.99], [9, '6_months', 22.99, 37.99], [9, '1_year', 39.99, 66.99],
+    [1, 7, 'days', 1.79, 2.99, null, null],
+    [1, 30, 'days', 4.79, 7.99, 9.99, 'Popular'],
+    [1, 180, 'days', 20.99, 34.99, 39.99, null],
+    [1, 365, 'days', 35.99, 59.99, 69.99, 'Best Value'],
+    [2, 7, 'days', 1.19, 1.99, null, null],
+    [2, 30, 'days', 2.99, 4.99, null, 'Popular'],
+    [2, 180, 'days', 14.99, 24.99, 29.99, null],
+    [2, 365, 'days', 26.99, 44.99, 54.99, 'Best Value'],
+    [3, 7, 'days', 1.49, 2.49, null, null],
+    [3, 30, 'days', 4.19, 6.99, null, null],
+    [3, 180, 'days', 17.99, 29.99, 34.99, 'Popular'],
+    [3, 365, 'days', 29.99, 49.99, 59.99, 'Best Value'],
+    [4, 30, 'minutes', 0.99, 1.49, null, null],
+    [4, 2, 'hours', 2.39, 3.99, null, null],
+    [4, 7, 'days', 5.99, 9.99, null, 'Popular'],
+    [4, 30, 'days', 15.99, 26.99, 29.99, null],
+    [4, 365, 'days', 47.99, 79.99, 99.99, 'Best Value'],
+    [5, 7, 'days', 1.19, 1.99, null, null],
+    [5, 30, 'days', 3.59, 5.99, null, 'Popular'],
+    [5, 180, 'days', 17.99, 29.99, 34.99, null],
+    [5, 365, 'days', 29.99, 49.99, 59.99, 'Best Value'],
+    [6, 2, 'hours', 0.79, 1.29, null, null],
+    [6, 7, 'days', 1.49, 2.49, null, null],
+    [6, 30, 'days', 3.99, 6.99, null, 'Popular'],
+    [6, 180, 'days', 18.99, 31.99, 37.99, null],
+    [6, 365, 'days', 32.99, 54.99, 64.99, 'Best Value'],
+    [7, 7, 'days', 1.49, 2.49, null, null],
+    [7, 30, 'days', 3.99, 6.99, null, 'Popular'],
+    [7, 180, 'days', 18.99, 31.99, 37.99, null],
+    [7, 365, 'days', 32.99, 54.99, 64.99, 'Best Value'],
+    [8, 7, 'days', 1.19, 1.99, null, null],
+    [8, 30, 'days', 2.99, 4.99, null, 'Popular'],
+    [8, 180, 'days', 14.99, 24.99, null, null],
+    [8, 365, 'days', 26.99, 44.99, 54.99, 'Best Value'],
+    [9, 30, 'minutes', 0.69, 1.19, null, 'Limited Offer'],
+    [9, 7, 'days', 1.79, 2.99, null, null],
+    [9, 30, 'days', 4.79, 7.99, null, 'Popular'],
+    [9, 180, 'days', 22.99, 37.99, 44.99, null],
+    [9, 365, 'days', 39.99, 66.99, 79.99, 'Best Value'],
   ];
 
-  for (const [platformId, durationKey, sharedPrice, privatePrice] of defaultPricing) {
+  function makeDurationKey(value, unit) {
+    if (unit === 'days') {
+      if (value === 7) return '1_week';
+      if (value === 30) return '1_month';
+      if (value === 180) return '6_months';
+      if (value === 365) return '1_year';
+    }
+    return `${value}_${unit}`;
+  }
+
+  for (const [platformId, durationValue, durationUnit, sharedPrice, privatePrice, originalPrice, badge] of defaultPricing) {
     await prisma.pricingPlan.create({
-      data: { platformId, durationKey, sharedPrice, privatePrice },
+      data: {
+        platformId,
+        durationKey: makeDurationKey(durationValue, durationUnit),
+        durationValue,
+        durationUnit,
+        sharedPrice,
+        privatePrice,
+        originalPrice: originalPrice || null,
+        badge: badge || null,
+        isActive: 1,
+      },
     });
   }
 

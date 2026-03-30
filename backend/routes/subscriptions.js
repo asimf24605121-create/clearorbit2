@@ -294,7 +294,11 @@ router.get('/get_pricing', authenticate, requireAdmin(), async (req, res) => {
   try {
     const { platform_id } = req.query;
     const where = {};
-    if (platform_id) where.platformId = parseInt(platform_id);
+    if (platform_id) {
+      const pid = parseInt(platform_id);
+      if (isNaN(pid)) return res.status(400).json({ success: false, message: 'Invalid platform ID' });
+      where.platformId = pid;
+    }
 
     const plans = await prisma.pricingPlan.findMany({
       where,
@@ -316,15 +320,21 @@ router.get('/get_public_pricing', async (req, res) => {
     const { platform_id } = req.query;
     if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
 
-    const platform = await prisma.platform.findUnique({ where: { id: parseInt(platform_id) } });
+    const pid = parseInt(platform_id);
+    if (isNaN(pid)) return res.status(400).json({ success: false, message: 'Invalid platform ID' });
+
+    const [platform, plans, whatsappConfig] = await Promise.all([
+      prisma.platform.findUnique({ where: { id: pid } }),
+      prisma.pricingPlan.findMany({
+        where: { platformId: pid, isActive: 1, platform: { isActive: 1 } },
+        orderBy: { sortOrder: 'asc' },
+      }),
+      prisma.whatsappConfig.findUnique({ where: { platformId: pid } }),
+    ]);
+
     if (!platform || platform.isActive !== 1) {
       return res.json({ success: true, plans: [] });
     }
-
-    const plans = await prisma.pricingPlan.findMany({
-      where: { platformId: parseInt(platform_id), isActive: 1 },
-      orderBy: { sortOrder: 'asc' },
-    });
 
     res.json({
       success: true,
@@ -338,6 +348,10 @@ router.get('/get_public_pricing', async (req, res) => {
         original_price: p.originalPrice,
         badge: p.badge,
       })),
+      whatsapp: {
+        shared_number: whatsappConfig?.sharedNumber || '',
+        private_number: whatsappConfig?.privateNumber || '',
+      },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -346,7 +360,7 @@ router.get('/get_public_pricing', async (req, res) => {
 
 router.post('/add_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
   try {
-    const { platform_id, duration_value, duration_unit, shared_price, private_price, original_price, badge } = req.body;
+    const { platform_id, duration_value, duration_unit, shared_price, private_price, original_price, badge, is_active } = req.body;
 
     if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
     const dv = parseInt(duration_value);
@@ -499,8 +513,181 @@ router.post('/delete_pricing_plan', authenticate, requireAdmin(), async (req, re
 
     res.json({ success: true, message: 'Pricing plan deleted' });
   } catch (err) {
+    console.error('delete_pricing_plan error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+router.post('/add_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { platform_id, duration_value, duration_unit, shared_price, private_price, original_price, badge } = req.body;
+
+    if (!platform_id) return res.status(400).json({ success: false, message: 'Platform ID required' });
+    const dv = parseInt(duration_value);
+    if (!dv || dv <= 0) return res.status(400).json({ success: false, message: 'Duration value must be greater than 0' });
+    if (!VALID_UNITS.includes(duration_unit)) return res.status(400).json({ success: false, message: 'Duration unit must be minutes, hours, or days' });
+    const sp = parseFloat(shared_price);
+    const pp = parseFloat(private_price);
+    if (isNaN(sp) || sp <= 0) return res.status(400).json({ success: false, message: 'Shared price must be greater than 0' });
+    if (isNaN(pp) || pp <= 0) return res.status(400).json({ success: false, message: 'Private price must be greater than 0' });
+    if (badge && !VALID_BADGES.includes(badge)) return res.status(400).json({ success: false, message: 'Invalid badge value' });
+    if (original_price !== undefined && original_price !== null && original_price !== '') {
+      const op = parseFloat(original_price);
+      if (isNaN(op) || op < 0) return res.status(400).json({ success: false, message: 'Original price must be a valid number' });
+    }
+
+    const platform = await prisma.platform.findUnique({ where: { id: parseInt(platform_id) } });
+    if (!platform) return res.status(404).json({ success: false, message: 'Platform not found' });
+
+    const existing = await prisma.pricingPlan.findFirst({
+      where: { platformId: parseInt(platform_id), durationValue: dv, durationUnit: duration_unit },
+    });
+    if (existing) return res.status(409).json({ success: false, message: 'A plan with this duration already exists for this platform' });
+
+    const plan = await prisma.pricingPlan.create({
+      data: {
+        platformId: parseInt(platform_id),
+        durationKey: makeDurationKey(dv, duration_unit),
+        durationValue: dv,
+        durationUnit: duration_unit,
+        sharedPrice: sp,
+        privatePrice: pp,
+        originalPrice: original_price ? parseFloat(original_price) : null,
+        badge: badge || null,
+        isActive: is_active !== undefined ? (parseInt(is_active) ? 1 : 0) : 1,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Plan added',
+      plan: {
+        id: plan.id, duration_key: plan.durationKey, duration_value: plan.durationValue,
+        duration_unit: plan.durationUnit, shared_price: plan.sharedPrice, private_price: plan.privatePrice,
+        original_price: plan.originalPrice, is_active: plan.isActive, badge: plan.badge,
+      },
+    });
+  } catch (err) {
+    console.error('add_pricing_plan error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.put('/update_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id, duration_value, duration_unit, shared_price, private_price, original_price, badge, is_active } = req.body;
+
+    if (!id) return res.status(400).json({ success: false, message: 'Plan ID required' });
+
+    const existing = await prisma.pricingPlan.findUnique({ where: { id: parseInt(id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    const updateData = {};
+
+    if (duration_value !== undefined || duration_unit !== undefined) {
+      const dv = parseInt(duration_value ?? existing.durationValue);
+      const du = duration_unit ?? existing.durationUnit;
+      if (dv <= 0) return res.status(400).json({ success: false, message: 'Duration value must be greater than 0' });
+      if (!VALID_UNITS.includes(du)) return res.status(400).json({ success: false, message: 'Duration unit must be minutes, hours, or days' });
+
+      if (dv !== existing.durationValue || du !== existing.durationUnit) {
+        const dup = await prisma.pricingPlan.findFirst({
+          where: { platformId: existing.platformId, durationValue: dv, durationUnit: du, id: { not: parseInt(id) } },
+        });
+        if (dup) return res.status(409).json({ success: false, message: 'A plan with this duration already exists' });
+      }
+
+      updateData.durationValue = dv;
+      updateData.durationUnit = du;
+      updateData.durationKey = makeDurationKey(dv, du);
+    }
+
+    if (shared_price !== undefined) {
+      const sp = parseFloat(shared_price);
+      if (isNaN(sp) || sp <= 0) return res.status(400).json({ success: false, message: 'Shared price must be greater than 0' });
+      updateData.sharedPrice = sp;
+    }
+    if (private_price !== undefined) {
+      const pp = parseFloat(private_price);
+      if (isNaN(pp) || pp <= 0) return res.status(400).json({ success: false, message: 'Private price must be greater than 0' });
+      updateData.privatePrice = pp;
+    }
+    if (original_price !== undefined) {
+      if (original_price !== null && original_price !== '' && original_price !== 0) {
+        const op = parseFloat(original_price);
+        if (isNaN(op) || op < 0) return res.status(400).json({ success: false, message: 'Original price must be a valid number' });
+        updateData.originalPrice = op;
+      } else {
+        updateData.originalPrice = null;
+      }
+    }
+    if (badge !== undefined) {
+      if (badge && !VALID_BADGES.includes(badge)) return res.status(400).json({ success: false, message: 'Invalid badge value' });
+      updateData.badge = badge || null;
+    }
+    if (is_active !== undefined) {
+      updateData.isActive = parseInt(is_active) ? 1 : 0;
+    }
+
+    const plan = await prisma.pricingPlan.update({ where: { id: parseInt(id) }, data: updateData });
+
+    res.json({
+      success: true,
+      message: 'Plan updated',
+      plan: {
+        id: plan.id, duration_key: plan.durationKey, duration_value: plan.durationValue,
+        duration_unit: plan.durationUnit, shared_price: plan.sharedPrice, private_price: plan.privatePrice,
+        original_price: plan.originalPrice, is_active: plan.isActive, badge: plan.badge,
+      },
+    });
+  } catch (err) {
+    console.error('update_pricing_plan error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.delete('/delete_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Plan ID required' });
+
+    const existing = await prisma.pricingPlan.findUnique({ where: { id: parseInt(id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    await prisma.pricingPlan.delete({ where: { id: parseInt(id) } });
+    res.json({ success: true, message: 'Plan deleted' });
+  } catch (err) {
+    console.error('delete_pricing_plan error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/toggle_pricing_plan', authenticate, requireAdmin(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Plan ID required' });
+
+    const existing = await prisma.pricingPlan.findUnique({ where: { id: parseInt(id) } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    const plan = await prisma.pricingPlan.update({
+      where: { id: parseInt(id) },
+      data: { isActive: existing.isActive === 1 ? 0 : 1 },
+    });
+
+    res.json({
+      success: true,
+      message: `Plan ${plan.isActive === 1 ? 'activated' : 'deactivated'}`,
+      is_active: plan.isActive,
+    });
+  } catch (err) {
+    console.error('toggle_pricing_plan error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/save_pricing', authenticate, requireAdmin(), async (req, res) => {
+  res.status(410).json({ success: false, message: 'This endpoint is deprecated. Use add_pricing_plan, update_pricing_plan, delete_pricing_plan instead.' });
 });
 
 router.post('/create_payment', authenticate, async (req, res) => {
