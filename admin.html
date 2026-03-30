@@ -9178,13 +9178,13 @@ function amSubCard(s, isActive) {
         <div class="flex items-center gap-1 flex-shrink-0">
             <span class="text-[9px] text-gray-300 hidden sm:inline">${formatDate(s.start_date)}→${formatDate(s.end_date)}</span>
             ${isActive ? `
-                <button onclick="amExtendSub(${s.id}, ${isShort ? 30 : 7}, '${isShort ? 'minutes' : 'days'}')" class="am-sub-act am-sub-act-ext" title="+${isShort ? '30m' : '7d'}">+${isShort ? '30m' : '7'}</button>
-                <button onclick="amExtendSub(${s.id}, ${isShort ? 1 : 30}, '${isShort ? 'hours' : 'days'}')" class="am-sub-act am-sub-act-ext" title="+${isShort ? '1h' : '30d'}">+${isShort ? '1h' : '30'}</button>
+                <button onclick="amExtendSub(${s.id}, ${isShort ? 30 : 7}, '${isShort ? 'minutes' : 'days'}', this)" class="am-sub-act am-sub-act-ext" data-extend-sub="${s.id}" title="+${isShort ? '30m' : '7d'}">+${isShort ? '30m' : '7'}</button>
+                <button onclick="amExtendSub(${s.id}, ${isShort ? 1 : 30}, '${isShort ? 'hours' : 'days'}', this)" class="am-sub-act am-sub-act-ext" data-extend-sub="${s.id}" title="+${isShort ? '1h' : '30d'}">+${isShort ? '1h' : '30'}</button>
                 <button onclick="amCustomExtendToggle(this,${s.id})" class="am-sub-act" title="Custom extend" style="color:#6B7280">+N</button>
             ` : `
                 <button onclick="openUserWorkflow(${s.user_id || '_uwUserId'}, 'access')" class="am-sub-act am-sub-act-ext" title="Extend Access" style="color:#059669;font-size:9px;font-weight:600">Extend</button>
             `}
-            <button onclick="amRevokeSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="am-sub-act am-sub-act-del" title="${isActive ? 'Revoke' : 'Delete'}">
+            <button onclick="amRevokeSub(${s.id}, '${escHtml(s.platform_name).replace(/'/g, "\\'")}')" class="am-sub-act am-sub-act-del" data-revoke-sub="${s.id}" title="${isActive ? 'Revoke' : 'Delete'}">
                 <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -9198,29 +9198,64 @@ function amCustomExtendToggle(btn, subId) {
     const div = document.createElement('div');
     div.className = 'am-custom-extend-row';
     div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;margin-top:4px;margin-bottom:4px';
-    div.innerHTML = `<input type="number" min="1" max="3650" placeholder="Value" value="14" class="input text-sm" style="width:70px;padding:4px 8px"/><select class="input text-sm" style="width:80px;padding:4px 6px"><option value="minutes">Min</option><option value="hours">Hours</option><option value="days" selected>Days</option></select><button onclick="amExtendSub(${subId}, parseInt(this.parentElement.querySelector('input').value)||0, this.parentElement.querySelector('select').value); this.parentElement.remove()" class="btn text-white text-xs font-semibold" style="background:#059669;border:none;border-radius:6px;padding:4px 10px;white-space:nowrap">Extend</button><button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-xs" style="padding:2px">Cancel</button>`;
+    div.innerHTML = `<input type="number" min="1" max="3650" placeholder="Value" value="14" class="input text-sm" style="width:70px;padding:4px 8px"/><select class="input text-sm" style="width:80px;padding:4px 6px"><option value="minutes">Min</option><option value="hours">Hours</option><option value="days" selected>Days</option></select><button onclick="amExtendSub(${subId}, parseInt(this.parentElement.querySelector('input').value)||0, this.parentElement.querySelector('select').value, this)" class="btn text-white text-xs font-semibold" data-extend-sub="${subId}" style="background:#059669;border:none;border-radius:6px;padding:4px 10px;white-space:nowrap">Extend</button><button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-xs" style="padding:2px">Cancel</button>`;
     card.after(div);
     div.querySelector('input').focus();
 }
 
-async function amExtendSub(subId, val, unit) {
+const _amExtendInFlight = new Set();
+async function amExtendSub(subId, val, unit, btnEl) {
     const extUnit = unit || 'days';
+    if (_amExtendInFlight.has(subId)) return;
+    _amExtendInFlight.add(subId);
+    const btns = document.querySelectorAll(`[data-extend-sub="${subId}"]`);
+    const callerBtn = btnEl instanceof HTMLElement ? btnEl : null;
+    const allBtns = callerBtn ? [callerBtn, ...btns] : [...btns];
+    const savedContents = allBtns.map(b => b.innerHTML);
+    allBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; b.style.pointerEvents = 'none'; });
+    if (callerBtn) callerBtn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>';
     try {
         const res = await fetch('api/extend_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId, extend_value: val, extend_unit: extUnit }) });
         const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) { amRefresh(); refreshUsersTable(); }
-    } catch { showAlert('Network error', true); }
+        if (data.success) {
+            showAlert('Access extended successfully');
+            amRefresh(); refreshUsersTable();
+        } else {
+            showAlert(data.message || 'Failed to extend', true);
+            allBtns.forEach((b, i) => { b.disabled = false; b.style.opacity = ''; b.style.pointerEvents = ''; b.innerHTML = savedContents[i]; });
+        }
+    } catch {
+        showAlert('Network error — please try again', true);
+        allBtns.forEach((b, i) => { b.disabled = false; b.style.opacity = ''; b.style.pointerEvents = ''; b.innerHTML = savedContents[i]; });
+    } finally {
+        _amExtendInFlight.delete(subId);
+    }
 }
 
+const _amRevokeInFlight = new Set();
 async function amRevokeSub(subId, platformName) {
+    if (_amRevokeInFlight.has(subId)) return;
     if (!confirm(`Revoke access to "${platformName}"?`)) return;
+    _amRevokeInFlight.add(subId);
+    const btn = document.querySelector(`[data-revoke-sub="${subId}"]`);
+    const savedContent = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none'; btn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>'; }
     try {
         const res = await fetch('api/revoke_subscription', { method: 'POST', headers: csrfHeaders(), credentials: 'include', body: JSON.stringify({ subscription_id: subId }) });
         const data = await res.json();
-        showAlert(data.message, !data.success);
-        if (data.success) { amRefresh(); refreshUsersTable(); }
-    } catch { showAlert('Network error', true); }
+        if (data.success) {
+            showAlert('Access revoked successfully');
+            amRefresh(); refreshUsersTable();
+        } else {
+            showAlert(data.message || 'Failed to revoke', true);
+            if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.pointerEvents = ''; btn.innerHTML = savedContent; }
+        }
+    } catch {
+        showAlert('Network error — please try again', true);
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.pointerEvents = ''; btn.innerHTML = savedContent; }
+    } finally {
+        _amRevokeInFlight.delete(subId);
+    }
 }
 
 async function amAddSubscription() {
